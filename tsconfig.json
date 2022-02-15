@@ -1,0 +1,35 @@
+// Visit https://aka.ms/tsconfig.json to read more about this file
+{
+	"compilerOptions": {
+		"target": "es6",
+		"module": "commonjs",
+		"allowJs": true,
+		// "checkJs": true,
+		"outDir": "./build/",
+		"rootDir": "./src/",
+		"removeComments": true,
+		"downlevelIteration": false,
+		// "strict": true,
+		// "noImplicitAny": true,
+		"strictNullChecks": true,
+		"strictFunctionTypes": true,
+		"strictBindCallApply": true,
+		"strictPropertyInitialization": true,
+		"noImplicitThis": true,
+		"alwaysStrict": true,
+		"noUnusedLocals": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedIndexedAccess": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"esModuleInterop": true,
+		"preserveSymlinks": true,
+		"skipLibCheck": true,
+		// "sourceMap": true, //debugger
+		"forceConsistentCasingInFileNames": true
+	},
+	"exclude": [
+		"node_modules/",
+	],
+	"include": ["src/"]
+}

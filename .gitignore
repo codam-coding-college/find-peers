@@ -5,3 +5,4 @@
 /token*.json
 /env/
 /data/
+/test.ts

@@ -64,20 +64,22 @@ export class API {
 		return await response.json()
 	}
 
-	async getPaged(path: string, parameters?: { [key: string]: string | number }[]): Promise<any[]> {
+	async getPaged(path: string, parameters?: { [key: string]: string | number }[], onPage?: (response: any) => void): Promise<any[]> {
 		let items: any[] = []
 
 		if (!parameters)
 			parameters = []
-		parameters['page[number]'] = '<placeholder>'
+		parameters.push({ 'page[number]': '<placeholder>' })
 		for (let i = 1; ; i++) {
-			for (const p of parameters)
+			for (let p of parameters)
 				if (p['page[number]'])
 					p['page[number]'] = i
 
 			const block = await this.get(path, parameters) // TODO: fix & and ?
 			if (block.length == 0)
 				break
+			if (onPage)
+				onPage(block)
 			items = items.concat(block)
 		}
 		return items

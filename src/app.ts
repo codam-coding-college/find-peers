@@ -3,8 +3,10 @@ import express from 'express'
 import fs from 'fs'
 import { passport, authenticate } from './authentication'
 import { writeProjectsToJSON } from './db'
+
 import { Project } from './types'
 import { env } from './env'
+import session from 'express-session'
 
 const projectIDs: { [key: string]: number }[] = JSON.parse(fs.readFileSync('./data/projectIDs.json').toString())
 let projects: Project[] = JSON.parse(fs.readFileSync('./data/projectUsers.json').toString());
@@ -17,6 +19,16 @@ let projects: Project[] = JSON.parse(fs.readFileSync('./data/projectUsers.json')
 
 const app = express()
 app.use(passport.initialize())
+
+const FileStore = require('session-file-store')(session);
+app.use(session({
+	store: new FileStore({ path: './sessions', retries: 1 }),
+	secret: env.clientSecret,
+	resave: false,
+	saveUninitialized: true
+}))
+app.use(passport.initialize())
+app.use(passport.session())
 
 app.get(`/auth/${env.provider}/`, passport.authenticate(env.provider, { scope: env.scope }))
 app.get(`/auth/${env.provider}/callback`,

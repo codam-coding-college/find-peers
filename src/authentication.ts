@@ -6,7 +6,7 @@ import { env } from './env'
 
 export function authenticate(req, res, next) {
 	if (!req.user) {
-		res.redirect('/login')
+		res.redirect(`/auth/${env.provider}`)
 	} else {
 		next()
 	}
@@ -39,6 +39,7 @@ passport.deserializeUser((id, done) => {
 	const user = users.find((user) => user.id === id)
 	done(null, user)
 })
+
 async function getProfile(accessToken: string, refreshToken: string): Promise<UserProfile | null> {
 	try {
 		const response = await fetch('https://api.intra.42.fr/v2/me', {
@@ -47,7 +48,6 @@ async function getProfile(accessToken: string, refreshToken: string): Promise<Us
 			}
 		})
 		const json = await response.json()
-		console.log(json)
 		return {
 			id: json.id,
 			login: json.login,

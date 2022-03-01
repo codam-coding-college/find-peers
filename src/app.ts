@@ -1,8 +1,10 @@
 import fs from 'fs'
 import { API } from './api'
+import { User, ProjectSubscribers, ProjectSubscriber } from './types'
 
 const Api: API = new API('./env/tokens.json', true)
 
+const _42CursusID = 21
 const codamCampusID = 14
 const jkoersID = 66365
 const joppeID = 105119
@@ -17,21 +19,33 @@ async function getProjects() {
 	return await Api.getPaged('/v2/projects/')
 }
 
-async function getProjectSubscribers(projectID: number): Promise<any[]> {
-	return await Api.getPaged(`/v2/projects/${projectID}/projects_users`, [{ 'filter[campus]': codamCampusID }])
+async function getProjectSubscribers(projectID: number): Promise<ProjectSubscriber[]> {
+	const users: User[] = await Api.getPaged(
+		`/v2/projects/${projectID}/projects_users`,
+		[{ 'filter[campus]': codamCampusID }],
+		// (data) => console.log(data)
+	)
+	const projectSubscribers = users.map(x => ({
+		login: x.user.login,
+		status: x.status,
+		image_url: x.user.image_url.replace('https://cdn.intra.42.fr/users/', 'https://cdn.intra.42.fr/users/small_')
+	}))
+	return projectSubscribers
+}
+
+async function writeProjectsToJSON(path: string, ids: { [key: string]: number }[]) {
+	const projects: ProjectSubscribers[] = []
+	for (const id in ids) {
+		const item: ProjectSubscribers = {
+			name: id,
+			users: await getProjectSubscribers(ids[id!])
+		}
+		projects.push(item)
+	}
+	await fs.promises.writeFile(path, JSON.stringify(projects))
 }
 
 (async () => {
-	const projectIDs = JSON.parse(fs.readFileSync('./data/projectIDs.json').toString())
-
-	for (const id in projectIDs) {
-		console.log(id)
-		const subs = await getProjectSubscribers(projectIDs[id])
-		for (const sub of subs) {
-			if (sub.status != 'finished')
-				console.log(`${sub.user.login},${sub.status},${sub.marked}`)
-		}
-		console.log('\n')
-	}
-	// console.log(subs)
+	const projectIDs: { [key: string]: number }[] = JSON.parse(fs.readFileSync('./data/projectIDs.json').toString())
+	writeProjectsToJSON('./data/projectUsers.json', projectIDs)
 })()

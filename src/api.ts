@@ -26,8 +26,10 @@ export class API {
 		this._logging = logging
 		this._root = root
 		this._tokens = JSON.parse(fs.readFileSync(tokenPath).toString())
-		if (!this._tokens.clientUID.length || !this._tokens.clientSecret.length)
-			throw 'Token file invalid'
+		if (!this._tokens.clientUID.length || !this._tokens.clientSecret.length) {
+			console.error('Token file invalid')
+			process.exit(1)
+		}
 		this._accessToken = null
 		this._accessTokenExpiry = -1
 	}

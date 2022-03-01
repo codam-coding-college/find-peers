@@ -1,5 +1,4 @@
 import fetch from 'node-fetch'
-import fs from 'fs'
 import parameterAppend from 'url-parameter-append'
 
 interface Tokens {
@@ -22,14 +21,10 @@ export class API {
 	private _logging: boolean
 	private _accessTokenExpiry: number
 
-	constructor(tokenPath: string, logging: boolean = false, root = 'https://api.intra.42.fr') {
+	constructor(clientUID: string, clientSecret: string, logging: boolean = false, root = 'https://api.intra.42.fr') {
 		this._logging = logging
 		this._root = root
-		this._tokens = JSON.parse(fs.readFileSync(tokenPath).toString())
-		if (!this._tokens.clientUID.length || !this._tokens.clientSecret.length) {
-			console.error('Token file invalid')
-			process.exit(1)
-		}
+		this._tokens = { clientUID, clientSecret }
 		this._accessToken = null
 		this._accessTokenExpiry = -1
 	}

@@ -1,51 +1,30 @@
+import path from 'path'
+import express from 'express'
 import fs from 'fs'
-import { API } from './api'
-import { User, ProjectSubscribers, ProjectSubscriber } from './types'
-
-const Api: API = new API('./env/tokens.json', true)
-
-const _42CursusID = 21
-const codamCampusID = 14
-const jkoersID = 66365
-const joppeID = 105119
-const netPracticeID = 2007
+import { writeProjectsToJSON } from './db'
+import { Project } from './types'
 
 
-async function getEvents() {
-	return await Api.get(`/v2/campus/${codamCampusID}/events`)
-}
+const projectIDs: { [key: string]: number }[] = JSON.parse(fs.readFileSync('./data/projectIDs.json').toString())
+let projects: Project[] = JSON.parse(fs.readFileSync('./data/projectUsers.json').toString());
 
-async function getProjects() {
-	return await Api.getPaged('/v2/projects/')
-}
+// (async () => {
+// 	await writeProjectsToJSON('./data/projectUsers.json', projectIDs)
 
-async function getProjectSubscribers(projectID: number): Promise<ProjectSubscriber[]> {
-	const users: User[] = await Api.getPaged(
-		`/v2/projects/${projectID}/projects_users`,
-		[{ 'filter[campus]': codamCampusID }],
-		// (data) => console.log(data)
-	)
-	const projectSubscribers = users.map(x => ({
-		login: x.user.login,
-		status: x.status,
-		image_url: x.user.image_url.replace('https://cdn.intra.42.fr/users/', 'https://cdn.intra.42.fr/users/small_')
+// })()
+
+
+const app = express()
+app.get('/', async (req, res) => {
+	const projectsFiltered = projects.map(project => ({
+		name: project.name,
+		users: project.users.filter(user => !(user.status == 'finished')).sort((a, b) => (a.status < b.status) ? -1 : 1)
 	}))
-	return projectSubscribers
-}
+	res.render('index.ejs', { projects: projectsFiltered })
+})
+app.set("views", path.join(__dirname, "../views"))
+app.set('viewengine', 'ejs')
+app.use(express.static('public/'))
 
-async function writeProjectsToJSON(path: string, ids: { [key: string]: number }[]) {
-	const projects: ProjectSubscribers[] = []
-	for (const id in ids) {
-		const item: ProjectSubscribers = {
-			name: id,
-			users: await getProjectSubscribers(ids[id!])
-		}
-		projects.push(item)
-	}
-	await fs.promises.writeFile(path, JSON.stringify(projects))
-}
-
-(async () => {
-	const projectIDs: { [key: string]: number }[] = JSON.parse(fs.readFileSync('./data/projectIDs.json').toString())
-	writeProjectsToJSON('./data/projectUsers.json', projectIDs)
-})()
+const port = parseInt(process.env['PORT'] || '8080')
+app.listen(port, () => console.log('app ready on port', port))

@@ -82,7 +82,8 @@ export interface ProjectSubscriber {
 	// startYear: number
 
 }
-export interface ProjectSubscribers {
+
+export interface Project {
 	name: string
 	users: ProjectSubscriber[]
 }

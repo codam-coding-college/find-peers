@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Find peers</title>
+	<!-- <link rel="preconnect" href="https://fonts.googleapis.com"> -->
+	<!-- <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> -->
+	<!-- <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@300&display=swap" rel="stylesheet"> -->
+	<style>
+		:root {
+			color-scheme: dark;
+			font-family: 'Source Code Pro', monospace;
+			padding: 0 10px;
+			font-size: 22px;
+		}
+
+		body {
+			width: 100%;
+			max-width: 1800px;
+			margin: 0 auto;
+		}
+
+		h1,
+		h6 {
+			margin: 6px 0px 6px 0px;
+		}
+
+		#projects {
+			display: flex;
+			flex-direction: column;
+		}
+
+		.project {
+			margin: 100px 0px;
+		}
+
+		.project-name {
+			font-size: 2.5ch;
+			text-transform: lowercase;
+		}
+
+		.users {
+			max-width: 100vw;
+			flex-wrap: wrap;
+			display: flex;
+			flex-direction: row;
+		}
+
+		.user {
+			display: block;
+			padding: 20px;
+			width: 110px;
+			margin-right: 10px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			text-decoration: none;
+			color: inherit;
+		}
+
+		.status {
+			font-size: 0.8ch;
+		}
+
+		.user-image {
+			display: block;
+			object-fit: cover;
+			box-sizing: border-box;
+			background-repeat: no-repeat;
+			background-size: cover;
+			background-position: 50% 50%;
+			background-image: url(/placeholder.png);
+			border-radius: 50%;
+			align-self: center;
+			overflow: hidden;
+			height: 110px;
+			width: 110px;
+			margin-bottom: 10px;
+		}
+
+		.user:hover,
+		.user:focus {
+			box-shadow: 0 0 3px white;
+		}
+	</style>
+</head>
+
+<body>
+
+</body>
+<h1>Find Peers (Beta)</h1>
+<h6>
+	Hosted and build by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a>
+</h6>
+
+<div id="projects">
+	<% projects.forEach(project=>{ %>
+		<div class="project">
+			<div class="project-name">
+				<%= project.name %>
+			</div>
+			<div class="users">
+				<% project.users.forEach(user=>{ %>
+					<a class="user" href="https://profile.intra.42.fr/users/<%= user.login %>" target="_blank">
+						<img class="user-image" src="https://cdn.intra.42.fr/users/medium_<%= user.login %>.jpg" />
+						<div>
+							<%= user.login %>
+						</div>
+						<div class="status">
+							<%= user.status %>
+						</div>
+					</a>
+					<% }) // /> %>
+			</div>
+		</div>
+</div>
+<% }) // /> %>
+</div>
+
+<footer>
+	<a href="https://github.com/SirMorfield/codamHours">Source</a>
+</footer>
+
+</html>

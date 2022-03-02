@@ -25,7 +25,7 @@ export interface Env {
 }
 
 export const env: Env = {
-	pullTimeout: 30 * 60 * 1000, // how often to pull the project users statuses form the intra api (in Ms)
+	pullTimeout: 24 * 60 * 60 * 1000, // how often to pull the project users statuses form the intra api (in Ms)
 	projectIDs,
 	_42CursusID: 21,
 	codamCampusID: 14,

@@ -1,5 +1,6 @@
 import { saveAllProjectSubscribers } from './db'
 import { startWebserver } from './express'
+import { env } from './env'
 
 (async () => {
 	if (process.argv[2] == '--help' || process.argv[2] == '-h') {
@@ -19,6 +20,6 @@ import { startWebserver } from './express'
 
 	while (true) {
 		await saveAllProjectSubscribers('./database/projectUsers.json')
-		await new Promise((resolve, reject) => setTimeout(resolve, 24 * 60 * 60 * 1000))
+		await new Promise((resolve, reject) => setTimeout(resolve, env.pullTimeout))
 	}
 })()

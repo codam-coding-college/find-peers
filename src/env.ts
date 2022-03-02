@@ -6,7 +6,11 @@ if (!tokens.clientUID.length || !tokens.clientSecret.length) {
 	process.exit(1)
 }
 
+const projectIDs: { [key: string]: number }[] = JSON.parse(fs.readFileSync('./env/projectIDs.json').toString())
+console.log(`Watching ${Object.keys(projectIDs).length} projects`)
+
 export interface Env {
+	projectIDs: { [key: string]: number }[]
 	codamCampusID: number
 	_42CursusID: number
 	scope: string[]
@@ -14,17 +18,20 @@ export interface Env {
 	callbackURL: string
 	tokenURL: string
 	provider: string
+	authPath: string,
 	clientUID: string
 	clientSecret: string
 }
 
 export const env: Env = {
+	projectIDs,
 	_42CursusID: 21,
 	codamCampusID: 14,
 	authorizationURL: 'https://api.intra.42.fr/oauth/authorize',
 	callbackURL: 'https://find-peers.joppekoers.nl/auth/42/callback',
 	tokenURL: 'https://api.intra.42.fr/oauth/token',
 	provider: '42',
+	authPath: '/auth/42', // TODO
 	scope: ['public'],
 	...tokens,
 }

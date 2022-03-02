@@ -4,6 +4,7 @@ import { User, Project, ProjectSubscriber } from './types'
 import { env } from './env'
 
 const Api: API = new API(env.clientUID, env.clientSecret, true)
+export let projects: Project[] = JSON.parse(fs.readFileSync('./database/projectUsers.json').toString())
 
 
 export async function getEvents() {
@@ -28,14 +29,15 @@ export async function getProjectSubscribers(projectID: number): Promise<ProjectS
 	return projectSubscribers
 }
 
-export async function writeProjectsToJSON(path: string, ids: { [key: string]: number }[]) {
-	const projects: Project[] = []
-	for (const id in ids) {
+export async function saveAllProjectSubscribers(path: string) {
+	const newProjects: Project[] = []
+	for (const id in env.projectIDs) {
 		const item: Project = {
 			name: id,
-			users: await getProjectSubscribers(ids[id!])
+			users: await getProjectSubscribers(env.projectIDs[id!])
 		}
-		projects.push(item)
+		newProjects.push(item)
 	}
-	await fs.promises.writeFile(path, JSON.stringify(projects))
+	projects = newProjects
+	await fs.promises.writeFile(path, JSON.stringify(newProjects))
 }

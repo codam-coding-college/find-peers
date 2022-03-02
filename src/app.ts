@@ -10,15 +10,15 @@ import { startWebserver } from './express'
 	}
 
 	if (process.argv[2] == '--only-update-project-users') {
-		await saveAllProjectSubscribers('./data/projectUsers.json')
+		await saveAllProjectSubscribers('./database/projectUsers.json')
 		process.exit(0)
 	}
 
 	const port = parseInt(process.env['PORT'] || '8080')
 	startWebserver(port)
 
-	// while (true) {
-	// 	await saveAllProjectSubscribers('./data/projectUsers.json')
-	// 	await new Promise((resolve, reject) => setTimeout(resolve, 2 * 60 * 1000))
-	// }
+	while (true) {
+		await saveAllProjectSubscribers('./database/projectUsers.json')
+		await new Promise((resolve, reject) => setTimeout(resolve, 24 * 60 * 60 * 1000))
+	}
 })()

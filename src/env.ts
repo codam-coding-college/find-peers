@@ -10,6 +10,7 @@ const projectIDs: { [key: string]: number }[] = JSON.parse(fs.readFileSync('./en
 console.log(`Watching ${Object.keys(projectIDs).length} projects`)
 
 export interface Env {
+	pullTimeout: number
 	projectIDs: { [key: string]: number }[]
 	codamCampusID: number
 	_42CursusID: number
@@ -24,6 +25,7 @@ export interface Env {
 }
 
 export const env: Env = {
+	pullTimeout: 30 * 60 * 1000, // how often to pull the project users statuses form the intra api (in Ms)
 	projectIDs,
 	_42CursusID: 21,
 	codamCampusID: 14,

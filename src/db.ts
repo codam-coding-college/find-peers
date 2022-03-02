@@ -6,7 +6,7 @@ import { env } from './env'
 const Api: API = new API(env.clientUID, env.clientSecret, false)
 export let projects: Project[] = JSON.parse(fs.readFileSync('./database/projectUsers.json').toString())
 
-let lastPull: number = 0
+export let lastPull: number = 0
 if (!fs.existsSync('./database/lastpull.txt'))
 	fs.writeFileSync('./database/lastpull.txt', '0')
 else

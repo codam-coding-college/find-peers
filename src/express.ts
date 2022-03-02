@@ -3,7 +3,7 @@ import express from 'express'
 import { passport, authenticate } from './authentication'
 import { env } from './env'
 import session from 'express-session'
-import { projects } from './db'
+import { projects, lastPull } from './db'
 
 export function startWebserver(port: number) {
 
@@ -32,7 +32,12 @@ export function startWebserver(port: number) {
 			name: project.name,
 			users: project.users.filter(user => !(user.status == 'finished')).sort((a, b) => (a.status < b.status) ? -1 : 1)
 		}))
-		res.render('index.ejs', { projects: projectsFiltered })
+
+		const settings = {
+			projects: projectsFiltered,
+			lastUpdate: (new Date(lastPull)).toLocaleString('en-NL', { timeZone: 'Europe/Amsterdam' }),
+		}
+		res.render('index.ejs', settings)
 	})
 
 	app.set("views", path.join(__dirname, "../views"))

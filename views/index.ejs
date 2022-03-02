@@ -103,7 +103,7 @@
 	Hosted and build by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a>
 </h6>
 <h6>
-	The intra api, on which this website is build has some incorrect statuses for a small number of students.
+	For updates and feature requests please see the <a href="https://github.com/SirMorfield/find-peers">source</a> on github
 </h6>
 
 <div id="projects">
@@ -113,6 +113,9 @@
 				<%= project.name %>
 			</div>
 			<div class="users">
+				<% if (project.users.length == 0) { %>
+				<p> <small> No users are subscribed to this project </small></p>
+				<% } else { %>
 				<% project.users.forEach(user=>{ %>
 					<a class="user" href="https://profile.intra.42.fr/users/<%= user.login %>" target="_blank">
 						<img class="user-image" src="https://cdn.intra.42.fr/users/medium_<%= user.login %>.jpg" />
@@ -123,7 +126,8 @@
 							<%= user.status %>
 						</div>
 					</a>
-					<% }) // /> %>
+					<% })  %>
+				<% }  %>
 			</div>
 		</div>
 </div>

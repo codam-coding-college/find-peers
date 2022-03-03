@@ -7,10 +7,11 @@ const Api: API = new API(env.clientUID, env.clientSecret, false)
 export let projects: Project[] = JSON.parse(fs.readFileSync('./database/projectUsers.json').toString())
 
 export let lastPull: number = 0
-if (!fs.existsSync('./database/lastpull.txt'))
-	fs.writeFileSync('./database/lastpull.txt', '0')
+const lastPullPath = './database/lastpull.txt'
+if (!fs.existsSync(lastPullPath))
+	fs.writeFileSync(lastPullPath, '0')
 else
-	lastPull = parseInt(fs.readFileSync('./database/lastpull.txt').toString())
+	lastPull = parseInt(fs.readFileSync(lastPullPath).toString())
 
 export async function getEvents() {
 	return await Api.get(`/v2/campus/${env.codamCampusID}/events`)
@@ -37,10 +38,10 @@ export async function getProjectSubscribers(projectID: number): Promise<ProjectS
 export async function saveAllProjectSubscribers(path: string) {
 	const lastPullAgo = Date.now() - lastPull
 	if (lastPullAgo < env.pullTimeout) {
-		console.log('Not pulling because last pull was', lastPullAgo / 1000 / 60, 'minutes ago')
-		console.log('Timeout is', env.pullTimeout / 1000 / 60, 'minutes')
+		console.log('Not pulling because last pull was', lastPullAgo / 1000 / 60, 'minutes ago. Timeout is', env.pullTimeout / 1000 / 60, 'minutes')
 		return
 	}
+	await fs.promises.writeFile(lastPullPath, String(Date.now()))
 
 	console.time('Pull took:')
 	const newProjects: Project[] = []
@@ -54,7 +55,7 @@ export async function saveAllProjectSubscribers(path: string) {
 		newProjects.push(item)
 	}
 	projects = newProjects
-	console.time('Pull took:')
+	console.timeEnd('Pull took:')
 	await fs.promises.writeFile(path, JSON.stringify(newProjects))
 
 }

@@ -5,7 +5,7 @@ import { env } from './env'
 import session from 'express-session'
 import { projects, lastPull } from './db'
 
-export function startWebserver(port: number) {
+export async function startWebserver(port: number) {
 
 	const app = express()
 	app.use(passport.initialize())
@@ -50,5 +50,6 @@ export function startWebserver(port: number) {
 	app.set('viewengine', 'ejs')
 	app.use(express.static('public/'))
 
-	app.listen(port, () => console.log('app ready on port', port))
+	await app.listen(port)
+	console.log('app ready on port', port)
 }

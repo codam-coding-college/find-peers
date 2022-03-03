@@ -16,7 +16,7 @@ import { env } from './env'
 	}
 
 	const port = parseInt(process.env['PORT'] || '8080')
-	startWebserver(port)
+	await startWebserver(port)
 
 	while (true) {
 		await saveAllProjectSubscribers('./database/projectUsers.json')

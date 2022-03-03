@@ -41,7 +41,6 @@ export async function saveAllProjectSubscribers(path: string) {
 		console.log('Not pulling because last pull was', lastPullAgo / 1000 / 60, 'minutes ago. Timeout is', env.pullTimeout / 1000 / 60, 'minutes')
 		return
 	}
-	await fs.promises.writeFile(lastPullPath, String(Date.now()))
 
 	console.time('Pull took:')
 	const newProjects: Project[] = []
@@ -57,5 +56,6 @@ export async function saveAllProjectSubscribers(path: string) {
 	projects = newProjects
 	console.timeEnd('Pull took:')
 	await fs.promises.writeFile(path, JSON.stringify(newProjects))
-
+	await fs.promises.writeFile(lastPullPath, String(Date.now()))
+	lastPull = parseInt(await fs.promises.readFile(lastPullPath).toString())
 }

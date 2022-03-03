@@ -8,14 +8,13 @@ import { projects, lastPull } from './db'
 export async function startWebserver(port: number) {
 
 	const app = express()
-	app.use(passport.initialize())
 
 	const FileStore = require('session-file-store')(session);
 	const fileStoreSettings = {
 		path: './sessions',
 		retries: 1,
 		ttl: 7 * 24 * 60 * 60,
-		logFn: () => { },
+		// logFn: () => { },
 	}
 	app.use(session({
 		store: new FileStore(fileStoreSettings),

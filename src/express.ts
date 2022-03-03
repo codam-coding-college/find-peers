@@ -11,9 +11,15 @@ export function startWebserver(port: number) {
 	app.use(passport.initialize())
 
 	const FileStore = require('session-file-store')(session);
+	const fileStoreSettings = {
+		path: './sessions',
+		retries: 1,
+		ttl: 7 * 24 * 60 * 60,
+		logFn: () => { },
+	}
 	app.use(session({
-		store: new FileStore({ path: './sessions', retries: 1 }),
-		secret: env.clientSecret,
+		store: new FileStore(fileStoreSettings),
+		secret: env.clientSecret.slice(5),
 		resave: false,
 		saveUninitialized: true
 	}))

@@ -71,13 +71,13 @@ const client = new OAuth2Strategy({
 		const newUser = await getProfile(accessToken, refreshToken)
 		if (!newUser)
 			return done('cannot get user info', null)
-		let existingUser = users.find((user) => user.id === newUser.id)
-		if (!existingUser) {
+		const userIndex = users.findIndex((user) => user.id === newUser.id)
+		if (userIndex < 0)
 			users.push(newUser)
-			fs.promises.writeFile(userDBpath, JSON.stringify(users))
-			existingUser = newUser
-		}
-		done(null, existingUser);
+		else
+			users[userIndex] = newUser
+		await fs.promises.writeFile(userDBpath, JSON.stringify(users))
+		done(null, newUser)
 	}
 )
 passport.use(env.provider, client)

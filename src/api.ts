@@ -20,6 +20,9 @@ export class API {
 	private _accessToken: AccessToken | null
 	private _logging: boolean
 	private _accessTokenExpiry: number
+	private _startCooldown: number
+	private _cooldown: number
+	private _cooldownGrowthFactor: number
 
 	constructor(clientUID: string, clientSecret: string, logging: boolean = false, root = 'https://api.intra.42.fr') {
 		this._logging = logging
@@ -27,21 +30,48 @@ export class API {
 		this._tokens = { clientUID, clientSecret }
 		this._accessToken = null
 		this._accessTokenExpiry = -1
+		this._startCooldown = 1500
+		this._cooldown = this._startCooldown
+		this._cooldownGrowthFactor = 2
+	}
+
+	private async _fetch(path: string, opt: Object): Promise<Object> {
+		if (this._logging)
+			console.error('REQUEST', path)
+		let response
+		try {
+			response = await fetch(path, opt)
+			const json = await response.json()
+			this._cooldown = this._startCooldown
+			return json
+		} catch (err) {
+			if (response.status != 429) { // TODO
+				console.error('invalid server response')
+				process.exit(1)
+			}
+
+			if (this._logging)
+				console.log(`[fetch error]: status: ${response.status} body: ${JSON.stringify(response)} retrying in ${this._cooldown / 1000} seconds`)
+			await new Promise(resolve => setTimeout(resolve, this._cooldown))
+			this._cooldown *= this._cooldownGrowthFactor
+			return await this._fetch(path, opt)
+		}
 	}
 
 	private async _updateToken() {
 		if (this._accessTokenExpiry > Date.now() + 60 * 1000)
 			return
-
-		const response = await fetch(`${this._root}/oauth/token`, {
+		const opt = {
 			method: 'POST',
 			body: `grant_type=client_credentials&client_id=${this._tokens.clientUID}&client_secret=${this._tokens.clientSecret}`,
 			headers: {
 				"Content-Type": "application/x-www-form-urlencoded",
 			},
-		})
-		this._accessToken = await response.json()
-		this._accessTokenExpiry = this._accessToken!.created_at * 1000 + this._accessToken!.expires_in * 1000
+		}
+		this._accessToken = await this._fetch(`${this._root}/oauth/token`, opt) as AccessToken
+		this._accessTokenExpiry = + Date.now() + this._accessToken!.expires_in * 1000
+		if (this._logging)
+			console.log(`[new token]: expires in ${this._accessToken!.expires_in} seconds, on ${new Date(this._accessTokenExpiry).toISOString()}`)
 	}
 
 	async get(path: string, parameters?: { [key: string]: string | number }[]): Promise<any> {
@@ -50,15 +80,12 @@ export class API {
 		if (parameters)
 			for (const key of parameters)
 				requestPath = parameterAppend(requestPath, key)
-
-		if (this._logging)
-			console.error('REQUEST', requestPath, parameters)
-		const response = await fetch(requestPath, {
+		const opt = {
 			headers: {
 				Authorization: `Bearer ${this._accessToken!.access_token}`,
 			}
-		})
-		return await response.json()
+		}
+		return await this._fetch(requestPath, opt)
 	}
 
 	async getPaged(path: string, parameters?: { [key: string]: string | number }[], onPage?: (response: any) => void): Promise<any[]> {

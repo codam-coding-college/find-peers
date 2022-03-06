@@ -14,7 +14,7 @@ export async function startWebserver(port: number) {
 		path: './sessions',
 		retries: 1,
 		ttl: 7 * 24 * 60 * 60,
-		// logFn: () => { },
+		logFn: () => { },
 	}
 	app.use(session({
 		store: new FileStore(fileStoreSettings),

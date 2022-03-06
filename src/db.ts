@@ -30,7 +30,7 @@ export async function getProjectSubscribers(projectID: number): Promise<ProjectS
 	const projectSubscribers = users.map(x => ({
 		login: x.user.login,
 		status: x.status,
-		image_url: x.user.image_url.replace('https://cdn.intra.42.fr/users/', 'https://cdn.intra.42.fr/users/small_')
+		// image_url: x.user.image_url.replace('https://cdn.intra.42.fr/users/', 'https://cdn.intra.42.fr/users/small_')
 	}))
 	return projectSubscribers
 }
@@ -45,7 +45,7 @@ export async function saveAllProjectSubscribers(path: string) {
 	console.time('Pull took:')
 	const newProjects: Project[] = []
 	for (const id in env.projectIDs) {
-		console.log(`Pulling the subscribers of`, id)
+		console.log(`${new Date().toISOString()}\t`, `Pulling the subscribers of`, id)
 		const item: Project = {
 			name: id,
 			users: await getProjectSubscribers(env.projectIDs[id!])

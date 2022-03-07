@@ -57,5 +57,5 @@ export async function saveAllProjectSubscribers(path: string) {
 	console.timeEnd('Pull took:')
 	await fs.promises.writeFile(path, JSON.stringify(newProjects))
 	await fs.promises.writeFile(lastPullPath, String(Date.now()))
-	lastPull = parseInt(await fs.promises.readFile(lastPullPath).toString())
+	lastPull = parseInt((await fs.promises.readFile(lastPullPath)).toString())
 }

@@ -38,7 +38,7 @@ export async function getProjectSubscribers(projectID: number): Promise<ProjectS
 export async function saveAllProjectSubscribers(path: string) {
 	const lastPullAgo = Date.now() - lastPull
 	if (lastPullAgo < env.pullTimeout) {
-		console.log('Not pulling because last pull was', lastPullAgo / 1000 / 60, 'minutes ago. Timeout is', env.pullTimeout / 1000 / 60, 'minutes')
+		console.log(`Not pulling because last pull was on ${new Date(lastPull).toISOString()}, ${lastPullAgo / 1000 / 60} minutes ago. Timeout is ${env.pullTimeout / 1000 / 60} minutes`)
 		return
 	}
 

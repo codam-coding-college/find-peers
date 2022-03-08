@@ -35,7 +35,20 @@ export async function startWebserver(port: number) {
 	app.get('/', authenticate, async (req, res) => {
 		const projectsFiltered = projects.map(project => ({
 			name: project.name,
-			users: project.users.filter(user => !(user.status == 'finished')).sort((a, b) => (a.status < b.status) ? -1 : 1)
+			users: project.users.filter(user => !(user.status == 'finished')).sort((a, b) => {
+				if (a.status != b.status) {
+					const preferredOrder = [
+						'searching_a_group',
+						'in_progress',
+						'waiting_for_correction',
+						'finished'
+					]
+					const indexA = preferredOrder.findIndex(x => x == a.status)
+					const indexB = preferredOrder.findIndex(x => x == b.status)
+					return indexA < indexB ? -1 : 1
+				}
+				return a.login < b.login ? -1 : 1
+			})
 		}))
 
 		const settings = {

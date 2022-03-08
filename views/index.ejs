@@ -41,7 +41,9 @@
 
 		.project-name {
 			font-size: 2.5ch;
-			text-transform: lowercase;
+			display: flex;
+			flex-direction: row;
+			align-items: end;
 		}
 
 		.users {
@@ -87,6 +89,11 @@
 		.user:focus {
 			box-shadow: 0 0 3px white;
 		}
+
+		.n-users {
+			font-size: 0.75ch;
+			padding: 5px  20px;
+		}
 	</style>
 
 	<script async>
@@ -113,7 +120,12 @@
 	<% projects.forEach(project=>{ %>
 		<div class="project">
 			<div class="project-name">
-				<%= project.name %>
+				<div>
+					<%= project.name %>
+				</div>
+				<div class="n-users">
+					<%= project.users.length %> users
+				</div>
 			</div>
 			<div class="users">
 				<% if (project.users.length == 0) { %>

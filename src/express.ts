@@ -53,7 +53,8 @@ export async function startWebserver(port: number) {
 
 		const settings = {
 			projects: projectsFiltered,
-			lastUpdate: (new Date(lastPull)).toLocaleString('en-NL', { timeZone: 'Europe/Amsterdam' }),
+			lastUpdate: (new Date(lastPull)).toLocaleString('en-NL', { timeZone: 'Europe/Amsterdam' }).slice(0, -3),
+			hoursAgo: ((Date.now() - lastPull) / 1000 / 60 / 60).toFixed(2)
 		}
 		res.render('index.ejs', settings)
 	})

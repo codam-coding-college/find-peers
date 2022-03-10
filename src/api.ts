@@ -46,11 +46,9 @@ export class API {
 			return json
 		} catch (err) {
 			if (response.status != 429) { // TODO
-				console.error('invalid server response')
-				process.exit(1)
+				console.error(new Date(), 'invalid server response', response.status)
 			}
-
-			if (this._logging)
+			else if (this._logging)
 				console.log(`[fetch error]: status: ${response.status} body: ${JSON.stringify(response)} retrying in ${this._cooldown / 1000} seconds`)
 			await new Promise(resolve => setTimeout(resolve, this._cooldown))
 			this._cooldown *= this._cooldownGrowthFactor

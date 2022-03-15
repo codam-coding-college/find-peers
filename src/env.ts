@@ -1,8 +1,8 @@
 import fs from 'fs'
 
 const tokens = JSON.parse(fs.readFileSync('./env/tokens.json').toString())
-if (!tokens.clientUID.length || !tokens.clientSecret.length) {
-	console.error('Token file invalid')
+if (!tokens.clientUID.length || !tokens.clientSecret.length || !tokens.callbackURL.length) {
+	console.error('Token file invalid, see tokens.example.json')
 	process.exit(1)
 }
 
@@ -19,10 +19,10 @@ export interface Env {
 	projectUsersPath: string // users that are subscribed to a project
 	scope: string[]
 	authorizationURL: string
-	callbackURL: string
 	tokenURL: string
 	provider: string
 	authPath: string,
+	callbackURL: string
 	clientUID: string
 	clientSecret: string
 }
@@ -36,7 +36,6 @@ export const env: Env = {
 	userDBpath: './database/users.json',
 	projectUsersPath: './database/projectUsers.json',
 	authorizationURL: 'https://api.intra.42.fr/oauth/authorize',
-	callbackURL: 'https://find-peers.joppekoers.nl/auth/42/callback',
 	tokenURL: 'https://api.intra.42.fr/oauth/token',
 	provider: '42',
 	authPath: '/auth/42', // TODO

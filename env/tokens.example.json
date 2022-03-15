@@ -1,4 +1,5 @@
 {
 	"clientUID": "",
-	"clientSecret": ""
+	"clientSecret": "",
+	"callbackURL": "https://example.com/auth/42/callback"
 }

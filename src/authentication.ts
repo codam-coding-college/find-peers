@@ -20,15 +20,12 @@ export interface UserProfile {
 	accessToken: string,
 	refreshToken: string,
 }
-const sessionStorePath = 'sessions'
-const userDBpath = sessionStorePath + '/users.json'
 const usersDB: UserProfile[] = []
 const emptyUsersDB: string = JSON.stringify(usersDB)
-fs.mkdirSync(sessionStorePath, { recursive: true })
-if (!fs.existsSync(userDBpath) || fs.statSync(userDBpath).size < emptyUsersDB.length)
-	fs.writeFileSync(userDBpath, emptyUsersDB)
+if (!fs.existsSync(env.userDBpath) || fs.statSync(env.userDBpath).size < emptyUsersDB.length)
+	fs.writeFileSync(env.userDBpath, emptyUsersDB)
 
-const users: UserProfile[] = JSON.parse(fs.readFileSync(userDBpath).toString())
+const users: UserProfile[] = JSON.parse(fs.readFileSync(env.userDBpath).toString())
 
 
 passport.serializeUser((user, done) => {
@@ -76,7 +73,7 @@ const client = new OAuth2Strategy({
 			users.push(newUser)
 		else
 			users[userIndex] = newUser
-		await fs.promises.writeFile(userDBpath, JSON.stringify(users))
+		await fs.promises.writeFile(env.userDBpath, JSON.stringify(users))
 		done(null, newUser)
 	}
 )

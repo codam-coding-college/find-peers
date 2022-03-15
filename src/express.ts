@@ -4,14 +4,16 @@ import { passport, authenticate } from './authentication'
 import { env } from './env'
 import session from 'express-session'
 import { projects, lastPull } from './db'
+import fs from 'fs'
 
 export async function startWebserver(port: number) {
 
 	const app = express()
 
-	const FileStore = require('session-file-store')(session);
+	const FileStore = require('session-file-store')(session)
+	fs.mkdirSync(env.sessionStorePath, { recursive: true })
 	const fileStoreSettings = {
-		path: './sessions',
+		path: env.sessionStorePath,
 		retries: 1,
 		ttl: 7 * 24 * 60 * 60,
 		logFn: () => { },

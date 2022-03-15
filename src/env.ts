@@ -14,6 +14,9 @@ export interface Env {
 	projectIDs: { [key: string]: number }[]
 	codamCampusID: number
 	_42CursusID: number
+	sessionStorePath: string // session key data
+	userDBpath: string	// users associated with sessions
+	projectUsersPath: string // users that are subscribed to a project
 	scope: string[]
 	authorizationURL: string
 	callbackURL: string
@@ -29,6 +32,9 @@ export const env: Env = {
 	projectIDs,
 	_42CursusID: 21,
 	codamCampusID: 14,
+	sessionStorePath: './database/sessions',
+	userDBpath: './database/users.json',
+	projectUsersPath: './database/projectUsers.json',
 	authorizationURL: 'https://api.intra.42.fr/oauth/authorize',
 	callbackURL: 'https://find-peers.joppekoers.nl/auth/42/callback',
 	tokenURL: 'https://api.intra.42.fr/oauth/token',

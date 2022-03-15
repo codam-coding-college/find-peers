@@ -17,6 +17,7 @@ export interface Env {
 	sessionStorePath: string // session key data
 	userDBpath: string	// users associated with sessions
 	projectUsersPath: string // users that are subscribed to a project
+	lastPullPath: string // timestamp form when the server did a last pull
 	scope: string[]
 	authorizationURL: string
 	tokenURL: string
@@ -35,6 +36,7 @@ export const env: Env = {
 	sessionStorePath: './database/sessions',
 	userDBpath: './database/users.json',
 	projectUsersPath: './database/projectUsers.json',
+	lastPullPath: './database/lastpull.txt',
 	authorizationURL: 'https://api.intra.42.fr/oauth/authorize',
 	tokenURL: 'https://api.intra.42.fr/oauth/token',
 	provider: '42',

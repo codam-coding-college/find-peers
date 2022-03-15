@@ -4,14 +4,14 @@ import { User, Project, ProjectSubscriber } from './types'
 import { env } from './env'
 
 const Api: API = new API(env.clientUID, env.clientSecret, false)
-export let projects: Project[] = JSON.parse(fs.readFileSync('./database/projectUsers.json').toString())
+export let projects: Project[] = JSON.parse(fs.readFileSync(env.projectUsersPath).toString())
 
 export let lastPull: number = 0
-const lastPullPath = './database/lastpull.txt'
-if (!fs.existsSync(lastPullPath))
-	fs.writeFileSync(lastPullPath, '0')
+
+if (!fs.existsSync(env.lastPullPath))
+	fs.writeFileSync(env.lastPullPath, '0')
 else
-	lastPull = parseInt(fs.readFileSync(lastPullPath).toString())
+	lastPull = parseInt(fs.readFileSync(env.lastPullPath).toString())
 
 export async function getEvents() {
 	return await Api.get(`/v2/campus/${env.codamCampusID}/events`)
@@ -56,6 +56,6 @@ export async function saveAllProjectSubscribers(path: string) {
 	projects = newProjects
 	console.timeEnd('Pull took:')
 	await fs.promises.writeFile(path, JSON.stringify(newProjects))
-	await fs.promises.writeFile(lastPullPath, String(Date.now()))
-	lastPull = parseInt((await fs.promises.readFile(lastPullPath)).toString())
+	await fs.promises.writeFile(env.lastPullPath, String(Date.now()))
+	lastPull = parseInt((await fs.promises.readFile(env.lastPullPath)).toString())
 }

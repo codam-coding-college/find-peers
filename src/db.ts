@@ -63,12 +63,11 @@ export async function saveAllProjectSubscribersForCampus(campus: Campus) {
 		console.log(`[${campus.name}]\tNot pulling because last pull was on ${new Date(campusDBs[campus.name].lastPull).toISOString()}, ${lastPullAgo / 1000 / 60} minutes ago. Timeout is ${env.pullTimeout / 1000 / 60} minutes`)
 		return
 	}
-	console.log(`[${campus.name}] Starting pull`)
+	console.log(`[${campus.name}] Starting pull...`)
 
 	console.time(`[${campus.name}] Pull took`)
 	const newProjects: Project[] = []
 	for (const id in env.projectIDs) {
-		console.log(`${new Date().toISOString()}\t`, `[${campus.name}] Pulling the subscribers of`, id)
 		const item: Project = {
 			name: id,
 			users: await getProjectSubscribers(campus.id, env.projectIDs[id!])
@@ -77,7 +76,7 @@ export async function saveAllProjectSubscribersForCampus(campus: Campus) {
 		newProjects.push(item)
 	}
 	campusDBs[campus.name].projects = newProjects
-	console.timeEnd(`[${campus.name}] Pull took`)
+	console.timeEnd(`[${campus.name}]\tPull took`)
 	await fs.promises.writeFile(campus.projectUsersPath, JSON.stringify(newProjects))
 	await fs.promises.writeFile(campus.lastPullPath, String(Date.now()))
 	campusDBs[campus.name].lastPull = parseInt((await fs.promises.readFile(campus.lastPullPath)).toString())

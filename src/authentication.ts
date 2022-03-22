@@ -13,13 +13,17 @@ export function authenticate(req, res, next) {
 }
 
 export interface UserProfile {
-	id: number,
-	login: string,
-	first_name: string,
-	displayname: string,
-	accessToken: string,
-	refreshToken: string,
+	id: number
+	login: string
+	first_name: string
+	displayname: string
+	accessToken: string
+	refreshToken: string
+	campusID: number
+	campusName: string
+	timeZone: string
 }
+
 const usersDB: UserProfile[] = []
 const emptyUsersDB: string = JSON.stringify(usersDB)
 if (!fs.existsSync(env.userDBpath) || fs.statSync(env.userDBpath).size < emptyUsersDB.length)
@@ -45,14 +49,31 @@ async function getProfile(accessToken: string, refreshToken: string): Promise<Us
 			}
 		})
 		const json = await response.json()
-		return {
+		const profile: UserProfile = {
 			id: json.id,
 			login: json.login,
 			first_name: json.first_name,
 			displayname: json.displayname,
+			campusID: (json.campus.length > 0 ? json.campus[0].id : 42), // set user's campus to first one listed in API call
+			campusName: (json.campus.length > 0 ? json.campus[0].name : 'Paris'),
+			timeZone: (json.campus.length > 0 ? json.campus[0].time_zone : 'Europe/Paris'),
 			accessToken,
 			refreshToken,
 		}
+		for (const i in json.campus_users) { // get user's primary campus
+			if (json.campus_users[i].is_primary) {
+				for (const j in json.campus) { // get primary campus name and store it in UserProfile (overwriting the one assigned above, which might not be primary)
+					if (json.campus[j].id == json.campus_users[i].campus_id) {
+						profile.campusName = json.campus[j].name
+						profile.timeZone = json.campus[j].time_zone
+						profile.campusID = json.campus_users[i].campus_id
+						break
+					}
+				}
+				break
+			}
+		}
+		return profile
 	} catch (err) { return null }
 }
 

@@ -1,30 +1,50 @@
 import fs from 'fs'
 import { API } from './api'
 import { User, Project, ProjectSubscriber } from './types'
-import { env } from './env'
+import { env, Campus } from './env'
 
 const Api: API = new API(env.clientUID, env.clientSecret, false)
-export let projects: Project[] = JSON.parse(fs.readFileSync(env.projectUsersPath).toString())
 
-export let lastPull: number = 0
+export interface CampusDB {
+	projects: Project[]
+	lastPull: number
+}
 
-if (!fs.existsSync(env.lastPullPath))
-	fs.writeFileSync(env.lastPullPath, '0')
-else
-	lastPull = parseInt(fs.readFileSync(env.lastPullPath).toString())
+export const campusDBs: { [key: string]: CampusDB }[] = []
 
-export async function getEvents() {
-	return await Api.get(`/v2/campus/${env.codamCampusID}/events`)
+fs.mkdirSync(env.databaseRoot, {recursive: true})
+function setupCampusDB(campus: Campus) {
+	const campusDB: CampusDB = {
+		projects: [],
+		lastPull: 0
+	}
+
+	fs.mkdirSync(campus.databasePath, {recursive: true})
+	if (!fs.existsSync(campus.projectUsersPath))
+		fs.writeFileSync(campus.projectUsersPath, '[]')
+	campusDB.projects = JSON.parse(fs.readFileSync(campus.projectUsersPath).toString())
+	if (!fs.existsSync(campus.lastPullPath))
+		fs.writeFileSync(campus.lastPullPath, '0')
+	campusDB.lastPull = parseInt(fs.readFileSync(campus.lastPullPath).toString())
+	campusDBs[campus.name] = campusDB;
+}
+
+for (const i in env.campuses) {
+	setupCampusDB(env.campuses[i]!)
+}
+
+export async function getEvents(campusID: number) {
+	return await Api.get(`/v2/campus/${campusID}/events`)
 }
 
 export async function getProjects() {
 	return await Api.getPaged('/v2/projects/')
 }
 
-export async function getProjectSubscribers(projectID: number): Promise<ProjectSubscriber[]> {
+export async function getProjectSubscribers(campusID: number, projectID: number): Promise<ProjectSubscriber[]> {
 	const users: User[] = await Api.getPaged(
 		`/v2/projects/${projectID}/projects_users`,
-		[{ 'filter[campus]': env.codamCampusID }],
+		[{ 'filter[campus]': campusID }],
 		// (data) => console.log(data)
 	)
 	const projectSubscribers = users.map(x => ({
@@ -35,27 +55,35 @@ export async function getProjectSubscribers(projectID: number): Promise<ProjectS
 	return projectSubscribers
 }
 
-export async function saveAllProjectSubscribers(path: string) {
-	const lastPullAgo = Date.now() - lastPull
+export async function saveAllProjectSubscribersForCampus(campus: Campus) {
+	if (!campusDBs[campus.name])
+		throw new Error(`[${campus.name}] Campus Database missing or not set up`)
+	const lastPullAgo = Date.now() - campusDBs[campus.name].lastPull
 	if (lastPullAgo < env.pullTimeout) {
-		console.log(`Not pulling because last pull was on ${new Date(lastPull).toISOString()}, ${lastPullAgo / 1000 / 60} minutes ago. Timeout is ${env.pullTimeout / 1000 / 60} minutes`)
+		console.log(`[${campus.name}]\tNot pulling because last pull was on ${new Date(campusDBs[campus.name].lastPull).toISOString()}, ${lastPullAgo / 1000 / 60} minutes ago. Timeout is ${env.pullTimeout / 1000 / 60} minutes`)
 		return
 	}
+	console.log(`[${campus.name}] Starting pull...`)
 
-	console.time('Pull took:')
+	console.time(`[${campus.name}] Pull took`)
 	const newProjects: Project[] = []
 	for (const id in env.projectIDs) {
-		console.log(`${new Date().toISOString()}\t`, `Pulling the subscribers of`, id)
 		const item: Project = {
 			name: id,
-			users: await getProjectSubscribers(env.projectIDs[id!])
+			users: await getProjectSubscribers(campus.id, env.projectIDs[id!])
 		}
-		console.log(`\t total users: ${item.users.length}`)
+		console.log(`${new Date().toISOString()} [${campus.name}] [${id}]\ttotal users: ${item.users.length}`)
 		newProjects.push(item)
 	}
-	projects = newProjects
-	console.timeEnd('Pull took:')
-	await fs.promises.writeFile(path, JSON.stringify(newProjects))
-	await fs.promises.writeFile(env.lastPullPath, String(Date.now()))
-	lastPull = parseInt((await fs.promises.readFile(env.lastPullPath)).toString())
+	campusDBs[campus.name].projects = newProjects
+	console.timeEnd(`[${campus.name}]\tPull took`)
+	await fs.promises.writeFile(campus.projectUsersPath, JSON.stringify(newProjects))
+	await fs.promises.writeFile(campus.lastPullPath, String(Date.now()))
+	campusDBs[campus.name].lastPull = parseInt((await fs.promises.readFile(campus.lastPullPath)).toString())
+}
+
+export async function saveAllProjectSubscribers() {
+	for (const i in env.campuses) {
+		await saveAllProjectSubscribersForCampus(env.campuses[i]!)
+	}
 }

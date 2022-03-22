@@ -88,6 +88,8 @@ export class API {
 
 		if (!parameters)
 			parameters = []
+		if (!parameters['page[number]'] && !parameters['page_size'])
+			parameters.push({ 'page[size]': 100 })
 		parameters.push({ 'page[number]': '<placeholder>' })
 		for (let i = 1; ; i++) {
 			for (let p of parameters)

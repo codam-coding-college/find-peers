@@ -11,7 +11,7 @@ import { env } from './env'
 	}
 
 	if (process.argv[2] == '--only-update-project-users') {
-		await saveAllProjectSubscribers(env.projectUsersPath)
+		await saveAllProjectSubscribers()
 		process.exit(0)
 	}
 
@@ -19,7 +19,7 @@ import { env } from './env'
 	await startWebserver(port)
 
 	while (true) {
-		await saveAllProjectSubscribers(env.projectUsersPath)
+		await saveAllProjectSubscribers()
 		await new Promise((resolve, reject) => setTimeout(resolve, env.pullTimeout))
 	}
 })()

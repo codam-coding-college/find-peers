@@ -3,7 +3,7 @@ import express from 'express'
 import { passport, authenticate } from './authentication'
 import { env } from './env'
 import session from 'express-session'
-import { projects, lastPull } from './db'
+import { campusDBs, CampusDB } from './db'
 import fs from 'fs'
 
 export async function startWebserver(port: number) {
@@ -35,7 +35,17 @@ export async function startWebserver(port: number) {
 		}))
 
 	app.get('/', authenticate, async (req, res) => {
-		const projectsFiltered = projects.map(project => ({
+		const userCampusName: string = req.user.campusName
+		const campusDB: CampusDB = campusDBs[userCampusName]
+		if (!campusDB) {
+			const settings = {
+				error: 'Your (primary) campus is not supported by Find Peers (yet)'
+			}
+			res.render('error.ejs', settings)
+			return
+		}
+
+		const projectsFiltered = campusDB.projects.map(project => ({
 			name: project.name,
 			users: project.users.filter(user => !(user.status == 'finished')).sort((a, b) => {
 				if (a.status != b.status) {
@@ -55,8 +65,8 @@ export async function startWebserver(port: number) {
 
 		const settings = {
 			projects: projectsFiltered,
-			lastUpdate: (new Date(lastPull)).toLocaleString('en-NL', { timeZone: 'Europe/Amsterdam' }).slice(0, -3),
-			hoursAgo: ((Date.now() - lastPull) / 1000 / 60 / 60).toFixed(2)
+			lastUpdate: (new Date(campusDB.lastPull)).toLocaleString('en-NL', { timeZone: req.user.timeZone }).slice(0, -3),
+			hoursAgo: ((Date.now() - campusDB.lastPull) / 1000 / 60 / 60).toFixed(2),
 		}
 		res.render('index.ejs', settings)
 	})

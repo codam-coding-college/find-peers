@@ -3,7 +3,7 @@ import { API } from './api'
 import { User, Project, ProjectSubscriber } from './types'
 import { env, Campus } from './env'
 
-const Api: API = new API(env.clientUID, env.clientSecret, true)
+const Api: API = new API(env.clientUID, env.clientSecret, false)
 
 export interface CampusDB {
 	projects: Project[]
@@ -83,7 +83,9 @@ export async function saveAllProjectSubscribersForCampus(campus: Campus) {
 }
 
 export async function saveAllProjectSubscribers() {
+	console.time('complete pull took')
 	for (const i in env.campuses) {
 		await saveAllProjectSubscribersForCampus(env.campuses[i]!)
 	}
+	console.timeEnd('complete pull took')
 }

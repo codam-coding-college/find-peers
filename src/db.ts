@@ -3,7 +3,7 @@ import { API } from './api'
 import { User, Project, ProjectSubscriber } from './types'
 import { env, Campus } from './env'
 
-const Api: API = new API(env.clientUID, env.clientSecret, false)
+const Api: API = new API(env.clientUID, env.clientSecret, true)
 
 export interface CampusDB {
 	projects: Project[]
@@ -12,14 +12,14 @@ export interface CampusDB {
 
 export const campusDBs: { [key: string]: CampusDB }[] = []
 
-fs.mkdirSync(env.databaseRoot, {recursive: true})
+fs.mkdirSync(env.databaseRoot, { recursive: true })
 function setupCampusDB(campus: Campus) {
 	const campusDB: CampusDB = {
 		projects: [],
 		lastPull: 0
 	}
 
-	fs.mkdirSync(campus.databasePath, {recursive: true})
+	fs.mkdirSync(campus.databasePath, { recursive: true })
 	if (!fs.existsSync(campus.projectUsersPath))
 		fs.writeFileSync(campus.projectUsersPath, '[]')
 	campusDB.projects = JSON.parse(fs.readFileSync(campus.projectUsersPath).toString())
@@ -65,7 +65,7 @@ export async function saveAllProjectSubscribersForCampus(campus: Campus) {
 	}
 	console.log(`[${campus.name}] Starting pull...`)
 
-	console.time(`[${campus.name}] Pull took`)
+	console.time(`[${campus.name}]\tPull took`)
 	const newProjects: Project[] = []
 	for (const id in env.projectIDs) {
 		const item: Project = {

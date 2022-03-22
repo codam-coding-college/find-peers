@@ -4,6 +4,6 @@
 /node_modules/
 /token*.json
 /env/tokens.json
-/database/
+/database*/
 /test.ts
 /sessions/

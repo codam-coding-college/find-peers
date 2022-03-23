@@ -5,12 +5,33 @@ import { env } from './env'
 import session from 'express-session'
 import { campusDBs, CampusDB } from './db'
 import fs from 'fs'
+import { Project } from './types'
 
 function errorPage(res, error: string): void {
 	const settings = {
 		error
 	}
 	res.render('error.ejs', settings)
+}
+
+function filterProjects(projects: Project[]): Project[] {
+	return projects.map(project => ({
+		name: project.name,
+		users: project.users.filter(user => !(user.status == 'finished')).sort((a, b) => {
+			if (a.status != b.status) {
+				const preferredOrder = [
+					'searching_a_group',
+					'in_progress',
+					'waiting_for_correction',
+					'finished'
+				]
+				const indexA = preferredOrder.findIndex(x => x == a.status)
+				const indexB = preferredOrder.findIndex(x => x == b.status)
+				return indexA < indexB ? -1 : 1
+			}
+			return a.login < b.login ? -1 : 1
+		})
+	}))
 }
 
 export async function startWebserver(port: number) {
@@ -51,27 +72,8 @@ export async function startWebserver(port: number) {
 		if (!campusDB.projects.length)
 			return errorPage(res, "Empty database (please try again later)")
 
-
-		const projectsFiltered = campusDB.projects.map(project => ({
-			name: project.name,
-			users: project.users.filter(user => !(user.status == 'finished')).sort((a, b) => {
-				if (a.status != b.status) {
-					const preferredOrder = [
-						'searching_a_group',
-						'in_progress',
-						'waiting_for_correction',
-						'finished'
-					]
-					const indexA = preferredOrder.findIndex(x => x == a.status)
-					const indexB = preferredOrder.findIndex(x => x == b.status)
-					return indexA < indexB ? -1 : 1
-				}
-				return a.login < b.login ? -1 : 1
-			})
-		}))
-
 		const settings = {
-			projects: projectsFiltered,
+			projects: filterProjects(campusDB.projects),
 			lastUpdate: (new Date(campusDB.lastPull)).toLocaleString('en-NL', { timeZone: req.user.timeZone }).slice(0, -3),
 			hoursAgo: ((Date.now() - campusDB.lastPull) / 1000 / 60 / 60).toFixed(2),
 		}

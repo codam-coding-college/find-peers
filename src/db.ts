@@ -47,11 +47,16 @@ export async function getProjectSubscribers(campusID: number, projectID: number)
 		[{ 'filter[campus]': campusID }],
 		// (data) => console.log(data)
 	)
-	const projectSubscribers = users.map(x => ({
-		login: x.user.login,
-		status: x.status,
-		// image_url: x.user.image_url.replace('https://cdn.intra.42.fr/users/', 'https://cdn.intra.42.fr/users/small_')
-	}))
+	const projectSubscribers: ProjectSubscriber[] = []
+	for (const x of users) {
+		try {
+			const valid = {
+				login: x.user.login,
+				status: x.status,
+			}
+			projectSubscribers.push(valid)
+		} catch (e) { }
+	}
 	return projectSubscribers
 }
 

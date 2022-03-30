@@ -32,8 +32,9 @@ import { env, Campus } from './env'
 	const port = parseInt(process.env['PORT'] || '8080')
 	await startWebserver(port)
 
+	// pulling data from intra can be very slow, so we check every hour if any of the campuses has not pulled for env.pullTimeout time
 	while (true) {
 		await saveAllProjectSubscribers()
-		await new Promise((resolve, reject) => setTimeout(resolve, env.pullTimeout))
+		await new Promise(resolve => setTimeout(resolve, 60 * 60 * 1000))
 	}
 })()

@@ -1,3 +1,4 @@
+import { log } from './logger'
 import fs from 'fs'
 import path from 'path'
 
@@ -10,11 +11,9 @@ if (!tokens.clientUID.length || !tokens.clientSecret.length || !tokens.callbackU
 
 const campusIDsPath = path.join('.', 'env', 'campusIDs.json')
 const campusIDs: { [key: string]: number }[] = JSON.parse(fs.readFileSync(campusIDsPath).toString())
-console.log(`Watching ${Object.keys(campusIDs).length} campuses`)
 
 const projectIDsPath = path.join('.', 'env', 'projectIDs.json')
 const projectIDs: { [key: string]: number }[] = JSON.parse(fs.readFileSync(projectIDsPath).toString())
-console.log(`Watching ${Object.keys(projectIDs).length} projects`)
 
 export interface Campus {
 	name: string
@@ -25,6 +24,7 @@ export interface Campus {
 }
 
 export interface Env {
+	logLevel: 0 | 1 | 2 | 3
 	pullTimeout: number
 	projectIDs: { [key: string]: number }[]
 	_42CursusID: number
@@ -56,6 +56,7 @@ for (const campusName in campusIDs) {
 }
 
 export const env: Env = {
+	logLevel: 1, // 0 being no logging
 	pullTimeout: 24 * 60 * 60 * 1000, // how often to pull the project users statuses form the intra api (in Ms)
 	projectIDs,
 	_42CursusID: 21,
@@ -70,3 +71,6 @@ export const env: Env = {
 	scope: ['public'],
 	...tokens,
 }
+
+log(1, `Watching ${Object.keys(campusIDs).length} campuses`)
+log(1, `Watching ${Object.keys(projectIDs).length} projects`)

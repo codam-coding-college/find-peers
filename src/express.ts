@@ -6,6 +6,7 @@ import session from 'express-session'
 import { campusDBs, CampusDB } from './db'
 import fs from 'fs'
 import { Project, UserProfile } from './types'
+import { log } from './logger'
 
 function errorPage(res, error: string): void {
 	const settings = {
@@ -85,5 +86,5 @@ export async function startWebserver(port: number) {
 	app.use(express.static('public/'))
 
 	await app.listen(port)
-	console.log('app ready on port', port)
+	log(1, `app ready on port port ${port}`)
 }

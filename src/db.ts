@@ -2,8 +2,9 @@ import fs from 'fs'
 import { API } from './api'
 import { User, Project, ProjectSubscriber } from './types'
 import { env, Campus } from './env'
+import { logCampus, log, msToHuman, nowISO } from './logger'
 
-const Api: API = new API(env.clientUID, env.clientSecret, false)
+const Api: API = new API(env.clientUID, env.clientSecret, env.logLevel >= 3)
 
 export interface CampusDB {
 	projects: Project[]
@@ -60,37 +61,43 @@ export async function getProjectSubscribers(campusID: number, projectID: number)
 	return projectSubscribers
 }
 
-export async function saveAllProjectSubscribersForCampus(campus: Campus) {
+export async function saveAllProjectSubscribersForCampus(campus: Campus): Promise<number> {
 	if (!campusDBs[campus.name])
 		throw new Error(`[${campus.name}] Campus Database missing or not set up`)
 	const lastPullAgo = Date.now() - campusDBs[campus.name].lastPull
+	logCampus(2, campus.name, '', `last pull was on ${nowISO(campusDBs[campus.name].lastPull)}, ${(lastPullAgo / 1000 / 60).toFixed(0)} minutes ago. `)
 	if (lastPullAgo < env.pullTimeout) {
-		console.log(`[${campus.name}]\tNot pulling because last pull was on ${new Date(campusDBs[campus.name].lastPull).toISOString()}, ${lastPullAgo / 1000 / 60} minutes ago. Timeout is ${env.pullTimeout / 1000 / 60} minutes`)
-		return
+		logCampus(2, campus.name, '', `not pulling, timeout of ${env.pullTimeout / 1000 / 60} minutes not reached`)
+		return 0
 	}
-	console.log(`[${campus.name}] Starting pull...`)
 
-	console.time(`[${campus.name}]\tPull took`)
+	let usersPulled: number = 0
+	const startPull = Date.now()
 	const newProjects: Project[] = []
 	for (const id in env.projectIDs) {
 		const item: Project = {
 			name: id,
 			users: await getProjectSubscribers(campus.id, env.projectIDs[id!])
 		}
-		console.log(`${new Date().toISOString()} [${campus.name}] [${id}]\ttotal users: ${item.users.length}`)
+		usersPulled += item.users.length
+		logCampus(2, campus.name, id, `total users: ${item.users.length}`)
 		newProjects.push(item)
 	}
 	campusDBs[campus.name].projects = newProjects
-	console.timeEnd(`[${campus.name}]\tPull took`)
+	log(2, `Pull took ${msToHuman(Date.now() - startPull)}`)
+
 	await fs.promises.writeFile(campus.projectUsersPath, JSON.stringify(newProjects))
 	await fs.promises.writeFile(campus.lastPullPath, String(Date.now()))
 	campusDBs[campus.name].lastPull = parseInt((await fs.promises.readFile(campus.lastPullPath)).toString())
+	return usersPulled
 }
 
 export async function saveAllProjectSubscribers() {
-	console.time('complete pull took')
+	let usersPulled: number = 0
+	const startPull = Date.now()
+	log(1, 'starting pull')
 	for (const i in env.campuses) {
-		await saveAllProjectSubscribersForCampus(env.campuses[i]!)
+		usersPulled += await saveAllProjectSubscribersForCampus(env.campuses[i]!)
 	}
-	console.timeEnd('complete pull took')
+	log(1, `complete pull took ${msToHuman(Date.now() - startPull)}, got ${usersPulled} users`)
 }

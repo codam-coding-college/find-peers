@@ -13,10 +13,12 @@ import { env, Campus } from './env'
 	}
 
 	if (process.argv[2] == '--only-update-project-users' && !process.argv[3]) {
+		env.logLevel = 2
 		await saveAllProjectSubscribers()
 		process.exit(0)
 	}
 	else if (process.argv[2] == '--only-update-project-users' && process.argv[3]) {
+		env.logLevel = 2
 		const campus: Campus | undefined = env.campuses.find(campus => campus.id == parseInt(process.argv[3]!) || campus.name.toLowerCase() == process.argv[3]?.toLowerCase())
 		if (!campus) {
 			console.log(`Campus "${process.argv[3]}" not found`)

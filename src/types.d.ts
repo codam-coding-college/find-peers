@@ -87,3 +87,15 @@ export interface Project {
 	name: string
 	users: ProjectSubscriber[]
 }
+
+export interface UserProfile {
+	id: number
+	login: string
+	first_name: string
+	displayname: string
+	accessToken: string
+	refreshToken: string
+	campusID: number
+	campusName: string
+	timeZone: string
+}

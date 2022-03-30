@@ -5,7 +5,7 @@ import { env } from './env'
 import session from 'express-session'
 import { campusDBs, CampusDB } from './db'
 import fs from 'fs'
-import { Project } from './types'
+import { Project, UserProfile } from './types'
 
 function errorPage(res, error: string): void {
 	const settings = {
@@ -63,10 +63,10 @@ export async function startWebserver(port: number) {
 		}))
 
 	app.get('/', authenticate, async (req, res) => {
-		const userCampusName: string = req.user?.campusName
-		if (!userCampusName)
+		const user = req.user as UserProfile | null
+		if (!user?.campusName)
 			return errorPage(res, "This should never happen (authentication failure)")
-		const campusDB: CampusDB = campusDBs[userCampusName]
+		const campusDB: CampusDB = campusDBs[user.campusName]
 		if (!campusDB)
 			return errorPage(res, "Your (primary) campus is not supported by Find Peers (yet)")
 		if (!campusDB.projects.length)
@@ -74,7 +74,7 @@ export async function startWebserver(port: number) {
 
 		const settings = {
 			projects: filterProjects(campusDB.projects),
-			lastUpdate: (new Date(campusDB.lastPull)).toLocaleString('en-NL', { timeZone: req.user.timeZone }).slice(0, -3),
+			lastUpdate: (new Date(campusDB.lastPull)).toLocaleString('en-NL', { timeZone: user.timeZone }).slice(0, -3),
 			hoursAgo: ((Date.now() - campusDB.lastPull) / 1000 / 60 / 60).toFixed(2),
 		}
 		res.render('index.ejs', settings)

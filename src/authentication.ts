@@ -3,6 +3,7 @@ import { OAuth2Strategy } from 'passport-oauth'
 import fetch from 'node-fetch'
 import fs from 'fs'
 import { env } from './env'
+import { UserProfile } from './types'
 
 export function authenticate(req, res, next) {
 	if (!req.user) {
@@ -10,18 +11,6 @@ export function authenticate(req, res, next) {
 	} else {
 		next()
 	}
-}
-
-export interface UserProfile {
-	id: number
-	login: string
-	first_name: string
-	displayname: string
-	accessToken: string
-	refreshToken: string
-	campusID: number
-	campusName: string
-	timeZone: string
 }
 
 const usersDB: UserProfile[] = []

@@ -3,11 +3,16 @@ import { campusDBs } from './db'
 
 // eg. 24
 export function msToHuman(milliseconds): string {
-	const h = Math.floor(milliseconds / 1000 / 60 / 60)
-	const m = Math.floor((milliseconds / 1000 / 60 / 60 - h) * 60)
-	const s = Math.floor(((milliseconds / 1000 / 60 / 60 - h) * 60 - m) * 60)
+	const hours = milliseconds / (1000 * 60 * 60)
+	const h = Math.floor(hours)
 
-	return `${String(h).padStart(2, '0')}h ${String().padStart(2, '0')}m ${String(s).padStart(2, '0')}s`
+	const minutes = (hours - h) * 60
+	const m = Math.floor(minutes)
+
+	const seconds = (minutes - m) * 60
+	const s = Math.floor(seconds)
+
+	return `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s).padStart(2, '0')}s`
 }
 
 function longestKeyLength(obj: Object): number {

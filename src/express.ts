@@ -6,7 +6,7 @@ import session from 'express-session'
 import { campusDBs, CampusDB } from './db'
 import fs from 'fs'
 import { Project, UserProfile } from './types'
-import { log } from './logger'
+import { log, msToHuman } from './logger'
 
 function errorPage(res, error: string): void {
 	const settings = {
@@ -79,6 +79,13 @@ export async function startWebserver(port: number) {
 			hoursAgo: ((Date.now() - campusDB.lastPull) / 1000 / 60 / 60).toFixed(2),
 		}
 		res.render('index.ejs', settings)
+	})
+
+	app.get('/status', authenticate, (req, res) => {
+		const obj: { name: string, lastPull: Date, ago: string }[] = []
+		for (const campus of Object.keys(campusDBs))
+			obj.push({ name: campus, lastPull: new Date(campusDBs[campus!].lastPull), ago: msToHuman(Date.now() - campusDBs[campus!].lastPull) })
+		res.send(JSON.stringify(obj))
 	})
 
 	app.set("views", path.join(__dirname, "../views"))

@@ -22,6 +22,7 @@ const users: UserProfile[] = JSON.parse(fs.readFileSync(env.userDBpath).toString
 
 
 passport.serializeUser((user, done) => {
+	//@ts-ignore
 	done(null, user.id)
 })
 

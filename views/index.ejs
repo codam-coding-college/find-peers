@@ -26,6 +26,7 @@
 		}
 
 		h1,
+		h5,
 		h6 {
 			margin: 6px 0px 6px 0px;
 		}
@@ -115,6 +116,9 @@
 <h6>
 	The statuses are updated approximately every 24 hours, last update was on <%= lastUpdate %>: <%= hoursAgo %> hours ago.
 </h6>
+<h5>
+	Your campus is <%= campusName %>
+</h5>
 
 <div id="projects">
 	<% projects.forEach(project=>{ %>

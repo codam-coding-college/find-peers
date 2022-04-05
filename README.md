@@ -70,7 +70,6 @@ services:
 
 ## TODO
 - Do not show staff members (?)
-- Access any campus by path eg. `find-peers.joppekoers.nl/amsterdam`
 - Ignore last pull when running as script
 - Validate cookie ttl
 - Log access and rate limiting

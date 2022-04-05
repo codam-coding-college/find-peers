@@ -35,6 +35,13 @@ function filterProjects(projects: Project[]): Project[] {
 	}))
 }
 
+// ignoring case, whitespace, -, _, non ascii chars
+function isLinguisticallySimilar(a: string, b: string): boolean {
+	a = a.toLowerCase().replace(/\s|-|_/g, '').normalize('NFKD').replace(/[\u0300-\u036F]/g, '')
+	b = b.toLowerCase().replace(/\s|-|_/g, '').normalize('NFKD').replace(/[\u0300-\u036F]/g, '')
+	return a == b
+}
+
 export async function startWebserver(port: number) {
 
 	const app = express()
@@ -64,12 +71,17 @@ export async function startWebserver(port: number) {
 		}))
 
 	app.get('/', authenticate, async (req, res) => {
-		const user = req.user as UserProfile | null
-		if (!user?.campusName)
-			return errorPage(res, "This should never happen (authentication failure)")
-		const campusDB: CampusDB = campusDBs[user.campusName]
-		if (!campusDB)
-			return errorPage(res, "Your (primary) campus is not supported by Find Peers (yet)")
+		const user: UserProfile = req!.user as UserProfile
+		res.redirect(`/${user.campusName}`)
+	})
+
+	app.get('/:campus', authenticate, async (req, res) => {
+		const user: UserProfile = req!.user as UserProfile
+
+		const campusName = Object.keys(campusDBs).find(k => isLinguisticallySimilar(k, req.params['campus']))
+		if (!campusName || !campusDBs[campusName])
+			return errorPage(res, `Campus "${campusName}" is not supported by Find Peers (yet)`)
+		const campusDB: CampusDB = campusDBs[campusName]
 		if (!campusDB.projects.length)
 			return errorPage(res, "Empty database (please try again later)")
 
@@ -77,11 +89,12 @@ export async function startWebserver(port: number) {
 			projects: filterProjects(campusDB.projects),
 			lastUpdate: (new Date(campusDB.lastPull)).toLocaleString('en-NL', { timeZone: user.timeZone }).slice(0, -3),
 			hoursAgo: ((Date.now() - campusDB.lastPull) / 1000 / 60 / 60).toFixed(2),
+			campusName,
 		}
 		res.render('index.ejs', settings)
 	})
 
-	app.get('/status', authenticate, (req, res) => {
+	app.get('/status/pull', authenticate, (req, res) => {
 		const obj: { name: string, lastPull: Date, ago: string }[] = []
 		for (const campus of Object.keys(campusDBs))
 			obj.push({ name: campus, lastPull: new Date(campusDBs[campus!].lastPull), ago: msToHuman(Date.now() - campusDBs[campus!].lastPull) })

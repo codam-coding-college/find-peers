@@ -90,6 +90,7 @@ export async function startWebserver(port: number) {
 			lastUpdate: (new Date(campusDB.lastPull)).toLocaleString('en-NL', { timeZone: user.timeZone }).slice(0, -3),
 			hoursAgo: ((Date.now() - campusDB.lastPull) / 1000 / 60 / 60).toFixed(2),
 			campusName,
+			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0)
 		}
 		res.render('index.ejs', settings)
 	})

@@ -2,13 +2,6 @@
 
 This website and script is meant to help students to find peers that are working on the same project
 
-> This project is still in Beta, it so it can happen that:
-- The website is offline for several hours
-- The domain changes
-
-This readme will be kept up to date with progress on this project. Do not use the slack for speculation.\
-If you have any suggestions please open a issue on GitHub
-
 ## Developing
 ## Setup & configuration
 - Create a Oauth application on [intra](https://profile.intra.42.fr/oauth/applications)

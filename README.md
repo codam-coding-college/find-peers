@@ -12,7 +12,10 @@ If you have any suggestions please open a issue on GitHub
 ## Developing
 ## Setup & configuration
 - Create a Oauth application on [intra](https://profile.intra.42.fr/oauth/applications)
-- Copy the file `./env/tokens.example.json` to `./env/tokens.json` and fill out the secret data
+- Copy the file `./env/tokens.example.json` to `./env/tokens.json` and fill out the (secret) data
+	- The callbackURL's path must be exactly `/auth/42/callback`
+
+Also see `./src/env.ts` for more configuration
 
 ## Changing listed projects
 - The projects shown on the front page are listed in `./env/projectIDs.json`. Should the curriculum change, you can edit that file. Remember to restart the server and wait for the server to pull all the data from the intra api.

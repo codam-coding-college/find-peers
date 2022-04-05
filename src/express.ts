@@ -106,7 +106,7 @@ export async function startWebserver(port: number) {
 
 	app.set("views", path.join(__dirname, "../views"))
 	app.set('viewengine', 'ejs')
-	app.use(express.static('public/'))
+	app.use('/public', express.static('public/'))
 
 	await app.listen(port)
 	log(1, `app ready on port port ${port}`)

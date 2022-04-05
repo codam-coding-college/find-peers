@@ -27,6 +27,11 @@
 		h6 {
 			margin: 6px 0px 6px 0px;
 		}
+
+		select {
+			font-size: 22px;
+			margin: 16px 0px;
+		}
 	</style>
 
 </head>
@@ -35,9 +40,14 @@
 
 </body>
 <h1>Find Peers</h1>
-<h1>
-	<%= error %>
-</h1>
+<h1><%= error %></h1>
+
+<select id="campus-selector" onchange="window.location.href='/'+this.value">
+	<option value="no" selected disabled>Select your campus</option>
+	<% campuses.forEach(campus=>{ %>
+		<option value="<%= campus.name %>"><%= campus.name %></option>
+	<% })  %>
+</select>
 
 <footer>
 	<a href="https://github.com/codam-coding-college/find-peers">Source</a>

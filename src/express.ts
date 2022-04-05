@@ -10,6 +10,7 @@ import { log, msToHuman } from './logger'
 
 function errorPage(res, error: string): void {
 	const settings = {
+		campuses: env.campuses.sort((a, b) => a.name < b.name ? -1 : 1),
 		error
 	}
 	res.render('error.ejs', settings)
@@ -80,7 +81,7 @@ export async function startWebserver(port: number) {
 
 		const campusName = Object.keys(campusDBs).find(k => isLinguisticallySimilar(k, req.params['campus']))
 		if (!campusName || !campusDBs[campusName])
-			return errorPage(res, `Campus "${campusName}" is not supported by Find Peers (yet)`)
+			return errorPage(res, `Campus ${req.params['campus']} is not supported by Find Peers (yet)`)
 		const campusDB: CampusDB = campusDBs[campusName]
 		if (!campusDB.projects.length)
 			return errorPage(res, "Empty database (please try again later)")
@@ -90,6 +91,7 @@ export async function startWebserver(port: number) {
 			lastUpdate: (new Date(campusDB.lastPull)).toLocaleString('en-NL', { timeZone: user.timeZone }).slice(0, -3),
 			hoursAgo: ((Date.now() - campusDB.lastPull) / 1000 / 60 / 60).toFixed(2),
 			campusName,
+			campuses: env.campuses.sort((a, b) => a.name < b.name ? -1 : 1),
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0)
 		}
 		res.render('index.ejs', settings)

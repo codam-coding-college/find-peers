@@ -41,6 +41,8 @@ export class API {
 		let response
 		try {
 			response = await fetch(path, opt)
+			// TODO: do something better than this
+			await new Promise(resolve => setTimeout(resolve, 3.1 * 1000)) // to avoid getting to the request limit of 1200 per hour
 			const json = await response.json()
 			this._cooldown = this._startCooldown
 			return json

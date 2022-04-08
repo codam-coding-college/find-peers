@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+	<title>Find peers</title>
+
+	<script async>
+		console.log('Source: https://github.com/codam-coding-college/find-peers')
+	</script>
+
+</head>
+
+<body>
+
+</body>
+<h1>Find Peers</h1>
+<h6>Hosted and built by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a> &amp; Freek Bes/<a href="https://profile.intra.42.fr/users/fbes">@fbes</a> - <a href="https://github.com/codam-coding-college/find-peers">Source</a></h6>
+<h6>The statuses are updated approximately every <span id="update-time"> </span> hours, last update was on <span id="last-update"> </span>: <span id="last-update-hours-ago"></span> hours ago.</h6>
+<h5>
+	Your campus is
+	<select id="campus-selector">
+	</select>
+
+</h5>
+<h5>
+    Query
+</h5>
+<select id="project-selector" name="project-selector">
+    <option value="">all</option>
+</select>
+<label for="project-selector"> Project</label><br>
+<input class="search-checkbox" type="checkbox" name="vehicle1" value="in_progress" checked>
+<label for="vehicle1"> In Progress</label><br>
+<input class="search-checkbox" type="checkbox" name="vehicle2" value="waiting_for_correction" checked>
+<label for="vehicle2"> Waiting for correction</label><br>
+<input class="search-checkbox" type="checkbox" name="vehicle3" value="creating_group" checked>
+<label for="vehicle3"> Creating Group</label><br>
+<input class="search-checkbox" type="checkbox" name="vehicle4" value="searching_a_group" checked>
+<label for="vehicle4"> Searching Group</label><br>
+<input class="search-checkbox" type="checkbox" name="vehicle5" value="other">
+<label for="vehicle5"> Other</label><br>
+
+<button onclick="get_projects()">Search</button>
+
+<div id="projects">
+
+</div>
+</div>
+
+<footer>
+	<a href="https://github.com/SirMorfield/find-peers">Source</a>
+</footer>
+<script src="logic.js"></script>
+
+</html>

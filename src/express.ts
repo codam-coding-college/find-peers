@@ -8,6 +8,14 @@ import fs from 'fs'
 import { Project, UserProfile } from './types'
 import { log, msToHuman } from './logger'
 
+const known_statuses = [
+	'creating_group',
+	'searching_a_group',
+	'in_progress',
+	'waiting_for_correction',
+	'finished',
+]
+
 function errorPage(res, error: string): void {
 	const settings = {
 		campuses: env.campuses.sort((a, b) => a.name < b.name ? -1 : 1),
@@ -16,16 +24,28 @@ function errorPage(res, error: string): void {
 	res.render('error.ejs', settings)
 }
 
-function filterProjects(projects: Project[]): Project[] {
-	return projects.map(project => ({
+function filterProjects(projects: Project[], query?: {status: string[], projects: string[]}): Project[] {
+	return projects.filter((project) => {
+		if (query === undefined || query.projects[0] == "" || query?.projects.find(x => x == project.name))
+			return true;
+		return false;
+	}).map(project => ({
 		name: project.name,
-		users: project.users.filter(user => !(user.status == 'finished')).sort((a, b) => {
+		users: project.users.filter((user) => {
+			if (user.status != 'finished' && (query === undefined || query.status.length == 0 || query.status.find(x => x == user.status)))
+				return true;
+			if (query?.status.find(x => x == "other") && known_statuses.find(x => x == user.status) == undefined)
+				return true;
+			return false;
+			}).sort((a, b) => {
 			if (a.status != b.status) {
 				const preferredOrder = [
+					'creating_group',
 					'searching_a_group',
 					'in_progress',
 					'waiting_for_correction',
-					'finished'
+					'finished',
+					'parent'
 				]
 				const indexA = preferredOrder.findIndex(x => x == a.status)
 				const indexB = preferredOrder.findIndex(x => x == b.status)
@@ -35,6 +55,7 @@ function filterProjects(projects: Project[]): Project[] {
 		})
 	}))
 }
+
 
 // ignoring case, whitespace, -, _, non ascii chars
 function isLinguisticallySimilar(a: string, b: string): boolean {
@@ -71,31 +92,36 @@ export async function startWebserver(port: number) {
 			failureRedirect: `/auth/${env.provider}`,
 		}))
 
-	app.get('/', authenticate, async (req, res) => {
-		const user: UserProfile = req!.user as UserProfile
-		res.redirect(`/${user.campusName}`)
-	})
+	app.use(express.json({type: "*/*" }));
+	app.post('/api/projects', async (req, res) => {
+		const params = req.body;
 
-	app.get('/:campus', authenticate, async (req, res) => {
-		const user: UserProfile = req!.user as UserProfile
-
-		const campusName = Object.keys(campusDBs).find(k => isLinguisticallySimilar(k, req.params['campus']))
+		const campusName = params.campus;
 		if (!campusName || !campusDBs[campusName])
-			return errorPage(res, `Campus ${req.params['campus']} is not supported by Find Peers (yet)`)
+		{
+			res.statusCode = 500;
+			res.send("Unknown campus");
+		}
 		const campusDB: CampusDB = campusDBs[campusName]
 		if (!campusDB.projects.length)
 			return errorPage(res, "Empty database (please try again later)")
 
-		const settings = {
-			projects: filterProjects(campusDB.projects),
+		res.send(filterProjects(campusDB.projects, params));
+	});
+
+	app.get('/api/general', async (req, res) => {
+		const user: UserProfile = req!.user as UserProfile
+		const campusDB: CampusDB = campusDBs[user.campusName];
+
+		res.send({
+			userCampus: user.campusName,
+			projects: campusDB.projects.map((proj) => proj.name),
 			lastUpdate: (new Date(campusDB.lastPull)).toLocaleString('en-NL', { timeZone: user.timeZone }).slice(0, -3),
 			hoursAgo: ((Date.now() - campusDB.lastPull) / 1000 / 60 / 60).toFixed(2),
-			campusName,
 			campuses: env.campuses.sort((a, b) => a.name < b.name ? -1 : 1),
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0)
-		}
-		res.render('index.ejs', settings)
-	})
+		})
+	});
 
 	app.get('/status/pull', authenticate, (req, res) => {
 		const obj: { name: string, lastPull: Date, ago: string }[] = []
@@ -107,6 +133,7 @@ export async function startWebserver(port: number) {
 	app.set("views", path.join(__dirname, "../views"))
 	app.set('viewengine', 'ejs')
 	app.use('/public', express.static('public/'))
+	app.use('/', express.static('frontend/'))
 
 	await app.listen(port)
 	log(1, `app ready on port port ${port}`)

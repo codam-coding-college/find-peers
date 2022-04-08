@@ -1,0 +1,85 @@
+:root {
+    color-scheme: dark;
+    font-family: monospace;
+    /* font-weight: 80; */
+    font-weight: lighter;
+    padding: 0 10px;
+    font-size: 22px;
+}
+
+body {
+    width: 100%;
+    max-width: 1700px;
+    margin: 0 auto;
+}
+
+h1,
+h5,
+h6 {
+    margin: 6px 0px 6px 0px;
+}
+
+#projects {
+    display: flex;
+    flex-direction: column;
+}
+
+.project {
+    margin: 100px 0px;
+}
+
+.project-name {
+    font-size: 2.5ch;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+.users {
+    max-width: 100vw;
+    flex-wrap: wrap;
+    display: flex;
+    flex-direction: row;
+}
+
+.user {
+    display: block;
+    padding: 20px;
+    width: 110px;
+    margin-right: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+}
+
+.status {
+    font-size: 0.8ch;
+}
+
+.user-image {
+    display: block;
+    object-fit: cover;
+    box-sizing: border-box;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: 50% 50%;
+    background-image: url(/public/placeholder.png);
+    border-radius: 50%;
+    align-self: center;
+    overflow: hidden;
+    height: 110px;
+    width: 110px;
+    margin-bottom: 10px;
+}
+
+.user:hover,
+.user:focus {
+    box-shadow: 0 0 3px white;
+}
+
+.n-users {
+    font-size: 0.75ch;
+    padding: 5px  20px;
+}

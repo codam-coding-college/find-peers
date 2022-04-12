@@ -30,6 +30,7 @@ export interface Env {
 	_42CursusID: number
 	databaseRoot: string
 	campuses: Campus[]
+	knownStatuses: string[]
 	sessionStorePath: string // session key data
 	userDBpath: string // users associated with sessions
 	scope: string[]
@@ -55,6 +56,16 @@ for (const campusName in campusIDs) {
 	campuses.push(campus)
 }
 
+// known statuses, in the order we want them displayed on the website
+const knownStatuses: string[] = [
+	'creating_group',
+	'searching_a_group',
+	'in_progress',
+	'waiting_for_correction',
+	'finished',
+	'parent',
+]
+
 export const env: Env = {
 	logLevel: 1, // 0 being no logging
 	pullTimeout: 24 * 60 * 60 * 1000, // how often to pull the project users statuses form the intra api (in Ms)
@@ -62,6 +73,7 @@ export const env: Env = {
 	_42CursusID: 21,
 	databaseRoot,
 	campuses,
+	knownStatuses,
 	sessionStorePath: path.join(databaseRoot, 'sessions'),
 	authorizationURL: 'https://api.intra.42.fr/oauth/authorize',
 	tokenURL: 'https://api.intra.42.fr/oauth/token',

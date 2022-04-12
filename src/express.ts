@@ -16,17 +16,16 @@ function errorPage(res, error: string): void {
 	res.render('error.ejs', settings)
 }
 
-function filterProjects(projects: Project[]): Project[] {
+function filterProjects(projects: Project[], requestedStatus: string | undefined): Project[] {
 	return projects.map(project => ({
 		name: project.name,
-		users: project.users.filter(user => !(user.status == 'finished')).sort((a, b) => {
+		users: project.users.filter(user => {
+			if ((requestedStatus == 'finished' || user.status != 'finished') && (!requestedStatus || user.status == requestedStatus))
+				return true
+			return false
+		}).sort((a, b) => {
 			if (a.status != b.status) {
-				const preferredOrder = [
-					'searching_a_group',
-					'in_progress',
-					'waiting_for_correction',
-					'finished'
-				]
+				const preferredOrder = env.knownStatuses
 				const indexA = preferredOrder.findIndex(x => x == a.status)
 				const indexB = preferredOrder.findIndex(x => x == b.status)
 				return indexA < indexB ? -1 : 1
@@ -78,6 +77,7 @@ export async function startWebserver(port: number) {
 
 	app.get('/:campus', authenticate, async (req, res) => {
 		const user: UserProfile = req!.user as UserProfile
+		const requestedStatus: string | undefined = req.query['status']?.toString()
 
 		const campusName = Object.keys(campusDBs).find(k => isLinguisticallySimilar(k, req.params['campus']))
 		if (!campusName || !campusDBs[campusName])
@@ -86,10 +86,15 @@ export async function startWebserver(port: number) {
 		if (!campusDB.projects.length)
 			return errorPage(res, "Empty database (please try again later)")
 
+		if (requestedStatus && !env.knownStatuses.includes(requestedStatus))
+			return errorPage(res, `Unknown status ${req.query['status']}`)
+
 		const settings = {
-			projects: filterProjects(campusDB.projects),
+			projects: filterProjects(campusDB.projects, requestedStatus),
 			lastUpdate: (new Date(campusDB.lastPull)).toLocaleString('en-NL', { timeZone: user.timeZone }).slice(0, -3),
 			hoursAgo: ((Date.now() - campusDB.lastPull) / 1000 / 60 / 60).toFixed(2),
+			requestedStatus,
+			knownStatuses: env.knownStatuses,
 			campusName,
 			campuses: env.campuses.sort((a, b) => a.name < b.name ? -1 : 1),
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0)

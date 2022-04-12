@@ -92,6 +92,20 @@
 			font-size: 0.75ch;
 			padding: 5px  20px;
 		}
+
+		#search-bar {
+			display: flex;
+			flex-direction: row;
+		}
+
+		#search-bar > label {
+			margin: 0 5px  0 0;
+		}
+	
+		#search-bar > select {
+			margin: 0 20px 0 0 ;
+		}
+
 	</style>
 
 	<script async>
@@ -106,32 +120,29 @@
 <h1>Find Peers</h1>
 <h6>Hosted and built by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a> &amp; Freek Bes/<a href="https://profile.intra.42.fr/users/fbes">@fbes</a> - <a href="https://github.com/codam-coding-college/find-peers">Source</a></h6>
 <h6>The statuses are updated approximately every <%= updateEveryHours %> hours, last update was on <%= lastUpdate %>: <%= hoursAgo %> hours ago.</h6>
-<h5>
-	Your campus is
+<div id="search-bar">
+	<label for="campus-selector"> campus</label>
 	<select id="campus-selector" onchange="window.location.href='/'+this.value">
 		<% campuses.forEach(campus=>{ %>
 			<option value="<%= campus.name %>"<% if (campusName == campus.name) { %>selected<% } %>><%= campus.name %></option>
 		<% })  %>
 	</select>
-</h5>
-<h5>
-	Show
+	<label for="status-selector"> status</label>
 	<select id="status-selector" onchange="window.location.href='?status='+this.value">
 		<option value="" <% if (!requestedStatus) { %>selected<% } %>>all</option>
 		<% knownStatuses.forEach(status=>{ %>
 			<option value="<%= status %>" <% if (requestedStatus == status) { %>selected<% } %>><%= status %></option>
 		<% })  %>
 	</select>
-	 statuses
-</h5>
-<nav>
+	<label for="project-selector"> project</label>
 	<select id="project-selector" onchange="window.location.href='#'+this.value; this.value='none'">
-		<option value="none">Select a project to jump to</option>
+		<option value="none">project</option>
 		<% projects.forEach(project=>{ %>
 			<option value="<%= project.name.toLowerCase().replaceAll(' ', '-') %>"><%= project.name %></option>
-		<% })  %>
+			<% })  %>
 	</select>
-</nav>
+	
+</div>
 
 <div id="projects">
 	<% projects.forEach(project=>{ %>

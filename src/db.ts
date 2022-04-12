@@ -84,7 +84,7 @@ export async function saveAllProjectSubscribersForCampus(campus: Campus): Promis
 		newProjects.push(item)
 	}
 	campusDBs[campus.name].projects = newProjects
-	log(0, `Pull took ${msToHuman(Date.now() - startPull)}`)
+	log(2, `Pull took ${msToHuman(Date.now() - startPull)}`)
 
 	await fs.promises.writeFile(campus.projectUsersPath, JSON.stringify(newProjects))
 	await fs.promises.writeFile(campus.lastPullPath, String(Date.now()))

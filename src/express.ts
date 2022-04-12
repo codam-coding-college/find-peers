@@ -16,11 +16,11 @@ function errorPage(res, error: string): void {
 	res.render('error.ejs', settings)
 }
 
-function filterProjects(projects: Project[], requestedStatus: String): Project[] {
+function filterProjects(projects: Project[], requestedStatus: string): Project[] {
 	return projects.map(project => ({
 		name: project.name,
 		users: project.users.filter(user => {
-			if ((requestedStatus == 'finished' || user.status != 'finished') && (requestedStatus === undefined || requestedStatus === "" || user.status == requestedStatus))
+			if ((requestedStatus == 'finished' || user.status != 'finished') && (!requestedStatus || user.status == requestedStatus))
 				return true
 			return false
 		}).sort((a, b) => {
@@ -77,7 +77,7 @@ export async function startWebserver(port: number) {
 
 	app.get('/:campus', authenticate, async (req, res) => {
 		const user: UserProfile = req!.user as UserProfile
-		const requestedStatus: String = req.query['status']?.toString()!
+		const requestedStatus: string = req.query['status']?.toString()!
 
 		const campusName = Object.keys(campusDBs).find(k => isLinguisticallySimilar(k, req.params['campus']))
 		if (!campusName || !campusDBs[campusName])
@@ -86,7 +86,7 @@ export async function startWebserver(port: number) {
 		if (!campusDB.projects.length)
 			return errorPage(res, "Empty database (please try again later)")
 
-		if (requestedStatus !== undefined && requestedStatus !== "" && !env.knownStatuses.includes(requestedStatus))
+		if (requestedStatus && !env.knownStatuses.includes(requestedStatus))
 			return errorPage(res, `Unknown status ${req.query['status']}`)
 
 		const settings = {

@@ -30,7 +30,7 @@ export interface Env {
 	_42CursusID: number
 	databaseRoot: string
 	campuses: Campus[]
-	knownStatuses: String[]
+	knownStatuses: string[]
 	sessionStorePath: string // session key data
 	userDBpath: string // users associated with sessions
 	scope: string[]
@@ -56,12 +56,14 @@ for (const campusName in campusIDs) {
 	campuses.push(campus)
 }
 
-const knownStatuses: String[] = [ // known statuses, in the order we want them displayed on the website
+// known statuses, in the order we want them displayed on the website
+const knownStatuses: string[] = [
 	'creating_group',
 	'searching_a_group',
 	'in_progress',
 	'waiting_for_correction',
-	'finished'
+	'finished',
+	'parent',
 ]
 
 export const env: Env = {

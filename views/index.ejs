@@ -90,7 +90,7 @@
 
 		.n-users {
 			font-size: 0.75ch;
-			padding: 5px  20px;
+			padding: 5px 20px;
 		}
 
 		#search-bar {
@@ -98,12 +98,13 @@
 			flex-direction: row;
 		}
 
-		#search-bar > label {
-			margin: 0 5px  0 0;
+		#search-bar>* {
+			margin: 0 20px 0 0;
+			font-family: inherit;
 		}
-	
-		#search-bar > select {
-			margin: 0 20px 0 0 ;
+
+		#search-bar>label {
+			margin: 0 5px 0 0;
 		}
 
 	</style>
@@ -124,24 +125,25 @@
 	<label for="campus-selector"> campus</label>
 	<select id="campus-selector" onchange="window.location.href='/'+this.value">
 		<% campuses.forEach(campus=>{ %>
-			<option value="<%= campus.name %>"<% if (campusName == campus.name) { %>selected<% } %>><%= campus.name %></option>
-		<% })  %>
+			<option value="<%= campus.name %>" <% if (campusName == campus.name) { %>selected<% } %>><%= campus.name %></option>
+		<% }) %>
 	</select>
 	<label for="status-selector"> status</label>
 	<select id="status-selector" onchange="window.location.href='?status='+this.value">
 		<option value="" <% if (!requestedStatus) { %>selected<% } %>>all</option>
 		<% knownStatuses.forEach(status=>{ %>
 			<option value="<%= status %>" <% if (requestedStatus == status) { %>selected<% } %>><%= status %></option>
-		<% })  %>
+			<% }) %>
 	</select>
 	<label for="project-selector"> project</label>
-	<select id="project-selector" onchange="window.location.href='#'+this.value; this.value='none'">
-		<option value="none">project</option>
-		<% projects.forEach(project=>{ %>
-			<option value="<%= project.name.toLowerCase().replaceAll(' ', '-') %>"><%= project.name %></option>
-			<% })  %>
-	</select>
-	
+	<input list="project-datalist" id="project-selector" onchange="window.location.href='#'+this.value; this.value=''" placeholder="project name"/>
+	<datalist id="project-datalist">
+		<option value="">
+			<% projects.forEach(project=>{ %>
+		<option value="<%= project.name.toLowerCase().replaceAll(' ', '-') %>">
+			<% }) %>
+	</datalist>
+
 </div>
 
 <div id="projects">

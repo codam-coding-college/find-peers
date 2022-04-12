@@ -65,9 +65,9 @@ export async function saveAllProjectSubscribersForCampus(campus: Campus): Promis
 	if (!campusDBs[campus.name])
 		throw new Error(`[${campus.name}] Campus Database missing or not set up`)
 	const lastPullAgo = Date.now() - campusDBs[campus.name].lastPull
-	logCampus(0, campus.name, '', `last pull was on ${nowISO(campusDBs[campus.name].lastPull)}, ${(lastPullAgo / 1000 / 60).toFixed(0)} minutes ago. `)
+	logCampus(2, campus.name, '', `last pull was on ${nowISO(campusDBs[campus.name].lastPull)}, ${(lastPullAgo / 1000 / 60).toFixed(0)} minutes ago. `)
 	if (lastPullAgo < env.pullTimeout) {
-		logCampus(0, campus.name, '', `not pulling, timeout of ${env.pullTimeout / 1000 / 60} minutes not reached`)
+		logCampus(2, campus.name, '', `not pulling, timeout of ${env.pullTimeout / 1000 / 60} minutes not reached`)
 		return 0
 	}
 
@@ -80,7 +80,7 @@ export async function saveAllProjectSubscribersForCampus(campus: Campus): Promis
 			users: await getProjectSubscribers(campus.id, env.projectIDs[id!])
 		}
 		usersPulled += item.users.length
-		logCampus(0, campus.name, id, `total users: ${item.users.length}`)
+		logCampus(2, campus.name, id, `total users: ${item.users.length}`)
 		newProjects.push(item)
 	}
 	campusDBs[campus.name].projects = newProjects

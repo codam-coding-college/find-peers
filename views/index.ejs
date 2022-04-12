@@ -124,12 +124,20 @@
 	</select>
 	 statuses
 </h5>
+<nav>
+	<select id="project-selector" onchange="window.location.href='#'+this.value; this.value='none'">
+		<option value="none">Select a project to jump to</option>
+		<% projects.forEach(project=>{ %>
+			<option value="<%= project.name.toLowerCase().replaceAll(' ', '-') %>"><%= project.name %></option>
+		<% })  %>
+	</select>
+</nav>
 
 <div id="projects">
 	<% projects.forEach(project=>{ %>
 		<div class="project">
 			<div class="project-name">
-				<div>
+				<div id="<%= project.name.toLowerCase().replaceAll(' ', '-') %>">
 					<%= project.name %>
 				</div>
 				<div class="n-users">

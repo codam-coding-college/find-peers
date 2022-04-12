@@ -47,7 +47,7 @@ export class API {
 			this._cooldown = this._startCooldown
 			return json
 		} catch (err) {
-			if (this._logging || response.status != 429)
+			if (this._logging || response?.status != 429)
 				console.log(new Date(), `[fetch error]: status: ${response.status} body: ${JSON.stringify(response)} retrying in ${this._cooldown / 1000} seconds`)
 			await new Promise(resolve => setTimeout(resolve, this._cooldown))
 			this._cooldown *= this._cooldownGrowthFactor

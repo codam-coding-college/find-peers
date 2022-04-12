@@ -16,7 +16,7 @@ function errorPage(res, error: string): void {
 	res.render('error.ejs', settings)
 }
 
-function filterProjects(projects: Project[], requestedStatus: string): Project[] {
+function filterProjects(projects: Project[], requestedStatus: string | undefined): Project[] {
 	return projects.map(project => ({
 		name: project.name,
 		users: project.users.filter(user => {
@@ -77,7 +77,7 @@ export async function startWebserver(port: number) {
 
 	app.get('/:campus', authenticate, async (req, res) => {
 		const user: UserProfile = req!.user as UserProfile
-		const requestedStatus: string = req.query['status']?.toString()!
+		const requestedStatus: string | undefined = req.query['status']?.toString()
 
 		const campusName = Object.keys(campusDBs).find(k => isLinguisticallySimilar(k, req.params['campus']))
 		if (!campusName || !campusDBs[campusName])

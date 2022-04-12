@@ -114,6 +114,16 @@
 		<% })  %>
 	</select>
 </h5>
+<h5>
+	Show
+	<select id="status-selector" onchange="window.location.href='?status='+this.value">
+		<option value="" <% if (requestedStatus === "" || requestedStatus === undefined) { %>selected<% } %>>all</option>
+		<% knownStatuses.forEach(status=>{ %>
+			<option value="<%= status %>" <% if (requestedStatus == status) { %>selected<% } %>><%= status %></option>
+		<% })  %>
+	</select>
+	 statuses
+</h5>
 
 <div id="projects">
 	<% projects.forEach(project=>{ %>
@@ -127,8 +137,10 @@
 				</div>
 			</div>
 			<div class="users">
-				<% if (project.users.length == 0) { %>
-				<p> <small> No users are subscribed to this project </small></p>
+				<% if (project.users.length == 0 && (requestedStatus === "" || requestedStatus === undefined)) { %>
+					<p><small> No users are subscribed to this project </small></p>
+				<% } else if (project.users.length == 0) { %>
+					<p> <small> No users with status <i><%= requestedStatus %></i> </small></p>
 				<% } else { %>
 				<% project.users.forEach(user=>{ %>
 					<a class="user" href="https://profile.intra.42.fr/users/<%= user.login %>" target="_blank">

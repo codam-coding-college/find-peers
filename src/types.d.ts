@@ -4,7 +4,7 @@ export interface User {
 	id: number
 	occurrence: number
 	final_mark: number
-	status: 'finished' | 'waiting_for_correction' | 'in_progress' | 'searching_a_group'
+	status: 'finished' | 'waiting_for_correction' | 'in_progress' | 'searching_a_group' | 'creating_group'
 	validated?: boolean
 	current_team_id: number
 	project: {
@@ -77,7 +77,7 @@ export interface User {
 
 export interface ProjectSubscriber {
 	login: string
-	status: 'finished' | 'waiting_for_correction' | 'in_progress' | 'searching_a_group'
+	status: 'finished' | 'waiting_for_correction' | 'in_progress' | 'searching_a_group' | 'creating_group'
 	// image_url: string
 	// startYear: number
 

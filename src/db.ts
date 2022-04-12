@@ -93,6 +93,7 @@ export async function saveAllProjectSubscribersForCampus(campus: Campus): Promis
 }
 
 export async function saveAllProjectSubscribers() {
+	return
 	let usersPulled: number = 0
 	const startPull = Date.now()
 	log(1, 'starting pull')

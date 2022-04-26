@@ -150,7 +150,7 @@
 	<% projects.forEach(project=>{ %>
 		<div class="project">
 			<div class="project-name">
-				<div id="<%= project.name.toLowerCase().replaceAll(' ', '-') %>">
+				<div id="<%= project.name.toLowerCase().replaceAll(' ', '-') %>"  style="cursor: pointer;" onclick="window.location.href = 'https://projects.intra.42.fr/projects/<%= project.name.toLowerCase().replaceAll(' ', '-') %>'">
 					<%= project.name %>
 				</div>
 				<div class="n-users">

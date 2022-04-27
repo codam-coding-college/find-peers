@@ -35,7 +35,9 @@ export class API {
 		this._cooldownGrowthFactor = 2
 	}
 
-	private async _fetch(path: string, opt: Object): Promise<Object> {
+	private async _fetch(path: string, opt: Object, isTokenUpdateRequest: boolean): Promise<Object> {
+		if (!isTokenUpdateRequest)
+			await this._updateToken()
 		if (this._logging)
 			console.error('REQUEST', path)
 		let response
@@ -51,7 +53,7 @@ export class API {
 				console.log(new Date(), `[fetch error]: status: ${response?.status} body: ${JSON.stringify(response)} retrying in ${this._cooldown / 1000} seconds`)
 			await new Promise(resolve => setTimeout(resolve, this._cooldown))
 			this._cooldown *= this._cooldownGrowthFactor
-			return await this._fetch(path, opt)
+			return await this._fetch(path, opt, isTokenUpdateRequest)
 		}
 	}
 
@@ -65,7 +67,7 @@ export class API {
 				"Content-Type": "application/x-www-form-urlencoded",
 			},
 		}
-		this._accessToken = await this._fetch(`${this._root}/oauth/token`, opt) as AccessToken
+		this._accessToken = await this._fetch(`${this._root}/oauth/token`, opt, true) as AccessToken
 		this._accessTokenExpiry = + Date.now() + this._accessToken!.expires_in * 1000
 		if (this._logging)
 			console.log(`[new token]: expires in ${this._accessToken!.expires_in} seconds, on ${new Date(this._accessTokenExpiry).toISOString()}`)
@@ -82,7 +84,7 @@ export class API {
 				Authorization: `Bearer ${this._accessToken!.access_token}`,
 			}
 		}
-		return await this._fetch(requestPath, opt)
+		return await this._fetch(requestPath, opt, false)
 	}
 
 	async getPaged(path: string, parameters?: { [key: string]: string | number }[], onPage?: (response: any) => void): Promise<any[]> {

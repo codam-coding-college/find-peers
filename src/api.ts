@@ -42,9 +42,17 @@ export class API {
 			console.error('REQUEST', path)
 		let response
 		try {
+			const start = Date.now()
 			response = await fetch(path, opt)
+			const duration = Date.now() - start
 			// TODO: do something better than this
-			await new Promise(resolve => setTimeout(resolve, 3.1 * 1000)) // to avoid getting to the request limit of 1200 per hour
+			// to avoid getting to the request limit of 1200 per hour
+			// with 3.15 seconds per request minimum it will not do more than 3600 / 3.15 = 1142 requests per hour
+			/// this is because the same oauth key is used for user validation
+			// so if the request limit is reached new users would not be able to log in
+			// now leaving 1200 - 1142 = 58 requests per hour leftover for new user auth
+			// a user auth request is only made for new users, not if the user is already logged in
+			await new Promise(resolve => setTimeout(resolve, Math.max(0, (3.15 * 1000) - duration)))
 			const json = await response.json()
 			this._cooldown = this._startCooldown
 			return json

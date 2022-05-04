@@ -14,6 +14,32 @@ interface AccessToken {
 	created_at: number
 }
 
+class RequestLimiter {
+	private _maxRequestPerSecond: number
+	private _thisSecond: number
+	private _requestsThisSecond: number
+
+	constructor(maxRequestPerSecond: number) {
+		this._maxRequestPerSecond = maxRequestPerSecond
+		this._thisSecond = 0
+		this._requestsThisSecond = 0
+	}
+
+	async limit(): Promise<void> {
+		const now = Date.now()
+		if (Math.floor(now / 1000) != this._thisSecond) {
+			this._requestsThisSecond = 0
+			this._thisSecond = Math.floor(now / 1000)
+			return
+		}
+		this._requestsThisSecond++
+		if (this._requestsThisSecond >= this._maxRequestPerSecond) {
+			console.log(((this._thisSecond + 1) * 1000) - now)
+			await new Promise(resolve => setTimeout(resolve, ((this._thisSecond + 1) * 1000) - now))
+		}
+	}
+}
+
 export class API {
 	private _root: string
 	private _tokens: Tokens
@@ -23,8 +49,9 @@ export class API {
 	private _startCooldown: number
 	private _cooldown: number
 	private _cooldownGrowthFactor: number
+	private _limiter: RequestLimiter
 
-	constructor(clientUID: string, clientSecret: string, logging: boolean = false, root = 'https://api.intra.42.fr') {
+	constructor(clientUID: string, clientSecret: string, maxRequestPerSecond: number = 1 / 3, logging: boolean = false, root = 'https://api.intra.42.fr') {
 		this._logging = logging
 		this._root = root
 		this._tokens = { clientUID, clientSecret }
@@ -33,6 +60,7 @@ export class API {
 		this._startCooldown = 1500
 		this._cooldown = this._startCooldown
 		this._cooldownGrowthFactor = 2
+		this._limiter = new RequestLimiter(maxRequestPerSecond)
 	}
 
 	private async _fetch(path: string, opt: Object, isTokenUpdateRequest: boolean): Promise<Object> {
@@ -42,17 +70,8 @@ export class API {
 			console.error('REQUEST', path)
 		let response
 		try {
-			const start = Date.now()
+			await this._limiter.limit()
 			response = await fetch(path, opt)
-			const duration = Date.now() - start
-			// TODO: do something better than this
-			// to avoid getting to the request limit of 1200 per hour
-			// with 3.15 seconds per request minimum it will not do more than 3600 / 3.15 = 1142 requests per hour
-			/// this is because the same oauth key is used for user validation
-			// so if the request limit is reached new users would not be able to log in
-			// now leaving 1200 - 1142 = 58 requests per hour leftover for new user auth
-			// a user auth request is only made for new users, not if the user is already logged in
-			await new Promise(resolve => setTimeout(resolve, Math.max(0, (3.15 * 1000) - duration)))
 			const json = await response.json()
 			this._cooldown = this._startCooldown
 			return json

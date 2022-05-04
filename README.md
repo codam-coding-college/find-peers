@@ -60,12 +60,3 @@ services:
 - Option 3: Run as script\
 `npm run build`\
 `node build/app.js --help`
-
-## TODO
-- Do not show staff members (?)
-- Ignore last pull when running as script
-- Validate cookie ttl
-- Log access and rate limiting
-- Speed up user status pull, for example with parallel api keys
-- Dropdown to only show people with an specific status
-- Use Intra's webhooks for instant user's status update

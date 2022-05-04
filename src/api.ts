@@ -58,7 +58,7 @@ export class API {
 			return json
 		} catch (err) {
 			if (this._logging || response?.status != 429)
-				console.log(new Date(), `[fetch error]: status: ${response?.status} body: ${JSON.stringify(response)} retrying in ${this._cooldown / 1000} seconds`)
+				console.log(`${new Date().toISOString()} [fetch error]: status: ${response?.status} body: ${JSON.stringify(response)} retrying in ${this._cooldown / 1000} seconds`)
 			await new Promise(resolve => setTimeout(resolve, this._cooldown))
 			this._cooldown *= this._cooldownGrowthFactor
 			return await this._fetch(path, opt, isTokenUpdateRequest)

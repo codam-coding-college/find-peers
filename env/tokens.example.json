@@ -1,5 +1,24 @@
+// How to install:
+// 1. copy this file and rename to tokens.json
+// 2. fill in empty strings below
+// 3. remove all comments (the lines starting with //)
+
+// this app needs 2 keys:
+// 1. For user authentiction - only needs the 'public' scope
+// 2. For syncing the database - can have more permissions for faster syncing
+
+// This is because syncing the database might reach the request quota while syncing the database
+// and when users try to login they can't because there is a oauth request to validate their login
+
 {
-	"clientUID": "",
-	"clientSecret": "",
-	"callbackURL": "https://example.com/auth/42/callback"
+	"userAuth": {
+		"UID": "",
+		"secret": "",
+		"callbackURL": "https://example.com/auth/42/callback" // the path must be exactly `/auth/42/callback`
+	},
+	"sync": {
+		"UID": "",
+		"secret": "",
+		"maxRequestPerSecond": 2 // rate limiter, you can find this number on in the line "Your application has a secondly rate limit set at " on the application page
+	}
 }

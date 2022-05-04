@@ -4,7 +4,12 @@ import { User, Project, ProjectSubscriber } from './types'
 import { env, Campus } from './env'
 import { logCampus, log, msToHuman, nowISO } from './logger'
 
-const Api: API = new API(env.clientUID, env.clientSecret, env.logLevel >= 3)
+const Api: API = new API(
+	env.tokens.sync.UID,
+	env.tokens.sync.secret,
+	env.tokens.sync.maxRequestPerSecond,
+	env.logLevel >= 3
+)
 
 export interface CampusDB {
 	projects: Project[]

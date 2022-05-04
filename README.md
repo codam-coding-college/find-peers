@@ -6,7 +6,6 @@ This website and script is meant to help students to find peers that are working
 ## Setup & configuration
 - Create a Oauth application on [intra](https://profile.intra.42.fr/oauth/applications)
 - Copy the file `./env/tokens.example.json` to `./env/tokens.json` and fill out the (secret) data
-	- The callbackURL's path must be exactly `/auth/42/callback`
 
 Also see `./src/env.ts` for more configuration
 

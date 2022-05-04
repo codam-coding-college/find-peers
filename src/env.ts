@@ -3,17 +3,26 @@ import fs from 'fs'
 import path from 'path'
 
 const tokensPath = path.join('.', 'env', 'tokens.json')
-const tokens = JSON.parse(fs.readFileSync(tokensPath).toString())
-if (!tokens.clientUID.length || !tokens.clientSecret.length || !tokens.callbackURL.length) {
-	console.error('Token file invalid, see tokens.example.json')
-	process.exit(1)
-}
+const tokens: Tokens = JSON.parse(fs.readFileSync(tokensPath).toString())
 
 const campusIDsPath = path.join('.', 'env', 'campusIDs.json')
 const campusIDs: { [key: string]: number }[] = JSON.parse(fs.readFileSync(campusIDsPath).toString())
 
 const projectIDsPath = path.join('.', 'env', 'projectIDs.json')
 const projectIDs: { [key: string]: number }[] = JSON.parse(fs.readFileSync(projectIDsPath).toString())
+
+export interface Tokens {
+	sync: {
+		UID: string;
+		secret: string;
+		maxRequestPerSecond: number;
+	},
+	userAuth: {
+		UID: string;
+		secret: string;
+		callbackURL: string;
+	}
+}
 
 export interface Campus {
 	name: string
@@ -38,9 +47,7 @@ export interface Env {
 	tokenURL: string
 	provider: string
 	authPath: string
-	callbackURL: string
-	clientUID: string
-	clientSecret: string
+	tokens: Tokens
 }
 
 const databaseRoot: string = path.join('.', 'database')
@@ -67,7 +74,7 @@ const knownStatuses: string[] = [
 ]
 
 export const env: Env = {
-	logLevel: 1, // 0 being no logging
+	logLevel: 3, // 0 being no logging
 	pullTimeout: 24 * 60 * 60 * 1000, // how often to pull the project users statuses form the intra api (in Ms)
 	projectIDs,
 	_42CursusID: 21,
@@ -81,7 +88,7 @@ export const env: Env = {
 	provider: '42',
 	authPath: '/auth/42', // TODO
 	scope: ['public'],
-	...tokens,
+	tokens,
 }
 
 log(1, `Watching ${Object.keys(campusIDs).length} campuses`)

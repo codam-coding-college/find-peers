@@ -70,9 +70,9 @@ async function getProfile(accessToken: string, refreshToken: string): Promise<Us
 const client = new OAuth2Strategy({
 	authorizationURL: env.authorizationURL,
 	tokenURL: env.tokenURL,
-	clientID: env.clientUID,
-	clientSecret: env.clientSecret,
-	callbackURL: env.callbackURL,
+	clientID: env.tokens.userAuth.UID,
+	clientSecret: env.tokens.userAuth.secret,
+	callbackURL: env.tokens.userAuth.callbackURL,
 	// passReqToCallback: true
 },
 	async (accessToken, refreshToken, _profile, done) => { // fires when user clicked allow

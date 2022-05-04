@@ -56,7 +56,7 @@ export async function startWebserver(port: number) {
 	}
 	app.use(session({
 		store: new FileStore(fileStoreSettings),
-		secret: env.clientSecret.slice(5),
+		secret: env.tokens.userAuth.secret.slice(5),
 		resave: false,
 		saveUninitialized: true
 	}))

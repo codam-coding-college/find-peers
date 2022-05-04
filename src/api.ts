@@ -67,7 +67,7 @@ export class API {
 		if (!isTokenUpdateRequest)
 			await this._updateToken()
 		if (this._logging)
-			console.error('REQUEST', path)
+			console.log(`${new Date().toISOString()} REQUEST ${path}`)
 		let response
 		try {
 			await this._limiter.limit()

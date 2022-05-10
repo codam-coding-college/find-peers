@@ -13,6 +13,9 @@ Also see `./src/env.ts` for more configuration
 - The projects shown on the front page are listed in `./env/projectIDs.json`. Should the curriculum change, you can edit that file. Remember to restart the server and wait for the server to pull all the data from the intra api.
 - A list of all the projects and their corresponding ID in the 42 network (as of march 2022) can be found in `./env/allProjectIDs.json`
 
+## Monitoring
+At route `/status/pull` you can see a summary of the pull status of every campus
+
 ## Configuration files
 | File path                                    | Description                                                                           | Managed by server |
 |----------------------------------------------|---------------------------------------------------------------------------------------|-------------------|

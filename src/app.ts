@@ -1,6 +1,16 @@
-import { saveAllProjectSubscribers, saveAllProjectSubscribersForCampus } from './db'
+import { syncCampuses, campusDBs } from './db'
 import { startWebserver } from './express'
-import { env, Campus } from './env'
+import { env } from './env'
+
+function msUntilNextPull(): number {
+	let nextPull = env.pullTimeout
+	for (const campus of env.campuses) {
+		const lastPullAgo = Date.now() - campusDBs[campus.name].lastPull
+		const msUntilNexPull = Math.max(0, env.pullTimeout - lastPullAgo)
+		nextPull = Math.min(nextPull, msUntilNexPull)
+	}
+	return nextPull
+}
 
 (async () => {
 	if (process.argv[2] == '--help' || process.argv[2] == '-h') {
@@ -32,9 +42,8 @@ import { env, Campus } from './env'
 	const port = parseInt(process.env['PORT'] || '8080')
 	await startWebserver(port)
 
-	// pulling data from intra can be very slow, so we check every hour if any of the campuses has not pulled for env.pullTimeout time
 	while (true) {
-		await saveAllProjectSubscribers()
-		await new Promise(resolve => setTimeout(resolve, 60 * 60 * 1000))
+		await syncCampuses()
+		await new Promise(resolve => setTimeout(resolve, msUntilNextPull() + 1000))
 	}
 })()

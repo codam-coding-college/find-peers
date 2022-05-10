@@ -66,16 +66,8 @@ export async function getProjectSubscribers(campusID: number, projectID: number)
 	return projectSubscribers
 }
 
-export async function saveAllProjectSubscribersForCampus(campus: Campus): Promise<number> {
-	if (!campusDBs[campus.name])
-		throw new Error(`[${campus.name}] Campus Database missing or not set up`)
-	const lastPullAgo = Date.now() - campusDBs[campus.name].lastPull
-	logCampus(2, campus.name, '', `last pull was on ${nowISO(campusDBs[campus.name].lastPull)}, ${(lastPullAgo / 1000 / 60).toFixed(0)} minutes ago. `)
-	if (lastPullAgo < env.pullTimeout) {
-		logCampus(2, campus.name, '', `not pulling, timeout of ${env.pullTimeout / 1000 / 60} minutes not reached`)
-		return 0
-	}
-
+// @return number of users pulled
+export async function saveAllProjectSubscribers(campus: Campus): Promise<number> {
 	let usersPulled: number = 0
 	const startPull = Date.now()
 	const newProjects: Project[] = []
@@ -97,12 +89,19 @@ export async function saveAllProjectSubscribersForCampus(campus: Campus): Promis
 	return usersPulled
 }
 
-export async function saveAllProjectSubscribers() {
-	let usersPulled: number = 0
+// Sync all user statuses form all campuses if the env.pullTimeout for that campus has not been reached
+export async function syncCampuses(): Promise<void> {
 	const startPull = Date.now()
+
 	log(1, 'starting pull')
-	for (const i in env.campuses) {
-		usersPulled += await saveAllProjectSubscribersForCampus(env.campuses[i]!)
+	for (const campus of env.campuses) {
+		const lastPullAgo = Date.now() - campusDBs[campus.name].lastPull
+		logCampus(2, campus.name, '', `last pull was on ${nowISO(campusDBs[campus.name].lastPull)}, ${(lastPullAgo / 1000 / 60).toFixed(0)} minutes ago. `)
+		if (lastPullAgo < env.pullTimeout) {
+			logCampus(2, campus.name, '', `not pulling, timeout of ${env.pullTimeout / 1000 / 60} minutes not reached`)
+			continue
+		}
+		await saveAllProjectSubscribers(campus)
 	}
-	log(1, `complete pull took ${msToHuman(Date.now() - startPull)}, got ${usersPulled} users`)
+	log(1, `complete pull took ${msToHuman(Date.now() - startPull)}`)
 }

@@ -1,6 +1,6 @@
 # Find peers --> [find-peers.joppekoers.nl](https://find-peers.joppekoers.nl)
 
-This website and script is meant to help students to find peers that are working on the same project
+This website is meant to help students to find peers that are working on the same project
 
 ## Developing
 ## Setup & configuration
@@ -56,6 +56,3 @@ services:
 - Option 2: Start production webserver\
 `npm run build`\
 `npm run start`
-- Option 3: Run as script\
-`npm run build`\
-`node build/app.js --help`

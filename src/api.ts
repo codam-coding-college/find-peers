@@ -127,7 +127,7 @@ export class API {
 				if (p['page[number]'])
 					p['page[number]'] = i
 
-			const block = await this.get(path, parameters) // TODO: fix & and ?
+			const block = await this.get(path, parameters)
 			if (block.length == 0)
 				break
 			if (onPage)

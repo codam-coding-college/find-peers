@@ -20,11 +20,7 @@ function filterProjects(projects: Project[], requestedStatus: string | undefined
 	return projects.map(project => ({
 		name: project.name,
 		users: project.users.filter(user => {
-			if (user.staff)
-				return false
-			if ((requestedStatus == 'finished' || user.status != 'finished') && (!requestedStatus || user.status == requestedStatus))
-				return true
-			return false
+			return ((requestedStatus == 'finished' || user.status != 'finished') && (!requestedStatus || user.status == requestedStatus) && !user.staff)
 		}).sort((a, b) => {
 			if (a.status != b.status) {
 				const preferredOrder = env.knownStatuses

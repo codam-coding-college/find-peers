@@ -34,7 +34,6 @@ class RequestLimiter {
 		}
 		this._requestsThisSecond++
 		if (this._requestsThisSecond >= this._maxRequestPerSecond) {
-			console.log(((this._thisSecond + 1) * 1000) - now)
 			await new Promise(resolve => setTimeout(resolve, ((this._thisSecond + 1) * 1000) - now))
 		}
 	}

@@ -40,7 +40,9 @@ The 'database' of this project is a folder called 'database' at the root of the 
 git clone https://github.com/codam-coding-college/find-peers.git
 cd find-peers
 docker build -t find-peers .
-docker run -v ./database:/app/database --build -d -p 80:8080 --name find-peers find-peers
+docker stop find-peers
+docker rm find-peers
+docker run -v $PWD/database:/app/database -d -p 80:8080 --name find-peers find-peers 
 ```
 
 ```yaml

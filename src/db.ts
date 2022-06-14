@@ -59,7 +59,7 @@ export async function getProjectSubscribers(campusID: number, projectID: number)
 			const valid = {
 				login: x.user.login,
 				status: x.status,
-				staff: x['staff?'],
+				staff: x.user['staff?'],
 			}
 			projectSubscribers.push(valid)
 		} catch (e) { }

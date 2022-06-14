@@ -35,7 +35,14 @@ The 'database' of this project is a folder called 'database' at the root of the 
 2 dockerfiles are provided\
 `Dockerfile` is for production, you can change the port in the environment variable\
 `Dockerfile.dev` is is for development
-### Docker-compose
+### Docker and Docker-compose
+```
+git clone https://github.com/codam-coding-college/find-peers.git
+cd find-peers
+docker build -t find-peers .
+docker run -v ./database:/app/database --build -d -p 80:8080 --name find-peers find-peers
+```
+
 ```yaml
 version: "3"
 

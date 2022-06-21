@@ -22,6 +22,8 @@ function filterProjects(projects: Project[], requestedStatus: string | undefined
 		users: project.users.filter(user => {
 			if (user.staff)
 				return false
+			if (user.login.match(/^3b3/)) // accounts who's login start with 3b3 are deactivated
+				return false
 			if ((requestedStatus == 'finished' || user.status != 'finished') && (!requestedStatus || user.status == requestedStatus))
 				return true
 			return false

@@ -1,5 +1,5 @@
 import fs from 'fs'
-import { API } from './api'
+import { API } from '42-connector'
 import { User, Project, ProjectSubscriber } from './types'
 import { env, Campus } from './env'
 import { logCampus, log, msToHuman, nowISO } from './logger'
@@ -48,13 +48,14 @@ export async function getProjects() {
 }
 
 export async function getProjectSubscribers(campusID: number, projectID: number): Promise<ProjectSubscriber[]> {
-	const users: User[] = await Api.getPaged(
-		`/v2/projects/${projectID}/projects_users`,
-		[{ 'filter[campus]': campusID }],
+	const { ok, json: users }: { ok: boolean, json?: User[] } = await Api.getPaged(
+		`/v2/projects/${projectID}/projects_users?filter[campus]=${campusID}`,
 		// (data) => console.log(data)
 	)
+	if (!ok)
+		throw "Could not get project subscribers"
 	const projectSubscribers: ProjectSubscriber[] = []
-	for (const x of users) {
+	for (const x of users!) {
 		try {
 			const valid = {
 				login: x.user.login,
@@ -73,10 +74,13 @@ export async function saveAllProjectSubscribers(campus: Campus): Promise<number>
 	const startPull = Date.now()
 	const newProjects: Project[] = []
 	for (const id in env.projectIDs) {
-		const item: Project = {
-			name: id,
-			users: await getProjectSubscribers(campus.id, env.projectIDs[id!])
-		}
+		let item: Project
+		try {
+			item = {
+				name: id,
+				users: await getProjectSubscribers(campus.id, env.projectIDs[id!])
+			}
+		} catch (e) { return 0 }
 		usersPulled += item.users.length
 		logCampus(2, campus.name, id, `total users: ${item.users.length}`)
 		newProjects.push(item)

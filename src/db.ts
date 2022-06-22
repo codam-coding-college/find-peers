@@ -7,8 +7,10 @@ import { logCampus, log, msToHuman, nowISO } from './logger'
 const Api: API = new API(
 	env.tokens.sync.UID,
 	env.tokens.sync.secret,
-	env.tokens.sync.maxRequestPerSecond,
-	env.logLevel >= 3
+	{
+		maxRequestPerSecond: env.tokens.sync.maxRequestPerSecond,
+		logging: env.logLevel >= 3
+	}
 )
 
 export interface CampusDB {

@@ -4,7 +4,7 @@
 	"description": "",
 	"main": "app.js",
 	"dependencies": {
-		"42-connector": "github:codam-coding-college/42-connector#3.0.0",
+		"42-connector": "github:codam-coding-college/42-connector#3.1.0",
 		"ejs": "^3.1.6",
 		"express": "^4.17.3",
 		"node-fetch": "^2.1.0",

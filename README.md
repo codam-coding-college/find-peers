@@ -61,8 +61,6 @@ services:
 - Install Nodejs >= 16.x
 - Install dependencies\
 `npm install`
-- Build\
-`npm run build`
 - Option 1: Start development webserver\
 `npm run dev`
 - Option 2: Start production webserver\

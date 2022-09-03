@@ -50,16 +50,16 @@ export async function startWebserver(port: number) {
 
 	const app = express()
 
-	const FileStore = require('session-file-store')(session)
-	fs.mkdirSync(env.sessionStorePath, { recursive: true })
-	const fileStoreSettings = {
-		path: env.sessionStorePath,
-		retries: 1,
-		ttl: 7 * 24 * 60 * 60,
-		logFn: () => { },
-	}
+	// const FileStore = require('session-file-store')(session)
+	// fs.mkdirSync(env.sessionStorePath, { recursive: true })
+	// const fileStoreSettings = {
+	// 	path: env.sessionStorePath,
+	// 	retries: 1,
+	// 	ttl: 7 * 24 * 60 * 60,
+	// 	logFn: () => { },
+	// }
 	app.use(session({
-		store: new FileStore(fileStoreSettings),
+		// store: new FileStore(fileStoreSettings),
 		secret: env.tokens.userAuth.secret.slice(5),
 		resave: false,
 		saveUninitialized: true

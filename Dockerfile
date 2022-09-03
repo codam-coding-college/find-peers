@@ -1,10 +1,9 @@
 FROM node:16
 
 WORKDIR /app
-# RUN chown -R node:node /app
 
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm install --omit=dev
 COPY . .
 RUN npm run build
 

@@ -4,7 +4,6 @@ import { passport, authenticate } from './authentication'
 import { env } from './env'
 import session from 'express-session'
 import { campusDBs, CampusDB } from './db'
-import fs from 'fs'
 import { Project, UserProfile } from './types'
 import { log, msToHuman } from './logger'
 

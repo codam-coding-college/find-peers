@@ -63,7 +63,7 @@ export async function getProjectSubscribers(campusID: number, projectID: number)
 				login: x.user.login,
 				status: x.status,
 				staff: x.user['staff?'],
-				image_url: x.user.image_url,
+				image_url: x.user.image.versions.medium,
 			}
 			projectSubscribers.push(valid)
 		} catch (e) { }

@@ -172,7 +172,7 @@
 				<% } else { %>
 				<% project.users.forEach(user=>{ %>
 					<a class="user" href="https://profile.intra.42.fr/users/<%= user.login %>" target="_blank">
-						<img class="user-image" src="https://cdn.intra.42.fr/users/small_<%= user.login %>.jpg" loading="lazy"/>
+						<img class="user-image" src="<%= user.image_url %>" loading="lazy"/>
 						<div>
 							<%= user.login %>
 						</div>

@@ -79,7 +79,7 @@ export interface ProjectSubscriber {
 	login: string
 	status: 'finished' | 'waiting_for_correction' | 'in_progress' | 'searching_a_group' | 'creating_group' | 'parent'
 	staff: boolean
-	// image_url: string
+	image_url: string
 	// startYear: number
 
 }

@@ -30,7 +30,17 @@ export interface User {
 		url: string
 		phone: string
 		displayname: string
+		kind: string
 		image_url: string
+		image: {
+			link: string
+			versions: {
+				large: string
+				medium: string
+				small: string
+				micro: string
+			}
+		}
 		new_image_url: string
 		'staff?': boolean
 		correction_point: number
@@ -39,10 +49,12 @@ export interface User {
 		'location?': any
 		wallet: number
 		anonymize_date: Date
+		data_erasure_date: Date
 		created_at: Date
 		updated_at: Date
-		alumni: boolean
-		is_launched?: boolean
+		'alumnized_at?': any
+		'alumni?': boolean
+		'active?': boolean
 	}
 	teams: {
 		id: number

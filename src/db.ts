@@ -51,7 +51,7 @@ export async function getProjects() {
 
 export async function getProjectSubscribers(campusID: number, projectID: number): Promise<ProjectSubscriber[]> {
 	const { ok, json: users }: { ok: boolean, json?: User[] } = await Api.getPaged(
-		`/v2/projects/${projectID}/projects_users?filter[campus]=${campusID}`,
+		`/v2/projects/${projectID}/projects_users?filter[campus]=${campusID}&page[size]=100`,
 		// (data) => console.log(data)
 	)
 	if (!ok)

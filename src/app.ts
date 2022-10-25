@@ -1,6 +1,10 @@
 import { syncCampuses, campusDBs } from './db'
 import { startWebserver } from './express'
 import { env } from './env'
+import util from 'util'
+
+// set depth of object expansion in terminal as printed by console.*()
+util.inspect.defaultOptions.depth = 10
 
 function msUntilNextPull(): number {
 	let nextPull = env.pullTimeout

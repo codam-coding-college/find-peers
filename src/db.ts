@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { API } from '42-connector'
-import { User, Project, ProjectSubscriber } from './types'
+import { ApiProject, Project, ProjectSubscriber, projectStatuses } from './types'
 import { env, Campus } from './env'
 import { logCampus, log, msToHuman, nowISO } from './logger'
 
@@ -50,7 +50,7 @@ export async function getProjects() {
 }
 
 export async function getProjectSubscribers(campusID: number, projectID: number): Promise<ProjectSubscriber[]> {
-	const { ok, json: users }: { ok: boolean, json?: User[] } = await Api.getPaged(
+	const { ok, json: users }: { ok: boolean, json?: ApiProject[] } = await Api.getPaged(
 		`/v2/projects/${projectID}/projects_users?filter[campus]=${campusID}&page[size]=100`,
 		// (data) => console.log(data)
 	)
@@ -61,10 +61,14 @@ export async function getProjectSubscribers(campusID: number, projectID: number)
 		try {
 			const valid = {
 				login: x.user.login,
-				status: x.status,
+				status: projectStatuses.includes(x.status) ? x.status : 'finished',
 				staff: x.user['staff?'],
 				image_url: x.user.image.versions.medium,
 			}
+			// overwriting Intra's wrong key
+			if (x['validated?'] &&
+				['waiting_for_correction', 'in_progress', 'searching_a_group', 'creating_group'].includes(x.status))
+				valid.status = 'finished'
 			projectSubscribers.push(valid)
 		} catch (e) { }
 	}

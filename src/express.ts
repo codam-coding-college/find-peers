@@ -45,6 +45,49 @@ function isLinguisticallySimilar(a: string, b: string): boolean {
 	return a == b
 }
 
+interface Visitor {
+	id: string
+	date: Date
+}
+
+interface Metrics {
+	visitorsLast: {
+		hour: number
+		day: number
+		month: number
+	},
+	visitors: Visitor[]
+}
+
+class MetricsStorage {
+	public addVisitor(id: string): void {
+		// TODO: could be better
+		if (this.visitors.at(-1)?.id !== id) // when the user reloads the page, do not count it as a new visitor
+			this.visitors.push({ id: id, date: new Date() })
+		if (this.visitors.length > 5_000_000)
+			this.visitors.slice(1)
+	}
+
+	public generateMetrics(): Metrics {
+		const now = Date.now()
+		const hour = this.visitors.filter(x => now - x.date.getTime() < 3600 * 1000).length
+		const day = this.visitors.filter(x => now - x.date.getTime() < 24 * 3600 * 1000).length
+		const month = this.visitors.filter(x => now - x.date.getTime() < 30 * 24 * 3600 * 1000).length
+		return {
+			visitorsLast: {
+				hour,
+				day,
+				month
+			},
+			visitors: this.visitors
+		}
+	}
+
+	private visitors: Visitor[] = []
+}
+
+let metrics = new MetricsStorage()
+
 export async function startWebserver(port: number) {
 
 	const app = express()
@@ -103,6 +146,9 @@ export async function startWebserver(port: number) {
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0)
 		}
 		res.render('index.ejs', settings)
+
+		// saving anonymized metrics
+		metrics.addVisitor(user.accessToken)
 	})
 
 	app.get('/status/pull', authenticate, (req, res) => {
@@ -110,6 +156,10 @@ export async function startWebserver(port: number) {
 		for (const campus of Object.keys(campusDBs))
 			obj.push({ name: campus, lastPull: new Date(campusDBs[campus!].lastPull), ago: msToHuman(Date.now() - campusDBs[campus!].lastPull) })
 		res.send(JSON.stringify(obj))
+	})
+
+	app.get('/status/metrics', authenticate, (req, res) => {
+		res.send(JSON.stringify(metrics.generateMetrics()))
 	})
 
 	app.set("views", path.join(__dirname, "../views"))

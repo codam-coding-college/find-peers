@@ -1,9 +1,9 @@
-FROM node:16
+FROM node:18-slim
 
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm install --omit=dev
+RUN npm ci --omit=dev
 COPY . .
 RUN npm run build
 

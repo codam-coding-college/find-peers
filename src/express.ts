@@ -62,7 +62,7 @@ interface Metrics {
 class MetricsStorage {
 	public addVisitor(id: string): void {
 		// TODO: could be better
-		if (this.visitors.at(-1)?.id !== id) // when the user reloads the page, do not count it as a new visitor
+		if (this.visitors[this.visitors.length - 1]?.id !== id) // when the user reloads the page, do not count it as a new visitor
 			this.visitors.push({ id: id, date: new Date() })
 		if (this.visitors.length > 5_000_000)
 			this.visitors.slice(1)

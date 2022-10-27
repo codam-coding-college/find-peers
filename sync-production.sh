@@ -2,7 +2,7 @@
 
 # Run this script to sync the local repo to production
 
-set -o strace # Print commands as they are executed
+set -o xtrace # Print commands as they are executed
 set -o errexit # Exit on error
 
 SSH="ssh find-peers"

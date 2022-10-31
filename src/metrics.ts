@@ -1,40 +1,61 @@
+import fs from 'fs'
+
 interface Visitor {
-	id: string;
-	date: Date;
+	id: string
+	date: Date
 }
 
 interface Metrics {
 	visitorsLast: {
-		hour: number;
-		day: number;
-		month: number;
-	};
-	visitors: Visitor[];
+		hour: number
+		day: number
+		month: number
+	}
+	nVisitors: number
+	visitors: Visitor[]
 }
 
 export class MetricsStorage {
-	public addVisitor(id: string): void {
+	constructor() {
+		if (!fs.existsSync(this.dbPath)) {
+			fs.writeFileSync(this.dbPath, '[]')
+		}
+		try {
+			this.visitors = JSON.parse(fs.readFileSync(this.dbPath, 'utf8'))
+		} catch (err) { }
+	}
+
+	public async addVisitor(id: string): Promise<void> {
 		// TODO: could be better
 		if (this.visitors[this.visitors.length - 1]?.id !== id)
 			// when the user reloads the page, do not count it as a new visitor
-			this.visitors.push({ id: id, date: new Date() });
-		if (this.visitors.length > 5_000_000) this.visitors.slice(1);
+			this.visitors.push({ id: id, date: new Date() })
+		if (this.visitors.length > 5_000_000) this.visitors.slice(1)
+		await fs.promises.writeFile(this.dbPath, JSON.stringify(this.visitors))
+	}
+
+	uniqueVisitorsInLast(timeMs: number) {
+		const now = Date.now()
+		let visitors = this.visitors.filter((x) => now - x.date.getTime() < timeMs)
+		visitors = visitors.filter((current, pos) => visitors.findIndex(x => x.id === current.id) === pos)
+		return visitors
 	}
 
 	public generateMetrics(): Metrics {
-		const now = Date.now();
-		const hour = this.visitors.filter((x) => now - x.date.getTime() < 3600 * 1000).length
-		const day = this.visitors.filter((x) => now - x.date.getTime() < 24 * 3600 * 1000).length
-		const month = this.visitors.filter((x) => now - x.date.getTime() < 30 * 24 * 3600 * 1000).length
+		const hour = this.uniqueVisitorsInLast(3600 * 1000).length
+		const day = this.uniqueVisitorsInLast(24 * 3600 * 1000).length
+		const month = this.uniqueVisitorsInLast(30 * 24 * 3600 * 1000).length
+
 		return {
 			visitorsLast: {
 				hour,
 				day,
 				month,
 			},
+			nVisitors: this.visitors.length,
 			visitors: this.visitors,
-		};
+		}
 	}
-
-	private visitors: Visitor[] = [];
+	private readonly dbPath: string = '/tmp/visitors.json'
+	private visitors: Visitor[] = []
 }

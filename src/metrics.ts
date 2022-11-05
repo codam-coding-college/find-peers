@@ -44,10 +44,12 @@ export class MetricsStorage {
 		await fs.promises.writeFile(this.dbPath, JSON.stringify(this.visitors))
 	}
 
-	uniqueVisitorsInLast(timeMs: number) {
+	uniqueVisitorsInLast(timeMs: number): Visitor[] {
 		const now = Date.now()
-		const visitors = this.visitors.filter((x) => now - x.date.getTime() < timeMs)
-		return unique(visitors, (a, b) => a.id === b.id)
+		let visitors = this.visitors.filter((x) => now - x.date.getTime() < timeMs)
+		visitors = unique(visitors, (a, b) => a.id === b.id)
+		visitors = visitors.map((x) => ({ ...x, id: x.id.substring(5, -5) })) // cut a little of the id to keep it private
+		return visitors
 	}
 
 	public generateMetrics(): Metrics {

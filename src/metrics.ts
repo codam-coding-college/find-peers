@@ -36,7 +36,6 @@ export class MetricsStorage {
 	}
 
 	public async addVisitor(id: string, campus: string): Promise<void> {
-		// TODO: could be better
 		// when the user reloads the page, do not count it as a new visitor
 		if (this.visitors[this.visitors.length - 1]?.id !== id)
 			this.visitors.push({ id, campus, date: new Date() })

@@ -1,18 +1,28 @@
 import fs from 'fs'
+import { env } from './env'
 
 interface Visitor {
 	id: string
+	campus: string
 	date: Date
 }
 
+interface Metric {
+	hour: number
+	day: number
+	month: number
+}
+
 interface Metrics {
-	visitorsLast: {
-		hour: number
-		day: number
-		month: number
-	}
+	uniqVisitorsTotal: Metric
+	uniqVisitorsCampus: ({ name: string } & Metric)[]
 	nVisitors: number
 	visitors: Visitor[]
+}
+
+// get unique elements in array based on equalFn()
+function unique<T>(arr: T[], equalFn: (a: T, b: T) => boolean): T[] {
+	return arr.filter((current, pos) => arr.findIndex(x => equalFn(x, current)) === pos)
 }
 
 export class MetricsStorage {
@@ -25,37 +35,43 @@ export class MetricsStorage {
 		} catch (err) { }
 	}
 
-	public async addVisitor(id: string): Promise<void> {
+	public async addVisitor(id: string, campus: string): Promise<void> {
 		// TODO: could be better
 		// when the user reloads the page, do not count it as a new visitor
 		if (this.visitors[this.visitors.length - 1]?.id !== id)
-			this.visitors.push({ id: id, date: new Date() })
+			this.visitors.push({ id, campus, date: new Date() })
 		if (this.visitors.length > 5_000_000) this.visitors.slice(1)
 		await fs.promises.writeFile(this.dbPath, JSON.stringify(this.visitors))
 	}
 
 	uniqueVisitorsInLast(timeMs: number) {
 		const now = Date.now()
-		let visitors = this.visitors.filter((x) => now - x.date.getTime() < timeMs)
-		visitors = visitors.filter((current, pos) => visitors.findIndex(x => x.id === current.id) === pos)
-		return visitors
+		const visitors = this.visitors.filter((x) => now - x.date.getTime() < timeMs)
+		return unique(visitors, (a, b) => a.id === b.id)
 	}
 
 	public generateMetrics(): Metrics {
-		const hour = this.uniqueVisitorsInLast(3600 * 1000).length
-		const day = this.uniqueVisitorsInLast(24 * 3600 * 1000).length
-		const month = this.uniqueVisitorsInLast(30 * 24 * 3600 * 1000).length
+		const hour = this.uniqueVisitorsInLast(3600 * 1000)
+		const day = this.uniqueVisitorsInLast(24 * 3600 * 1000)
+		const month = this.uniqueVisitorsInLast(30 * 24 * 3600 * 1000)
 
 		return {
-			visitorsLast: {
-				hour,
-				day,
-				month,
+			uniqVisitorsTotal: {
+				hour: hour.length,
+				day: day.length,
+				month: month.length,
 			},
+			uniqVisitorsCampus: env.campuses.map((campus) => ({
+				name: campus.name,
+				hour: hour.filter((x) => x.campus === campus.name).length,
+				day: day.filter((x) => x.campus === campus.name).length,
+				month: month.filter((x) => x.campus === campus.name).length,
+			})),
 			nVisitors: this.visitors.length,
 			visitors: this.visitors,
 		}
 	}
-	private readonly dbPath: string = '/tmp/visitors.json'
+
+	private readonly dbPath: string = env.databaseRoot + '/visitors.json'
 	private visitors: Visitor[] = []
 }

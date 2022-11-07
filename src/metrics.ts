@@ -1,5 +1,7 @@
 import fs from 'fs'
 import { env } from './env'
+import crypto from 'crypto'
+import { UserProfile } from './types'
 
 interface Visitor {
 	id: string
@@ -36,10 +38,14 @@ export class MetricsStorage {
 		} catch (err) { }
 	}
 
-	public async addVisitor(id: string, campus: string): Promise<void> {
+	public async addVisitor(user: UserProfile): Promise<void> {
+		// create a hash instead of storing the user id directly, for privacy
+		const rawID = user.id.toString() + user.login
+		const id = crypto.createHash('sha256').update(rawID).digest('hex')
+
 		// when the user reloads the page, do not count it as a new visitor
 		if (this.visitors[this.visitors.length - 1]?.id !== id)
-			this.visitors.push({ id, campus, date: new Date() })
+			this.visitors.push({ id, campus: user.campusName, date: new Date() })
 		if (this.visitors.length > 5_000_000)
 			this.visitors.slice(1)
 		await fs.promises.writeFile(this.dbPath, JSON.stringify(this.visitors))

@@ -108,7 +108,7 @@ export async function startWebserver(port: number) {
 		res.render('index.ejs', settings)
 
 		// saving anonymized metrics
-		metrics.addVisitor(user.accessToken, user.campusName)
+		metrics.addVisitor(user)
 	})
 
 	app.get('/status/pull', (req, res) => {

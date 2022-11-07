@@ -111,7 +111,7 @@ export async function startWebserver(port: number) {
 		metrics.addVisitor(user.accessToken, user.campusName)
 	})
 
-	app.get('/status/pull', authenticate, (req, res) => {
+	app.get('/status/pull', (req, res) => {
 		const obj: { name: string, lastPull: Date, ago: string }[] = []
 		for (const campus of Object.keys(campusDBs))
 			obj.push({ name: campus, lastPull: new Date(campusDBs[campus!].lastPull), ago: msToHuman(Date.now() - campusDBs[campus!].lastPull) })

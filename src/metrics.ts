@@ -56,18 +56,22 @@ export class MetricsStorage {
 		const day = this.uniqueVisitorsInLast(24 * 3600 * 1000)
 		const month = this.uniqueVisitorsInLast(30 * 24 * 3600 * 1000)
 
+		const uniqVisitorsCampus = env.campuses
+			.map((campus) => ({
+				name: campus.name,
+				hour: hour.filter((x) => x.campus === campus.name).length,
+				day: day.filter((x) => x.campus === campus.name).length,
+				month: month.filter((x) => x.campus === campus.name).length,
+			}))
+			.sort((a, b) => b.day - a.day)
+
 		return {
 			uniqVisitorsTotal: {
 				hour: hour.length,
 				day: day.length,
 				month: month.length,
 			},
-			uniqVisitorsCampus: env.campuses.map((campus) => ({
-				name: campus.name,
-				hour: hour.filter((x) => x.campus === campus.name).length,
-				day: day.filter((x) => x.campus === campus.name).length,
-				month: month.filter((x) => x.campus === campus.name).length,
-			})),
+			uniqVisitorsCampus,
 			nVisitors: this.visitors.length,
 			visitors: this.visitors,
 		}

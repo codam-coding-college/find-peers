@@ -31,7 +31,8 @@ export class MetricsStorage {
 			fs.writeFileSync(this.dbPath, '[]')
 		}
 		try {
-			this.visitors = JSON.parse(fs.readFileSync(this.dbPath, 'utf8'))
+			this.visitors = (JSON.parse(fs.readFileSync(this.dbPath, 'utf8')) as Visitor[])
+				.map((x) => ({ ...x, date: new Date(x.date) })) // in JSON Date is stored as a string, so now we convert it back to Date
 		} catch (err) { }
 	}
 
@@ -39,7 +40,8 @@ export class MetricsStorage {
 		// when the user reloads the page, do not count it as a new visitor
 		if (this.visitors[this.visitors.length - 1]?.id !== id)
 			this.visitors.push({ id, campus, date: new Date() })
-		if (this.visitors.length > 5_000_000) this.visitors.slice(1)
+		if (this.visitors.length > 5_000_000)
+			this.visitors.slice(1)
 		await fs.promises.writeFile(this.dbPath, JSON.stringify(this.visitors))
 	}
 

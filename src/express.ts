@@ -112,9 +112,20 @@ export async function startWebserver(port: number) {
 	})
 
 	app.get('/status/pull', (req, res) => {
-		const obj: { name: string, lastPull: Date, ago: string }[] = []
-		for (const campus of Object.keys(campusDBs))
-			obj.push({ name: campus, lastPull: new Date(campusDBs[campus!].lastPull), ago: msToHuman(Date.now() - campusDBs[campus!].lastPull) })
+		const obj: { name: string, lastPull: Date, ago: { ms: number, human: string } }[] = []
+		for (const campus of Object.keys(campusDBs)) {
+			const msAgp = Date.now() - campusDBs[campus!].lastPull
+
+			const status = {
+				name: campus,
+				lastPull: new Date(campusDBs[campus!].lastPull),
+				ago: {
+					ms: msAgp,
+					human: msToHuman(msAgp)
+				}
+			}
+			obj.push(status)
+		}
 		res.send(JSON.stringify(obj))
 	})
 

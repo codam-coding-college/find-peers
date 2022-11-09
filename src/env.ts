@@ -7,15 +7,16 @@ const campusIDs: { [key: string]: number }[] = JSON.parse(fs.readFileSync('env/c
 const projectIDs: { [key: string]: number }[] = JSON.parse(fs.readFileSync('env/projectIDs.json').toString())
 
 export interface Tokens {
+	metricsSalt: string
 	sync: {
-		UID: string;
-		secret: string;
-		maxRequestPerSecond: number;
+		UID: string
+		secret: string
+		maxRequestPerSecond: number
 	},
 	userAuth: {
-		UID: string;
-		secret: string;
-		callbackURL: string;
+		UID: string
+		secret: string
+		callbackURL: string
 	}
 }
 

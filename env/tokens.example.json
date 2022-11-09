@@ -11,6 +11,7 @@
 // and when users try to login they can't because there is a oauth request to validate their login
 
 {
+	"metricsSalt": "", // Salt used for hashing username based metrics, can be anything as long as it stays the same
 	"userAuth": {
 		"UID": "",
 		"secret": "",

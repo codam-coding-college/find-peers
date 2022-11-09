@@ -40,7 +40,7 @@ export class MetricsStorage {
 
 	public async addVisitor(user: UserProfile): Promise<void> {
 		// create a hash instead of storing the user id directly, for privacy
-		const rawID = user.id.toString() + user.login
+		const rawID = user.id.toString() + user.login + env.tokens.metricsSalt
 		const id = crypto.createHash('sha256').update(rawID).digest('hex')
 
 		// when the user reloads the page, do not count it as a new visitor

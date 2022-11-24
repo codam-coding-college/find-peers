@@ -143,7 +143,7 @@
 		<option value="" <% if (!requestedStatus) { %>selected<% } %>>all</option>
 		<% knownStatuses.forEach(status=>{ %>
 			<option value="<%= status %>" <% if (requestedStatus == status) { %>selected<% } %>><%= status %></option>
-			<% }) %>
+		<% }) %>
 	</select>
 	<label for="project-selector"> project</label>
 	<input list="project-datalist" id="project-selector" onchange="window.location.href='#'+this.value; this.value=''" placeholder="project name"/>
@@ -183,11 +183,11 @@
 							<%= user.status %>
 						</div>
 					</a>
-					<% })  %>
-				<% }  %>
+					<% }) %>
+				<% } %>
 			</div>
 		</div>
-<% }) // /> %>
+	<% }) %>
 </div>
 
 <footer>

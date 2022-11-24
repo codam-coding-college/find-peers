@@ -7,6 +7,7 @@ import { campusDBs, CampusDB } from './db'
 import { Project, UserProfile } from './types'
 import { log, msToHuman } from './logger'
 import { MetricsStorage } from './metrics'
+import compression from 'compression'
 
 function errorPage(res, error: string): void {
 	const settings = {
@@ -68,7 +69,7 @@ export async function startWebserver(port: number) {
 	}))
 	app.use(passport.initialize())
 	app.use(passport.session())
-
+	app.use(compression())
 	app.get(`/auth/${env.provider}/`, passport.authenticate(env.provider, { scope: env.scope }))
 	app.get(`/auth/${env.provider}/callback`,
 		passport.authenticate(env.provider, {

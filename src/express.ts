@@ -4,10 +4,11 @@ import { passport, authenticate } from './authentication'
 import { env } from './env'
 import session from 'express-session'
 import { campusDBs, CampusDB } from './db'
-import { Project, UserProfile } from './types'
+import { Project, ProjectSubscriber, UserProfile } from './types'
 import { log, msToHuman } from './logger'
 import { MetricsStorage } from './metrics'
 import compression from 'compression'
+import request from 'request'
 
 function errorPage(res, error: string): void {
 	const settings = {
@@ -17,10 +18,11 @@ function errorPage(res, error: string): void {
 	res.render('error.ejs', settings)
 }
 
-function filterProjects(projects: Project[], requestedStatus: string | undefined): Project[] {
-	return projects.map(project => ({
-		name: project.name,
-		users: project.users.filter(user => {
+const cachingProxy = '/image-url-proxy/'
+
+function filterUsers(users: ProjectSubscriber[], requestedStatus: string | undefined): ProjectSubscriber[] {
+	const newUsers = users
+		.filter(user => {
 			if (user.staff)
 				return false
 			if (user.login.match(/^3b3/)) // accounts who's login start with 3b3 are deactivated
@@ -28,7 +30,11 @@ function filterProjects(projects: Project[], requestedStatus: string | undefined
 			if ((requestedStatus == 'finished' || user.status != 'finished') && (!requestedStatus || user.status == requestedStatus))
 				return true
 			return false
-		}).sort((a, b) => {
+		})
+		.map(user => (
+			{ ...user, image_url: cachingProxy + user.image_url }
+		))
+		.sort((a, b) => {
 			if (a.status != b.status) {
 				const preferredOrder = env.knownStatuses
 				const indexA = preferredOrder.findIndex(x => x == a.status)
@@ -37,6 +43,13 @@ function filterProjects(projects: Project[], requestedStatus: string | undefined
 			}
 			return a.login < b.login ? -1 : 1
 		})
+	return newUsers
+}
+
+function filterProjects(projects: Project[], requestedStatus: string | undefined): Project[] {
+	return projects.map(project => ({
+		name: project.name,
+		users: filterUsers(project.users, requestedStatus)
 	}))
 }
 
@@ -70,6 +83,14 @@ export async function startWebserver(port: number) {
 	app.use(passport.initialize())
 	app.use(passport.session())
 	app.use(compression())
+
+	app.use(cachingProxy, (req, res) => {
+		// inject cache header for images
+		res.setHeader('Cache-Control', `public, max-age=${30 * 24 * 60 * 60}`)
+		const url = req.url.replace(/^\//, '')
+		req.pipe(request(url)).pipe(res)
+	})
+
 	app.get(`/auth/${env.provider}/`, passport.authenticate(env.provider, { scope: env.scope }))
 	app.get(`/auth/${env.provider}/callback`,
 		passport.authenticate(env.provider, {

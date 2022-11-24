@@ -10,17 +10,16 @@
 		:root {
 			color-scheme: dark;
 			font-family: monospace;
-			/* font-weight: 80; */
 			font-weight: lighter;
-			padding: 0 10px;
+			padding: 0;
 			font-size: 22px;
+			--root-padding: 32px;
 		}
 
 		body {
-			width: 100%;
 			max-width: 1700px;
 			margin: 0 auto;
-			padding-top: 64px;
+			padding: 64px var(--root-padding) 0px;
 		}
 
 		h1,
@@ -35,7 +34,7 @@
 		}
 
 		.project {
-			margin: 100px 0px;
+			margin: 80px 0px;
 		}
 
 		.project-name {
@@ -106,7 +105,7 @@
 			top: 0;
 			left: 0;
 			right: 0;
-			padding: 16px 32px;
+			padding: 16px var(--root-padding);
 			background: black;
 			box-shadow: 0 0 3px 0px black;
 		}
@@ -131,7 +130,7 @@
 
 <h1>Find Peers</h1>
 <h6>Built by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a> - <a href="https://github.com/codam-coding-college/find-peers">Source</a></h6>
-<h6>The statuses are updated approximately every <%= updateEveryHours %> hours, last update was on <%= lastUpdate %>: <%= hoursAgo %> hours ago.</h6>
+<h6>This page is updated every <%= updateEveryHours %> hours, last update was on <%= lastUpdate %>: <%= hoursAgo %> hours ago.</h6>
 <h6>Now also integrated on the <a href="https://github.com/FreekBes/improved_intra/releases/tag/v3.0.3">Improved Intra extension</a></h6>
 <h6><%= usage %></h6>
 <div id="search-bar">

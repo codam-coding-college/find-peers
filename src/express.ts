@@ -95,6 +95,8 @@ export async function startWebserver(port: number) {
 		if (requestedStatus && !env.knownStatuses.includes(requestedStatus))
 			return errorPage(res, `Unknown status ${req.query['status']}`)
 
+		const { uniqVisitorsTotal: v, uniqVisitorsCampus } = metrics.generateMetrics()
+		const campuses = uniqVisitorsCampus.reduce((acc, visitors) => acc += visitors.month > 0 ? 1 : 0, 0)
 		const settings = {
 			projects: filterProjects(campusDB.projects, requestedStatus),
 			lastUpdate: (new Date(campusDB.lastPull)).toLocaleString('en-NL', { timeZone: user.timeZone }).slice(0, -3),
@@ -103,7 +105,8 @@ export async function startWebserver(port: number) {
 			knownStatuses: env.knownStatuses,
 			campusName,
 			campuses: env.campuses.sort((a, b) => a.name < b.name ? -1 : 1),
-			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0)
+			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0),
+			usage: `${v.day} unique visitors today, ${v.month} this month, from ${campuses} different campuses`,
 		}
 		res.render('index.ejs', settings)
 
@@ -126,11 +129,11 @@ export async function startWebserver(port: number) {
 			}
 			obj.push(status)
 		}
-		res.send(JSON.stringify(obj))
+		res.json(obj)
 	})
 
 	app.get('/status/metrics', authenticate, (req, res) => {
-		res.send(JSON.stringify(metrics.generateMetrics()))
+		res.json(metrics.generateMetrics())
 	})
 
 	app.set("views", path.join(__dirname, "../views"))

@@ -11,21 +11,33 @@
 		:root {
 			color-scheme: dark;
 			font-family: monospace;
-			font-weight: lighter;
 			padding: 0;
-			font-size: 22px;
+
+			--search-height: 50px;
 			--root-padding: 32px;
+
+			font-size: 22px;
+			letter-spacing: -0.2px;
+			--font-size-1: 4ch;
+			--font-size-2: 2.5ch;
+			--font-size-3: 1.1ch;
+			--font-size-4: 0.75ch;
 		}
 
 		body {
 			margin: 0 auto;
-			padding: 64px var(--root-padding) 0px;
+			padding: var(--search-height) var(--root-padding) 0px;
 		}
 
-		h1,
-		h5,
-		h6 {
-			margin: 6px 0px 6px 0px;
+		#title {
+			font-size: var(--font-size-1);
+			font-weight: bold;
+		}
+
+		#description {
+			font-size: var(--font-size-3);
+			line-height: 1.2em;
+			font-weight: bold;
 		}
 
 		#projects {
@@ -38,7 +50,7 @@
 		}
 
 		.project-name {
-			font-size: 2.5ch;
+			font-size: var(--font-size-2);
 			display: flex;
 			flex-direction: row;
 			align-items: flex-end;
@@ -68,7 +80,7 @@
 		}
 
 		.status {
-			font-size: 0.8ch;
+			font-size: var(--font-size-4);
 		}
 
 		.user-image {
@@ -93,28 +105,31 @@
 		}
 
 		.n-users {
-			font-size: 0.75ch;
+			font-size: var(--font-size-4);
 			padding: 5px 20px;
 		}
 
 		#search-bar {
 			display: flex;
 			flex-direction: row;
+			align-items: center;
 			position: fixed;
 			top: 0;
 			left: 0;
 			right: 0;
-			padding: 16px var(--root-padding);
+			padding: 0 var(--root-padding);
+			height: var(--search-height);
 			background: black;
 			box-shadow: 0 0 3px 0px black;
+			font-size: var(--font-size-3);
 		}
 
-		#search-bar>* {
+		#search-bar > * {
 			margin: 0 20px 0 0;
 			font-family: inherit;
 		}
 
-		#search-bar>label {
+		#search-bar > label {
 			margin: 0 5px 0 0;
 		}
 	</style>
@@ -127,11 +142,15 @@
 
 <body>
 
-<h1>Find Peers</h1>
-<h6>Built by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a> - <a href="https://github.com/codam-coding-college/find-peers">Source</a></h6>
-<h6>This page is updated every <%= updateEveryHours %> hours, last update was on <%= lastUpdate %>: <%= hoursAgo %> hours ago</h6>
-<h6>Now also integrated on the <a href="https://github.com/FreekBes/improved_intra/releases/tag/v3.0.3">Improved Intra extension</a></h6>
-<h6><%= usage %></h6>
+<div id="title">
+	Find Peers
+</div>
+<div id="description">
+	Built by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a> - <a href="https://github.com/codam-coding-college/find-peers">Source</a><br/>
+	This page is updated every <%= updateEveryHours %> hours, last update was on <%= lastUpdate %>: <%= hoursAgo %> hours ago<br/>
+	Now also integrated on the <a href="https://github.com/FreekBes/improved_intra/releases/tag/v3.0.3">Improved Intra extension</a><br/>
+	<%= usage %><br/>
+</div>
 <div id="search-bar">
 	<label for="campus-selector"> campus</label>
 	<select id="campus-selector" onchange="window.location.href='/'+this.value">

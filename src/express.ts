@@ -76,9 +76,14 @@ export async function startWebserver(port: number) {
 
 	app.use(cachingProxy, (req, res) => {
 		// inject cache header for images
-		res.setHeader('Cache-Control', `public, max-age=${30 * 24 * 60 * 60}`)
+		res.setHeader('Cache-Control', `public, max-age=${100 * 24 * 60 * 60}`)
 		const url = req.query['q'] ?? ''
 		req.pipe(request(url)).pipe(res)
+	})
+
+	app.get('/robots.txt', (req, res) => {
+		res.type('text/plain')
+		res.send('User-agent: *\nAllow: /')
 	})
 
 	app.get(`/auth/${env.provider}/`, passport.authenticate(env.provider, { scope: env.scope }))

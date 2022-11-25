@@ -5,6 +5,7 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Find peers displays what projects 42 students are working on, allowing them to find peers to collaborate with.">
 	<title>Find peers</title>
 	<style>
 		:root {
@@ -128,7 +129,7 @@
 
 <h1>Find Peers</h1>
 <h6>Built by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a> - <a href="https://github.com/codam-coding-college/find-peers">Source</a></h6>
-<h6>This page is updated every <%= updateEveryHours %> hours, last update was on <%= lastUpdate %>: <%= hoursAgo %> hours ago.</h6>
+<h6>This page is updated every <%= updateEveryHours %> hours, last update was on <%= lastUpdate %>: <%= hoursAgo %> hours ago</h6>
 <h6>Now also integrated on the <a href="https://github.com/FreekBes/improved_intra/releases/tag/v3.0.3">Improved Intra extension</a></h6>
 <h6><%= usage %></h6>
 <div id="search-bar">
@@ -175,7 +176,7 @@
 				<% } else { %>
 				<% project.users.forEach(user=>{ %>
 					<a class="user" href="https://profile.intra.42.fr/users/<%= user.login %>" target="_blank">
-						<img class="user-image" src="<%= user.image_url %>" loading="lazy"/>
+						<img class="user-image" src="<%= user.image_url %>" alt="<%= user.login %>" loading="lazy"/>
 						<div>
 							<%= user.login %>
 						</div>

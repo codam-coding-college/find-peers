@@ -18,7 +18,7 @@ function errorPage(res, error: string): void {
 	res.render('error.ejs', settings)
 }
 
-const cachingProxy = '/image-url-proxy/'
+const cachingProxy = '/proxy'
 
 function filterUsers(users: ProjectSubscriber[], requestedStatus: string | undefined): ProjectSubscriber[] {
 	const newUsers = users
@@ -32,7 +32,7 @@ function filterUsers(users: ProjectSubscriber[], requestedStatus: string | undef
 			return false
 		})
 		.map(user => (
-			{ ...user, image_url: cachingProxy + user.image_url }
+			{ ...user, image_url: `${cachingProxy}?q=${user.image_url}` }
 		))
 		.sort((a, b) => {
 			if (a.status != b.status) {
@@ -87,7 +87,7 @@ export async function startWebserver(port: number) {
 	app.use(cachingProxy, (req, res) => {
 		// inject cache header for images
 		res.setHeader('Cache-Control', `public, max-age=${30 * 24 * 60 * 60}`)
-		const url = req.url.replace(/^\//, '')
+		const url = req.query['q'] ?? ''
 		req.pipe(request(url)).pipe(res)
 	})
 

@@ -72,13 +72,22 @@ export async function startWebserver(port: number) {
 	}))
 	app.use(passport.initialize())
 	app.use(passport.session())
-	app.use(compression())
 
 	app.use(cachingProxy, (req, res) => {
 		// inject cache header for images
 		res.setHeader('Cache-Control', `public, max-age=${100 * 24 * 60 * 60}`)
 		const url = req.query['q'] ?? ''
 		req.pipe(request(url)).pipe(res)
+	})
+
+	app.use((req, res, next) => {
+		try {
+			compression()(req, res, next)
+			return
+		} catch (e) {
+			console.error('Compression error', e)
+		}
+		next()
 	})
 
 	app.get('/robots.txt', (req, res) => {

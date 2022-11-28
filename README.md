@@ -42,7 +42,7 @@ cd find-peers
 docker build -t find-peers .
 docker stop find-peers
 docker rm find-peers
-docker run -v /root/find-peers/database:/app/database -d -p 80:8080 --name --restart unless-stopped find-peers find-peers
+docker run -v /root/find-peers/database:/app/database -d -p 80:8080 --restart unless-stopped --name find-peers find-peers
 ```
 
 ```yaml

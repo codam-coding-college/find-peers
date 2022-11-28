@@ -14,9 +14,9 @@ SSH="ssh find-peers"
 $SSH 'cd /root/find-peers && git pull origin main'
 $SSH 'docker build -t find-peers /root/find-peers'
 
-$SSH 'docker stop find-peers'
-$SSH 'docker rm find-peers'
-$SSH 'docker run -v /root/find-peers/database:/app/database -d -p 80:8080 --name find-peers find-peers'
+$SSH 'docker stop find-peers' || true
+$SSH 'docker rm find-peers' || true
+$SSH 'docker run -v /root/find-peers/database:/app/database -d -p 80:8080 --name --restart unless-stopped find-peers find-peers'
 
 $SSH 'docker logs -f find-peers'
 # Press Ctrl+C to stop following the logs

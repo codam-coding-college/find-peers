@@ -1,0 +1,7 @@
+.dockerignore
+.git
+.gitignroe
+database
+Dockerfile
+node_modules
+README.md

@@ -2,7 +2,7 @@ import { env, Env } from './env'
 import { campusDBs } from './db'
 
 // eg. 24
-export function msToHuman(milliseconds): string {
+export function msToHuman(milliseconds: number): string {
 	const hours = milliseconds / (1000 * 60 * 60)
 	const h = Math.floor(hours)
 

@@ -19,7 +19,6 @@ interface Metrics {
 	uniqVisitorsTotal: Metric
 	uniqVisitorsCampus: ({ name: string } & Metric)[]
 	nVisitors: number
-	visitors: Visitor[]
 }
 
 // get unique elements in array based on equalFn()
@@ -35,7 +34,10 @@ export class MetricsStorage {
 		try {
 			this.visitors = (JSON.parse(fs.readFileSync(this.dbPath, 'utf8')) as Visitor[])
 				.map((x) => ({ ...x, date: new Date(x.date) })) // in JSON Date is stored as a string, so now we convert it back to Date
-		} catch (err) { }
+		} catch (err) {
+			console.error('Error while reading visitors database, resetting it...', err)
+			this.visitors = []
+		}
 	}
 
 	public async addVisitor(user: UserProfile): Promise<void> {
@@ -46,7 +48,7 @@ export class MetricsStorage {
 		// when the user reloads the page, do not count it as a new visitor
 		if (this.visitors[this.visitors.length - 1]?.id !== id)
 			this.visitors.push({ id, campus: user.campusName, date: new Date() })
-		if (this.visitors.length > 5_000_000)
+		if (this.visitors.length > 50_000)
 			this.visitors.slice(1)
 		await fs.promises.writeFile(this.dbPath, JSON.stringify(this.visitors))
 	}
@@ -81,7 +83,6 @@ export class MetricsStorage {
 			},
 			uniqVisitorsCampus,
 			nVisitors: this.visitors.length,
-			visitors: this.visitors,
 		}
 	}
 

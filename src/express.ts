@@ -141,11 +141,17 @@ export async function startWebserver(port: number) {
 	})
 
 	app.get('/status/pull', (req, res) => {
-		const obj = Object.keys(campusDBs).map(campus => ({
-			name: campus,
-			lastPull: new Date(campusDBs[campus!].lastPull),
-			ago: msToHuman(Date.now() - campusDBs[campus!].lastPull),
-		}))
+		const obj = Object.keys(campusDBs).map(campus => {
+			const ago = Date.now() - campusDBs[campus!].lastPull
+			return {
+				name: campus,
+				lastPull: new Date(campusDBs[campus!].lastPull),
+				ago: {
+					ms: ago,
+					human: msToHuman(ago),
+				}
+			}
+		})
 		res.json(obj)
 	})
 

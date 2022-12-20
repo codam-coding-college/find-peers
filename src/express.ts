@@ -147,7 +147,7 @@ export async function startWebserver(port: number) {
 				name: campus,
 				lastPull: new Date(campusDBs[campus!].lastPull),
 				ago: {
-					ms: ago,
+					hr: ago / 1000 / 60 / 60,
 					human: msToHuman(ago),
 				}
 			}

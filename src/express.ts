@@ -5,7 +5,7 @@ import { env } from './env'
 import session from 'express-session'
 import { campusDBs, CampusDB } from './db'
 import { Project, ProjectSubscriber, UserProfile } from './types'
-import { log, msToHuman } from './logger'
+import { log } from './logger'
 import { MetricsStorage } from './metrics'
 import compression from 'compression'
 import request from 'request'
@@ -141,17 +141,11 @@ export async function startWebserver(port: number) {
 	})
 
 	app.get('/status/pull', (req, res) => {
-		const obj = Object.keys(campusDBs).map(campus => {
-			const ago = Date.now() - campusDBs[campus!].lastPull
-			return {
-				name: campus,
-				lastPull: new Date(campusDBs[campus!].lastPull),
-				ago: {
-					hr: ago / 1000 / 60 / 60,
-					human: msToHuman(ago),
-				}
-			}
-		})
+		const obj = Object.keys(campusDBs).map(campus => ({
+			name: campus,
+			lastPull: new Date(campusDBs[campus!].lastPull),
+			hoursAgo: (Date.now() - campusDBs[campus!].lastPull) / 1000 / 60 / 60
+		}))
 		res.json(obj)
 	})
 

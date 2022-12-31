@@ -1,6 +1,6 @@
 import fs from 'fs'
 import { API } from '42-connector'
-import { ApiProject, Project, ProjectSubscriber, projectStatuses } from './types'
+import { ApiProject, Project, ProjectSubscriber, projectStatuses, ApiProjectUser } from './types'
 import { env, Campus } from './env'
 import { logCampus, log, msToHuman, nowISO } from './logger'
 
@@ -41,12 +41,24 @@ for (const i in env.campuses) {
 	setupCampusDB(env.campuses[i]!)
 }
 
-export async function getEvents(campusID: number) {
-	return await Api.get(`/v2/campus/${campusID}/events`)
-}
+function toProjectSubscriber(x: ApiProject): ProjectSubscriber | null {
+	try {
+		const valid = {
+			login: x.user.login,
+			status: projectStatuses.includes(x.status) ? x.status : 'finished',
+			staff: x.user['staff?'],
+			image_url: x.user.image.versions.medium,
+		}
+		// overwriting Intra's wrong key
+		if (x['validated?'] &&
+			['waiting_for_correction', 'in_progress', 'searching_a_group', 'creating_group'].includes(x.status))
+			valid.status = 'finished'
 
-export async function getProjects() {
-	return await Api.getPaged('/v2/projects/')
+		return valid
+	} catch (e) {
+		console.error(e)
+		return null
+	}
 }
 
 export async function getProjectSubscribers(campusID: number, projectID: number): Promise<ProjectSubscriber[]> {
@@ -55,24 +67,8 @@ export async function getProjectSubscribers(campusID: number, projectID: number)
 		// (data) => console.log(data)
 	)
 	if (!ok)
-		throw "Could not get project subscribers"
-	const projectSubscribers: ProjectSubscriber[] = []
-	for (const x of users!) {
-		try {
-			const valid = {
-				login: x.user.login,
-				status: projectStatuses.includes(x.status) ? x.status : 'finished',
-				staff: x.user['staff?'],
-				image_url: x.user.image.versions.medium,
-			}
-			// overwriting Intra's wrong key
-			if (x['validated?'] &&
-				['waiting_for_correction', 'in_progress', 'searching_a_group', 'creating_group'].includes(x.status))
-				valid.status = 'finished'
-			projectSubscribers.push(valid)
-		} catch (e) { }
-	}
-	return projectSubscribers
+		throw new Error('Could not get project subscribers')
+	return users!.map(toProjectSubscriber).filter(x => !!x) as ProjectSubscriber[]
 }
 
 // @return number of users pulled

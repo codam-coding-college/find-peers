@@ -28,13 +28,14 @@ export interface Campus {
 	lastPullPath: string // timestamp for when the server did a last pull
 }
 
+
 export interface Env {
 	logLevel: 0 | 1 | 2 | 3
 	pullTimeout: number
 	projectIDs: { [key: string]: number }[]
 	databaseRoot: string
 	campuses: Campus[]
-	knownStatuses: string[]
+	projectStatuses: typeof projectStatuses
 	sessionStorePath: string // session key data
 	userDBpath: string // users associated with sessions
 	scope: string[]
@@ -59,14 +60,15 @@ for (const campusName in campusIDs) {
 }
 
 // known statuses, in the order we want them displayed on the website
-const knownStatuses: string[] = [
+const projectStatuses = [
 	'creating_group',
 	'searching_a_group',
 	'in_progress',
 	'waiting_for_correction',
 	'finished',
 	'parent',
-]
+] as const
+export type ProjectStatus = typeof projectStatuses[number]
 
 export const env: Env = {
 	logLevel: 1, // 0 being no logging
@@ -74,7 +76,7 @@ export const env: Env = {
 	projectIDs,
 	databaseRoot,
 	campuses,
-	knownStatuses,
+	projectStatuses,
 	sessionStorePath: path.join(databaseRoot, 'sessions'),
 	authorizationURL: 'https://api.intra.42.fr/oauth/authorize',
 	tokenURL: 'https://api.intra.42.fr/oauth/token',

@@ -1,7 +1,7 @@
 import fs from 'fs'
 import { API } from '42-connector'
-import { ApiProject, Project, ProjectSubscriber, projectStatuses, ApiProjectUser } from './types'
-import { env, Campus } from './env'
+import { ApiProject, Project, ProjectSubscriber } from './types'
+import { env, Campus, ProjectStatus } from './env'
 import { logCampus, log, msToHuman, nowISO } from './logger'
 
 const Api: API = new API(
@@ -41,19 +41,52 @@ for (const i in env.campuses) {
 	setupCampusDB(env.campuses[i]!)
 }
 
-function toProjectSubscriber(x: ApiProject): ProjectSubscriber | null {
-	try {
-		const valid = {
-			login: x.user.login,
-			status: projectStatuses.includes(x.status) ? x.status : 'finished',
-			staff: x.user['staff?'],
-			image_url: x.user.image.versions.medium,
+// Next time we use SQL
+function findUserByLogin(login: string): ProjectSubscriber | undefined {
+	for (const campus of env.campuses) {
+		for (const project of campusDBs[campus!.name].projects) {
+			const user: ProjectSubscriber = project.users.find(x => x.login === login)
+			if (user)
+				return user
 		}
-		// overwriting Intra's wrong key
-		if (x['validated?'] &&
-			['waiting_for_correction', 'in_progress', 'searching_a_group', 'creating_group'].includes(x.status))
-			valid.status = 'finished'
+	}
+	return undefined
+}
 
+function isNew(status: string, existingUser?: ProjectSubscriber): boolean {
+	if (!existingUser)
+		return true
+
+	if (status === existingUser.status)
+		return false
+	if (!existingUser.lastChangeD) // for database migration
+		return false
+	const lastChangedTS = new Date(existingUser.lastChangeD).getTime()
+	if (lastChangedTS == 0)
+		return false
+
+	return Date.now() - lastChangedTS < 7 * 24 * 60 * 60 * 1000
+}
+
+function toProjectSubscriber(x: Readonly<ApiProject>): ProjectSubscriber | null {
+	try {
+		const existing = findUserByLogin(x.user.login)
+
+		// overwriting Intra's wrong key
+		let status: ProjectStatus = !!x['validated?'] ? 'finished' : x.status
+		if (!env.projectStatuses.includes(x.status)) {
+			console.error(`Invalid status: ${x.status} on user ${x.user}`)
+			status = 'finished'
+		}
+
+		const valid: ProjectSubscriber = {
+			login: x.user.login,
+			status,
+			staff: !!x.user['staff?'],
+			image_url: x.user.image.versions.medium,
+			lastChangeD: existing?.lastChangeD || new Date(),
+			new: isNew(status, existing),
+		}
 		return valid
 	} catch (e) {
 		console.error(e)

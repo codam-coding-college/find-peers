@@ -1,5 +1,4 @@
-export const projectStatuses = ['finished', 'waiting_for_correction', 'in_progress', 'searching_a_group', 'creating_group', 'parent'] as const
-export type ProjectStatus = typeof projectStatuses[number]
+import { ProjectStatus } from "./env"
 
 export interface ApiProject {
 	id: number
@@ -93,8 +92,8 @@ export interface ProjectSubscriber {
 	status: ProjectStatus
 	staff: boolean
 	image_url: string
-	// startYear: number
-
+	lastChangeD: Date | string
+	new: boolean
 }
 
 export interface Project {

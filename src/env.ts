@@ -44,6 +44,7 @@ export interface Env {
 	provider: string
 	authPath: string
 	tokens: Tokens
+	userNewStatusThresholdDays: number
 }
 
 const databaseRoot = 'database'
@@ -85,6 +86,7 @@ export const env: Env = {
 	authPath: '/auth/42',
 	scope: ['public'],
 	tokens,
+	userNewStatusThresholdDays: 7,
 }
 
 log(1, `Watching ${Object.keys(campusIDs).length} campuses`)

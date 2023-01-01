@@ -65,7 +65,7 @@ function isNew(status: string, existingUser?: ProjectSubscriber): boolean {
 	if (lastChangedTS == 0)
 		return false
 
-	return Date.now() - lastChangedTS < 7 * 24 * 60 * 60 * 1000
+	return Date.now() - lastChangedTS < env.userNewStatusThresholdDays * 24 * 60 * 60 * 1000
 }
 
 function toProjectSubscriber(x: Readonly<ApiProject>): ProjectSubscriber | null {

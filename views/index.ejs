@@ -140,6 +140,12 @@
 			right: 0;
 			max-height: 12%;
 		}
+
+		.inline {
+			display: inline;
+			height: 15px;
+			margin-top: -2px;
+		}
 	</style>
 
 	<script async>
@@ -156,7 +162,7 @@
 <div id="description">
 	Built by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a> - <a href="https://github.com/codam-coding-college/find-peers">Source</a><br/>
 	This page is updated every <%= updateEveryHours %> hours, last update was on <%= lastUpdate %>: <%= hoursAgo %> hours ago<br/>
-	Now also integrated on the <a href="https://github.com/FreekBes/improved_intra/releases/tag/v3.0.3">Improved Intra extension</a><br/>
+	<img class="inline" src="/public/new.svg"></img> indicates that the user's project status was changed in the last <%= userNewStatusThresholdDays %> days<br />
 	<%= usage %><br/>
 </div>
 <div id="search-bar">
@@ -169,7 +175,7 @@
 	<label for="status-selector"> status</label>
 	<select id="status-selector" onchange="window.location.href='?status='+this.value">
 		<option value="" <% if (!requestedStatus) { %>selected<% } %>>all</option>
-		<% knownStatuses.forEach(status=>{ %>
+		<% projectStatuses.forEach(status=>{ %>
 			<option value="<%= status %>" <% if (requestedStatus == status) { %>selected<% } %>><%= status %></option>
 		<% }) %>
 	</select>

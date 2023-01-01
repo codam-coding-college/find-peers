@@ -136,6 +136,7 @@ export async function startWebserver(port: number) {
 			campuses: env.campuses.sort((a, b) => a.name < b.name ? -1 : 1),
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0),
 			usage: `${v.day} unique visitors today, ${v.month} this month, from ${campuses} different campuses`,
+			userNewStatusThresholdDays: env.userNewStatusThresholdDays,
 		}
 		res.render('index.ejs', settings)
 

@@ -1,7 +1,7 @@
 import path from 'path'
 import express from 'express'
 import { passport, authenticate } from './authentication'
-import { env } from './env'
+import { env, ProjectStatus } from './env'
 import session from 'express-session'
 import { campusDBs, CampusDB } from './db'
 import { Project, ProjectSubscriber, UserProfile } from './types'
@@ -35,8 +35,11 @@ function filterUsers(users: ProjectSubscriber[], requestedStatus: string | undef
 			{ ...user, image_url: `${cachingProxy}?q=${user.image_url}` }
 		))
 		.sort((a, b) => {
+			if (a.new != b.new)
+				return a.new ? -1 : 1
+
 			if (a.status != b.status) {
-				const preferredOrder = env.knownStatuses
+				const preferredOrder = env.projectStatuses
 				const indexA = preferredOrder.findIndex(x => x == a.status)
 				const indexB = preferredOrder.findIndex(x => x == b.status)
 				return indexA < indexB ? -1 : 1
@@ -118,7 +121,7 @@ export async function startWebserver(port: number) {
 		if (!campusDB.projects.length)
 			return errorPage(res, "Empty database (please try again later)")
 
-		if (requestedStatus && !env.knownStatuses.includes(requestedStatus))
+		if (requestedStatus && !env.projectStatuses.includes(requestedStatus as ProjectStatus))
 			return errorPage(res, `Unknown status ${req.query['status']}`)
 
 		const { uniqVisitorsTotal: v, uniqVisitorsCampus } = metrics.generateMetrics()
@@ -128,11 +131,12 @@ export async function startWebserver(port: number) {
 			lastUpdate: (new Date(campusDB.lastPull)).toLocaleString('en-NL', { timeZone: user.timeZone }).slice(0, -3),
 			hoursAgo: ((Date.now() - campusDB.lastPull) / 1000 / 60 / 60).toFixed(2),
 			requestedStatus,
-			knownStatuses: env.knownStatuses,
+			projectStatuses: env.projectStatuses,
 			campusName,
 			campuses: env.campuses.sort((a, b) => a.name < b.name ? -1 : 1),
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0),
 			usage: `${v.day} unique visitors today, ${v.month} this month, from ${campuses} different campuses`,
+			userNewStatusThresholdDays: env.userNewStatusThresholdDays,
 		}
 		res.render('index.ejs', settings)
 

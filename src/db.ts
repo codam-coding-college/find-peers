@@ -42,10 +42,13 @@ for (const i in env.campuses) {
 }
 
 // Next time we use SQL
-function findUserByLogin(login: string): ProjectSubscriber | undefined {
+function findUserByLogin(login: string, projectName: string): ProjectSubscriber | undefined {
 	for (const campus of env.campuses) {
-		for (const project of campusDBs[campus!.name].projects) {
-			const user: ProjectSubscriber = project.users.find(x => x.login === login)
+		const projects = campusDBs[campus.name]!.projects as Project[]
+		for (const project of projects) {
+			if (project.name !== projectName)
+				continue
+			const user = project.users.find(x => x.login === login)
 			if (user)
 				return user
 		}
@@ -70,7 +73,7 @@ function isNew(status: string, existingUser?: ProjectSubscriber): boolean {
 
 function toProjectSubscriber(x: Readonly<ApiProject>): ProjectSubscriber | null {
 	try {
-		const existing = findUserByLogin(x.user.login)
+		const existing = findUserByLogin(x.user.login, x.project.slug)
 
 		// overwriting Intra's wrong key
 		let status: ProjectStatus = !!x['validated?'] ? 'finished' : x.status

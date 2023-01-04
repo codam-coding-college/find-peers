@@ -162,5 +162,5 @@ export async function startWebserver(port: number) {
 	app.use('/public', express.static('public/'))
 
 	await app.listen(port)
-	log(1, `app ready on port port ${port}`)
+	log(1, `${process.env['NODE_ENV'] ?? 'development'} app ready on http://localhost:${port}`)
 }

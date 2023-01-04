@@ -11,4 +11,5 @@ ENV PORT=8080
 EXPOSE 8080
 
 USER node
+ENV NODE_ENV=production
 ENTRYPOINT [ "npm", "run", "start" ]

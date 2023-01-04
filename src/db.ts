@@ -71,9 +71,9 @@ function isNew(status: string, existingUser?: ProjectSubscriber): boolean {
 	return Date.now() - lastChangedTS < env.userNewStatusThresholdDays * 24 * 60 * 60 * 1000
 }
 
-function toProjectSubscriber(x: Readonly<ApiProject>): ProjectSubscriber | null {
+function toProjectSubscriber(x: Readonly<ApiProject>, projectName: string): ProjectSubscriber | null {
 	try {
-		const existing = findUserByLogin(x.user.login, x.project.slug)
+		const existing = findUserByLogin(x.user.login, projectName)
 
 		// overwriting Intra's wrong key
 		let status: ProjectStatus = !!x['validated?'] ? 'finished' : x.status
@@ -98,14 +98,14 @@ function toProjectSubscriber(x: Readonly<ApiProject>): ProjectSubscriber | null 
 	}
 }
 
-export async function getProjectSubscribers(campusID: number, projectID: number): Promise<ProjectSubscriber[]> {
+export async function getProjectSubscribers(campusID: number, projectID: number, projectName: string): Promise<ProjectSubscriber[]> {
 	const { ok, json: users }: { ok: boolean, json?: ApiProject[] } = await Api.getPaged(
 		`/v2/projects/${projectID}/projects_users?filter[campus]=${campusID}&page[size]=100`,
 		// (data) => console.log(data)
 	)
 	if (!ok)
 		throw new Error('Could not get project subscribers')
-	return users!.map(toProjectSubscriber).filter(x => !!x) as ProjectSubscriber[]
+	return users!.map(u => toProjectSubscriber(u, projectName)).filter(x => !!x) as ProjectSubscriber[]
 }
 
 // @return number of users pulled
@@ -118,7 +118,7 @@ export async function saveAllProjectSubscribers(campus: Campus): Promise<number>
 		try {
 			item = {
 				name: id,
-				users: await getProjectSubscribers(campus.id, env.projectIDs[id!])
+				users: await getProjectSubscribers(campus.id, env.projectIDs[id!], id)
 			}
 		} catch (e) { return 0 }
 		usersPulled += item.users.length

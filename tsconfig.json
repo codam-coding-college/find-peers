@@ -6,6 +6,7 @@
 		"allowJs": true,
 		// "checkJs": true,
 		"outDir": "./build/",
+		"rootDirs": ["./src/", "env"],
 		"removeComments": true,
 		"downlevelIteration": false,
 		// "strict": true,

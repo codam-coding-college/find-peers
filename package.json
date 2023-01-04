@@ -32,6 +32,6 @@
 	"scripts": {
 		"dev": "ts-node-dev --quiet --rs --respawn --clear --transpile-only src/app.ts",
 		"build": "tsc",
-		"start": "node build/app.js"
+		"start": "node build/src/app.js"
 	}
 }

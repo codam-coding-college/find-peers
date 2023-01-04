@@ -1,24 +1,8 @@
 import { log } from './logger'
-import fs from 'fs'
 import path from 'path'
-
-const tokens: Tokens = JSON.parse(fs.readFileSync('env/tokens.json').toString())
-const campusIDs: { [key: string]: number }[] = JSON.parse(fs.readFileSync('env/campusIDs.json').toString())
-const projectIDs: { [key: string]: number }[] = JSON.parse(fs.readFileSync('env/projectIDs.json').toString())
-
-export interface Tokens {
-	metricsSalt: string
-	sync: {
-		UID: string
-		secret: string
-		maxRequestPerSecond: number
-	},
-	userAuth: {
-		UID: string
-		secret: string
-		callbackURL: string
-	}
-}
+import campusIDs from '../env/campusIDs.json'
+import projectIDs from '../env/projectIDs.json'
+import tokens from '../env/tokens.json'
 
 export interface Campus {
 	name: string
@@ -28,11 +12,11 @@ export interface Campus {
 	lastPullPath: string // timestamp for when the server did a last pull
 }
 
-
 export interface Env {
 	logLevel: 0 | 1 | 2 | 3
 	pullTimeout: number
-	projectIDs: { [key: string]: number }[]
+	projectIDs: typeof projectIDs
+	campusIDs: typeof campusIDs
 	databaseRoot: string
 	campuses: Campus[]
 	projectStatuses: typeof projectStatuses
@@ -43,7 +27,7 @@ export interface Env {
 	tokenURL: string
 	provider: string
 	authPath: string
-	tokens: Tokens
+	tokens: typeof tokens
 	userNewStatusThresholdDays: number
 }
 
@@ -71,10 +55,11 @@ const projectStatuses = [
 ] as const
 export type ProjectStatus = typeof projectStatuses[number]
 
-export const env: Env = {
+export const env: Readonly<Env> = {
 	logLevel: 1, // 0 being no logging
 	pullTimeout: 24 * 60 * 60 * 1000, // how often to pull the project users statuses form the intra api (in Ms)
 	projectIDs,
+	campusIDs,
 	databaseRoot,
 	campuses,
 	projectStatuses,

@@ -79,13 +79,14 @@ function toProjectSubscriber(x: Readonly<ApiProject>): ProjectSubscriber | null 
 			status = 'finished'
 		}
 
+		const isNewEntry = isNew(status, existing)
 		const valid: ProjectSubscriber = {
 			login: x.user.login,
 			status,
 			staff: !!x.user['staff?'],
 			image_url: x.user.image.versions.medium,
-			lastChangeD: existing?.lastChangeD || new Date(),
-			new: isNew(status, existing),
+			lastChangeD: isNewEntry ? new Date() : existing?.lastChangeD || new Date(),
+			new: isNewEntry,
 		}
 		return valid
 	} catch (e) {

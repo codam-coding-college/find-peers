@@ -35,9 +35,6 @@ function filterUsers(users: ProjectSubscriber[], requestedStatus: string | undef
 			{ ...user, image_url: `${cachingProxy}?q=${user.image_url}` }
 		))
 		.sort((a, b) => {
-			if (a.new != b.new)
-				return a.new ? -1 : 1
-
 			if (a.status != b.status) {
 				const preferredOrder = env.projectStatuses
 				const indexA = preferredOrder.findIndex(x => x == a.status)

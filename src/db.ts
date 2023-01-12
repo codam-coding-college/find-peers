@@ -42,7 +42,7 @@ for (const i in env.campuses) {
 }
 
 // Next time we use SQL
-function findUserByLogin(login: string, projectName: string): ProjectSubscriber | undefined {
+function findProjectUserByLogin(login: string, projectName: string): ProjectSubscriber | undefined {
 	for (const campus of env.campuses) {
 		const projects = campusDBs[campus.name]!.projects as Project[]
 		for (const project of projects) {
@@ -56,45 +56,44 @@ function findUserByLogin(login: string, projectName: string): ProjectSubscriber 
 	return undefined
 }
 
-function isNew(status: string, existingUser?: ProjectSubscriber): boolean {
+function getUpdate(status: ProjectStatus, existingUser?: ProjectSubscriber): { new: boolean, lastChangeD: Date } {
 	if (!existingUser)
-		return true
+		return { new: true, lastChangeD: new Date() }
 
-	if (status === existingUser.status)
-		return false
-	if (!existingUser.lastChangeD) // for database migration
-		return false
-	const lastChangedTS = new Date(existingUser.lastChangeD).getTime()
-	if (lastChangedTS == 0)
-		return false
+	if (status !== existingUser.status)
+		return { new: true, lastChangeD: new Date() }
 
-	return Date.now() - lastChangedTS < env.userNewStatusThresholdDays * 24 * 60 * 60 * 1000
+	const lastChangeD = new Date(existingUser.lastChangeD)
+	const isNew = Date.now() - lastChangeD.getTime() < env.userNewStatusThresholdDays * 24 * 60 * 60 * 1000
+	return { new: isNew, lastChangeD: lastChangeD }
 }
 
-function toProjectSubscriber(x: Readonly<ApiProject>, projectName: string): ProjectSubscriber | null {
+// Intra's 'validated' key is sometimes wrong, therefore we use our own logic
+function getStatus(x: Readonly<ApiProject>): ProjectStatus {
+	let status: ProjectStatus = !!x['validated?'] ? 'finished' : x.status
+
+	if (!env.projectStatuses.includes(x.status)) {
+		console.error(`Invalid status: ${x.status} on user ${x.user}`)
+		status = 'finished'
+	}
+	return status
+}
+
+function toProjectSubscriber(x: Readonly<ApiProject>, projectName: string): ProjectSubscriber | undefined {
 	try {
-		const existing = findUserByLogin(x.user.login, projectName)
-
-		// overwriting Intra's wrong key
-		let status: ProjectStatus = !!x['validated?'] ? 'finished' : x.status
-		if (!env.projectStatuses.includes(x.status)) {
-			console.error(`Invalid status: ${x.status} on user ${x.user}`)
-			status = 'finished'
-		}
-
-		const isNewEntry = isNew(status, existing)
+		const status = getStatus(x)
+		const existing = findProjectUserByLogin(x.user.login, projectName)
 		const valid: ProjectSubscriber = {
 			login: x.user.login,
 			status,
 			staff: !!x.user['staff?'],
 			image_url: x.user.image.versions.medium,
-			lastChangeD: isNewEntry ? new Date() : existing?.lastChangeD || new Date(),
-			new: isNewEntry,
+			...getUpdate(status, existing),
 		}
 		return valid
 	} catch (e) {
 		console.error(e)
-		return null
+		return undefined
 	}
 }
 
@@ -141,7 +140,7 @@ export async function syncCampuses(): Promise<void> {
 	log(1, 'starting pull')
 	for (const campus of env.campuses) {
 		const lastPullAgo = Date.now() - campusDBs[campus.name].lastPull
-		logCampus(2, campus.name, '', `last pull was on ${nowISO(campusDBs[campus.name].lastPull)}, ${(lastPullAgo / 1000 / 60).toFixed(0)} minutes ago. `)
+		logCampus(2, campus.name, '', `last pull was on ${nowISO(campusDBs[campus.name].lastPull)}, ${(lastPullAgo / 1000 / 60).toFixed(0)} minutes ago`)
 		if (lastPullAgo < env.pullTimeout) {
 			logCampus(2, campus.name, '', `not pulling, timeout of ${env.pullTimeout / 1000 / 60} minutes not reached`)
 			continue

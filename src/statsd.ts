@@ -18,9 +18,9 @@ export namespace StatsD {
 
 	export function increment(stat: Stat, tag?: Tag): void {
 		if (tag) {
-			client.increment(stat, [tag]);
+			client.increment(stat, [tag])
 		} else {
-			client.increment(stat);
+			client.increment(stat)
 		}
 	}
 }

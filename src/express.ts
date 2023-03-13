@@ -53,13 +53,6 @@ function filterProjects(projects: Project[], requestedStatus: string | undefined
 	}))
 }
 
-// ignoring case, whitespace, -, _, non ascii chars
-function isLinguisticallySimilar(a: string, b: string): boolean {
-	a = a.toLowerCase().replace(/\s|-|_/g, '').normalize('NFKD').replace(/[\u0300-\u036F]/g, '')
-	b = b.toLowerCase().replace(/\s|-|_/g, '').normalize('NFKD').replace(/[\u0300-\u036F]/g, '')
-	return a == b
-}
-
 let metrics = new MetricsStorage()
 
 export async function startWebserver(port: number) {

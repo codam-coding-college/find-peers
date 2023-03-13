@@ -2,7 +2,7 @@ import { log } from './logger'
 import path from 'path'
 import campusIDs from '../env/campusIDs.json'
 import projectIDs from '../env/projectIDs.json'
-import { assertEnvInt, assertEnvStr, assertNumber } from './util'
+import { assertEnvInt, assertEnvStr } from './util'
 
 export interface Campus {
 	name: string

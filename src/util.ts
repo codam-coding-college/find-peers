@@ -11,6 +11,13 @@ export function unique<T>(arr: T[], equalFn: (a: T, b: T) => boolean): T[] {
 	return arr.filter((current, pos) => arr.findIndex(x => equalFn(x, current)) === pos)
 }
 
+// ignoring case, whitespace, -, _, non ascii chars
+export function isLinguisticallySimilar(a: string, b: string): boolean {
+	a = a.toLowerCase().replace(/\s|-|_/g, '').normalize('NFKD').replace(/[\u0300-\u036F]/g, '')
+	b = b.toLowerCase().replace(/\s|-|_/g, '').normalize('NFKD').replace(/[\u0300-\u036F]/g, '')
+	return a == b
+}
+
 function assertEnv(env: string): string {
 	const value = process.env[env]
 	if (value === undefined)

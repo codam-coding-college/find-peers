@@ -2,6 +2,8 @@ import fs from 'fs'
 import { env } from './env'
 import crypto from 'crypto'
 import { UserProfile } from './types'
+import { StatsD } from './statsd'
+import { findLast } from './util'
 
 interface Visitor {
 	id: string
@@ -45,11 +47,12 @@ export class MetricsStorage {
 		const rawID = user.id.toString() + user.login + env.tokens.metricsSalt
 		const id = crypto.createHash('sha256').update(rawID).digest('hex')
 
-		// when the user reloads the page, do not count it as a new visitor
-		if (this.visitors[this.visitors.length - 1]?.id !== id)
-			this.visitors.push({ id, campus: user.campusName, date: new Date() })
-		if (this.visitors.length > 50_000)
-			this.visitors.slice(1)
+		// if the user has visited the page in the last n minutes, do not count it as a new visitor
+		const lastVisit = findLast(this.visitors, (x) => x.id === id)
+		if (lastVisit && Date.now() - lastVisit.date.getTime() < 1000 * 60 * 60 * 15)
+			return
+
+		StatsD.increment('visits', user.campusName)
 		await fs.promises.writeFile(this.dbPath, JSON.stringify(this.visitors))
 	}
 

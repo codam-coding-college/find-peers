@@ -1,3 +1,5 @@
+require('dotenv').config({ path: __dirname + '/../env/.env' })
+
 import { syncCampuses, campusDBs } from './db'
 import { startWebserver } from './express'
 import { env } from './env'

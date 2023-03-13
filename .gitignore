@@ -3,7 +3,7 @@
 /test.js
 /node_modules/
 /token*.json
-/env/tokens.json
+/env/.env
 /database*/
 /test.ts
 /sessions/

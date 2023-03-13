@@ -2,7 +2,7 @@ import { log } from './logger'
 import path from 'path'
 import campusIDs from '../env/campusIDs.json'
 import projectIDs from '../env/projectIDs.json'
-import tokens from '../env/tokens.json'
+import { assertEnvInt, assertEnvStr, assertNumber } from './util'
 
 export interface Campus {
 	name: string
@@ -27,7 +27,19 @@ export interface Env {
 	tokenURL: string
 	provider: string
 	authPath: string
-	tokens: typeof tokens
+	tokens: {
+		metricsSalt: string,
+		userAuth: {
+			UID: string,
+			secret: string,
+			callbackURL: string,
+		},
+		sync: {
+			UID: string,
+			secret: string,
+			maxRequestPerSecond: number,
+		}
+	}
 	userNewStatusThresholdDays: number
 }
 
@@ -70,7 +82,19 @@ export const env: Readonly<Env> = {
 	provider: '42',
 	authPath: '/auth/42',
 	scope: ['public'],
-	tokens,
+	tokens: {
+		metricsSalt: assertEnvStr('METRICS_SALT'),
+		userAuth: {
+			UID: assertEnvStr('USERAUTH_UID'),
+			secret: assertEnvStr('USERAUTH_SECRET'),
+			callbackURL: assertEnvStr('USERAUTH_CALLBACK_URL'),
+		},
+		sync: {
+			UID: assertEnvStr('SYNC_UID'),
+			secret: assertEnvStr('SYNC_SECRET'),
+			maxRequestPerSecond: assertEnvInt('SYNC_MAX_REQUESTS_PER_SECOND'),
+		}
+	},
 	userNewStatusThresholdDays: 7,
 }
 

@@ -22,7 +22,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - $HOME/database:/app/database
+      - $HOME/find-peers/database:/app/database
     env_file: ./env/.env
     environment:
       - PORT=8080

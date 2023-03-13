@@ -3,7 +3,7 @@ import { env } from './env'
 import crypto from 'crypto'
 import { UserProfile } from './types'
 import { StatsD } from './statsd'
-import { findLast } from './util'
+import { findLast, unique } from './util'
 
 interface Visitor {
 	id: string
@@ -21,11 +21,6 @@ interface Metrics {
 	uniqVisitorsTotal: Metric
 	uniqVisitorsCampus: ({ name: string } & Metric)[]
 	nVisitors: number
-}
-
-// get unique elements in array based on equalFn()
-function unique<T>(arr: T[], equalFn: (a: T, b: T) => boolean): T[] {
-	return arr.filter((current, pos) => arr.findIndex(x => equalFn(x, current)) === pos)
 }
 
 export class MetricsStorage {

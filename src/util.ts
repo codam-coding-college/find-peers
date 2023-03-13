@@ -5,3 +5,8 @@ export function findLast<T>(arr: T[], predicate: (x: T) => boolean): T | undefin
 	}
 	return undefined
 }
+
+// get unique elements in array based on equalFn()
+export function unique<T>(arr: T[], equalFn: (a: T, b: T) => boolean): T[] {
+	return arr.filter((current, pos) => arr.findIndex(x => equalFn(x, current)) === pos)
+}

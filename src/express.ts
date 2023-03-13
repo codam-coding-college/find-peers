@@ -75,6 +75,7 @@ export async function startWebserver(port: number) {
 		// inject cache header for images
 		res.setHeader('Cache-Control', `public, max-age=${100 * 24 * 60 * 60}`)
 		req.pipe(request(url)).pipe(res)
+		return
 	})
 
 	app.use((req, res, next) => {

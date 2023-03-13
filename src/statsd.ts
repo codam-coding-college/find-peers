@@ -7,16 +7,15 @@ const client = new StatsDObj({
 	errorHandler: console.error,
 })
 
-const stats = [{
-	stat: 'visits',
-	tags: Object.keys(env.campusIDs) as unknown as keyof typeof env.campusIDs,
-}] as const
+const stats = {
+	visits: Object.keys(env.campusIDs) as unknown as keyof typeof env.campusIDs,
+} as const
 
 export namespace StatsD {
-	export type Stat = typeof stats[number]['stat']
-	export type Tag = typeof stats[number]['tags'][number]
+	export type Stat = keyof typeof stats
+	export type Tag<T extends Stat> = typeof stats[T]
 
-	export function increment(stat: Stat, tag?: Tag): void {
+	export function increment(stat: Stat, tag?: Tag<Stat>): void {
 		if (tag) {
 			client.increment(stat, [tag])
 		} else {

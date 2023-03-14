@@ -1,5 +1,4 @@
 import { StatsD as StatsDObj } from 'hot-shots'
-import { env } from './env'
 
 const client = new StatsDObj({
 	port: 8125,
@@ -7,30 +6,27 @@ const client = new StatsDObj({
 	errorHandler: console.error,
 })
 
-const stats = {
-	visits: Object.keys(env.campusIDs) as unknown as keyof typeof env.campusIDs,
-} as const
+export namespace StatsD {
+	export function increment(stat: string, tag?: string): void {
+		if (!isValidDataDogStr(stat)) {
+			return console.error(`Invalid stat ${stat}`)
+		}
+		if (tag && !isValidDataDogStr(tag)) {
+			return console.error(`Invalid tag ${tag} for stat ${stat}`)
+		}
+		client.increment(stat, tag ? [tag] : [])
+	}
 
-for (const stat of Object.keys(stats)) {
-	if (stat != stat.toLowerCase())
-		throw new Error(`StatsD stat "${stat}" must be lowercase`)
+	export function strToTag(prefix: string, str: string): string {
+		const normalized = str
+			.toLowerCase()
+			.normalize('NFD')
+			.replace(/[\u0300-\u036f]/g, '')
+			.replace(/[^a-z0-9]/g, '_')
+		return `${prefix}:${normalized}`
+	}
 }
 
-export namespace StatsD {
-	export type Stat = keyof typeof stats
-	export type Tag<T extends Stat> = typeof stats[T]
-
-	export function increment(stat: Stat, tag?: Tag<Stat>): void {
-		if (!tag) {
-			return client.increment(stat)
-		}
-
-		// Datadog only allows some characters in tags
-		const tagNormalized = tag
-			.normalize("NFD")
-			.replace(/[\u0300-\u036f]/g, "")
-			.replace(/ |-/g, '_')
-			.toLowerCase()
-		client.increment(stat, [tagNormalized])
-	}
+function isValidDataDogStr(tag: string): boolean {
+	return /^[a-z0-9_:]+$/.test(tag)
 }

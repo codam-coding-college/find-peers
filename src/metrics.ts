@@ -48,7 +48,7 @@ export class MetricsStorage {
 			return
 
 		this.visitors.push({ id, campus: user.campusName, date: new Date() })
-		StatsD.increment('visits', user.campusName as keyof typeof env.campusIDs)
+		StatsD.increment('visits', StatsD.strToTag('origin', user.campusName))
 		await fs.promises.writeFile(this.dbPath, JSON.stringify(this.visitors))
 	}
 

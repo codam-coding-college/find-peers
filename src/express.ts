@@ -112,6 +112,10 @@ export async function startWebserver(port: number) {
 		const campusName = Object.keys(campusDBs).find(k => isLinguisticallySimilar(k, req.params['campus']))
 		if (!campusName || !campusDBs[campusName])
 			return errorPage(res, `Campus ${req.params['campus']} is not supported by Find Peers (yet)`)
+
+		// saving anonymized metrics
+		metrics.addVisitor(user)
+
 		const campusDB: CampusDB = campusDBs[campusName]
 		if (!campusDB.projects.length)
 			return errorPage(res, "Empty database (please try again later)")
@@ -134,9 +138,6 @@ export async function startWebserver(port: number) {
 			userNewStatusThresholdDays: env.userNewStatusThresholdDays,
 		}
 		res.render('index.ejs', settings)
-
-		// saving anonymized metrics
-		metrics.addVisitor(user)
 	})
 
 	app.get('/status/pull', (req, res) => {

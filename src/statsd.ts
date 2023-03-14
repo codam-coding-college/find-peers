@@ -31,9 +31,6 @@ export namespace StatsD {
 			.replace(/[\u0300-\u036f]/g, "")
 			.replace(/ |-/g, '_')
 			.toLowerCase()
-		console.log('tag', tag, tagNormalized)
 		client.increment(stat, [tagNormalized])
-		client.increment(stat, ['paris'])
-
 	}
 }

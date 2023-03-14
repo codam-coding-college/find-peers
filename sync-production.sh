@@ -12,11 +12,8 @@ SSH="ssh find-peers"
 
 # If there are local changes, this will fail. It should be like that
 $SSH 'cd /root/find-peers && git pull origin main'
-$SSH 'docker build -t find-peers /root/find-peers'
 
-$SSH 'docker stop find-peers' || true
-$SSH 'docker rm find-peers' || true
-$SSH 'docker run -v /root/find-peers/database:/app/database -d -p 80:8080 --restart unless-stopped --name find-peers find-peers'
+$SSH '(cd /root/find-peers && docker compose up --build -d)'
 
+echo Press Ctrl+C to stop following the logs
 $SSH 'docker logs -f find-peers'
-# Press Ctrl+C to stop following the logs

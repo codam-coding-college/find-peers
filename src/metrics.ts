@@ -47,6 +47,7 @@ export class MetricsStorage {
 		if (lastVisit && Date.now() - lastVisit.date.getTime() < 1000 * 60 * 60 * 15)
 			return
 
+		this.visitors.push({ id, campus: user.campusName, date: new Date() })
 		StatsD.increment('visits', user.campusName as keyof typeof env.campusIDs)
 		await fs.promises.writeFile(this.dbPath, JSON.stringify(this.visitors))
 	}

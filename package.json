@@ -13,12 +13,14 @@
 		"lint:fix": "eslint --fix src; prettier --write src"
 	},
 	"dependencies": {
+		"@types/compression": "^1.7.2",
 		"@types/ejs": "3.1.0",
-		"@types/express": "4.17.13",
+		"@types/express": "^4.17.17",
 		"@types/express-session": "1.17.4",
 		"@types/node": "18.15.1",
 		"@types/node-fetch": "2.1.0",
 		"@types/passport": "1.0.7",
+		"@types/request": "^2.48.8",
 		"@types/session-file-store": "1.2.2",
 		"@types/strip-bom": "3.0.0",
 		"@types/strip-json-comments": "3.0.0",

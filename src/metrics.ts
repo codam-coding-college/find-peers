@@ -2,7 +2,7 @@ import fs from 'fs'
 import { env } from './env'
 import crypto from 'crypto'
 import { UserProfile } from './types'
-import { StatsD } from './statsd'
+import * as StatsD from './statsd'
 import { findLast, unique } from './util'
 
 interface Visitor {
@@ -29,8 +29,7 @@ export class MetricsStorage {
 			fs.writeFileSync(this.dbPath, '[]')
 		}
 		try {
-			this.visitors = (JSON.parse(fs.readFileSync(this.dbPath, 'utf8')) as Visitor[])
-				.map((x) => ({ ...x, date: new Date(x.date) })) // in JSON Date is stored as a string, so now we convert it back to Date
+			this.visitors = (JSON.parse(fs.readFileSync(this.dbPath, 'utf8')) as Visitor[]).map(x => ({ ...x, date: new Date(x.date) })) // in JSON Date is stored as a string, so now we convert it back to Date
 		} catch (err) {
 			console.error('Error while reading visitors database, resetting it...', err)
 			this.visitors = []
@@ -43,9 +42,8 @@ export class MetricsStorage {
 		const id = crypto.createHash('sha256').update(rawID).digest('hex')
 
 		// if the user has visited the page in the last n minutes, do not count it as a new visitor
-		const lastVisit = findLast(this.visitors, (x) => x.id === id)
-		if (lastVisit && Date.now() - lastVisit.date.getTime() < 1000 * 60 * 60 * 15)
-			return
+		const lastVisit = findLast(this.visitors, x => x.id === id)
+		if (lastVisit && Date.now() - lastVisit.date.getTime() < 1000 * 60 * 60 * 15) return
 
 		this.visitors.push({ id, campus: user.campusName, date: new Date() })
 		StatsD.increment('visits', StatsD.strToTag('origin', user.campusName))
@@ -54,9 +52,9 @@ export class MetricsStorage {
 
 	uniqueVisitorsInLast(timeMs: number): Visitor[] {
 		const now = Date.now()
-		let visitors = this.visitors.filter((x) => now - x.date.getTime() < timeMs)
+		let visitors = this.visitors.filter(x => now - x.date.getTime() < timeMs)
 		visitors = unique(visitors, (a, b) => a.id === b.id)
-		visitors = visitors.map((x) => ({ ...x, id: x.id.substring(5, -5) })) // cut a little of the id to keep it private
+		visitors = visitors.map(x => ({ ...x, id: x.id.substring(5, -5) })) // cut a little of the id to keep it private
 		return visitors
 	}
 
@@ -66,11 +64,11 @@ export class MetricsStorage {
 		const month = this.uniqueVisitorsInLast(30 * 24 * 3600 * 1000)
 
 		const uniqVisitorsCampus = Object.values(env.campuses)
-			.map((campus) => ({
+			.map(campus => ({
 				name: campus.name,
-				hour: hour.filter((x) => x.campus === campus.name).length,
-				day: day.filter((x) => x.campus === campus.name).length,
-				month: month.filter((x) => x.campus === campus.name).length,
+				hour: hour.filter(x => x.campus === campus.name).length,
+				day: day.filter(x => x.campus === campus.name).length,
+				month: month.filter(x => x.campus === campus.name).length,
 			}))
 			.sort((a, b) => b.day - a.day)
 
@@ -85,6 +83,6 @@ export class MetricsStorage {
 		}
 	}
 
-	private readonly dbPath: string = env.databaseRoot + '/visitors.json'
+	private readonly dbPath: string = `${env.databaseRoot}/visitors.json`
 	private visitors: Visitor[] = []
 }

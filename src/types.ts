@@ -1,17 +1,17 @@
-import { ProjectStatus } from "./env"
+import { ProjectStatus } from './env'
 
 export interface ApiProject {
 	id: number
 	occurrence: number
 	final_mark: number
 	status: ProjectStatus
-	validated?: boolean
+	'validated?': boolean
 	current_team_id: number
 	project: {
 		id: number
 		name: string
 		slug: string
-		parent_id?: any
+		parent_id?: unknown
 	}
 	cursus_ids: number[]
 	marked_at: Date
@@ -26,7 +26,7 @@ export interface ApiProject {
 		first_name: string
 		last_name: string
 		usual_full_name: string
-		'usual_first_name?': any
+		'usual_first_name?': unknown
 		url: string
 		phone: string
 		displayname: string
@@ -46,13 +46,13 @@ export interface ApiProject {
 		correction_point: number
 		pool_month: string
 		pool_year: string
-		'location?': any
+		'location?': unknown
 		wallet: number
 		anonymize_date: Date
 		data_erasure_date: Date
 		created_at: Date
 		updated_at: Date
-		'alumnized_at?': any
+		'alumnized_at?': unknown
 		'alumni?': boolean
 		'active?': boolean
 	}
@@ -65,7 +65,7 @@ export interface ApiProject {
 		created_at: Date
 		updated_at: Date
 		status: string
-		'terminating_at?': any
+		'terminating_at?': unknown
 		users: {
 			id: number
 			login: string

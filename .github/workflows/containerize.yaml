@@ -21,7 +21,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image
-        run: docker build -t docker.pkg.github.com/codam-coding-college/find-peers/find-peers:latest .
+        run: docker build -t docker.pkg.github.com/codam-coding-college/find-peers:latest .
 
       - name: Push Docker image to GitHub Package Registry
-        run: docker push docker.pkg.github.com/codam-coding-college/find-peers/find-peers:latest
+        run: docker push docker.pkg.github.com/codam-coding-college/find-peers:latest

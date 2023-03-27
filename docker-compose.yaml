@@ -1,0 +1,31 @@
+version: "3.7"
+
+services:
+  datadog-agent:
+    container_name: datadog-agent
+    image: gcr.io/datadoghq/agent:latest
+    pid: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    env_file: ./env/.env
+    environment:
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+    ports:
+      - 8125:8125/udp
+
+  find-peers:
+    container_name: find-peers
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - $HOME/find-peers/database:/app/database
+    env_file: ./env/.env
+    environment:
+      - PORT=8080
+    ports:
+      - 80:8080
+      # - 8080:8080

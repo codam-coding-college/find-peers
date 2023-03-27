@@ -7,6 +7,8 @@ RUN npm ci --omit=dev
 COPY . .
 RUN npm run build
 
+COPY views ./build/views
+
 ENV PORT=8080
 EXPOSE 8080
 

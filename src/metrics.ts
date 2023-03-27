@@ -2,6 +2,8 @@ import fs from 'fs'
 import { env } from './env'
 import crypto from 'crypto'
 import { UserProfile } from './types'
+import { StatsD } from './statsd'
+import { findLast, unique } from './util'
 
 interface Visitor {
 	id: string
@@ -19,11 +21,6 @@ interface Metrics {
 	uniqVisitorsTotal: Metric
 	uniqVisitorsCampus: ({ name: string } & Metric)[]
 	nVisitors: number
-}
-
-// get unique elements in array based on equalFn()
-function unique<T>(arr: T[], equalFn: (a: T, b: T) => boolean): T[] {
-	return arr.filter((current, pos) => arr.findIndex(x => equalFn(x, current)) === pos)
 }
 
 export class MetricsStorage {
@@ -45,11 +42,13 @@ export class MetricsStorage {
 		const rawID = user.id.toString() + user.login + env.tokens.metricsSalt
 		const id = crypto.createHash('sha256').update(rawID).digest('hex')
 
-		// when the user reloads the page, do not count it as a new visitor
-		if (this.visitors[this.visitors.length - 1]?.id !== id)
-			this.visitors.push({ id, campus: user.campusName, date: new Date() })
-		if (this.visitors.length > 50_000)
-			this.visitors.slice(1)
+		// if the user has visited the page in the last n minutes, do not count it as a new visitor
+		const lastVisit = findLast(this.visitors, (x) => x.id === id)
+		if (lastVisit && Date.now() - lastVisit.date.getTime() < 1000 * 60 * 60 * 15)
+			return
+
+		this.visitors.push({ id, campus: user.campusName, date: new Date() })
+		StatsD.increment('visits', StatsD.strToTag('origin', user.campusName))
 		await fs.promises.writeFile(this.dbPath, JSON.stringify(this.visitors))
 	}
 

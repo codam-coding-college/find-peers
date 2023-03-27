@@ -9,6 +9,7 @@ import { log } from './logger'
 import { MetricsStorage } from './metrics'
 import compression from 'compression'
 import request from 'request'
+import { isLinguisticallySimilar } from './util'
 
 function errorPage(res, error: string): void {
 	const settings = {
@@ -53,13 +54,6 @@ function filterProjects(projects: Project[], requestedStatus: string | undefined
 	}))
 }
 
-// ignoring case, whitespace, -, _, non ascii chars
-function isLinguisticallySimilar(a: string, b: string): boolean {
-	a = a.toLowerCase().replace(/\s|-|_/g, '').normalize('NFKD').replace(/[\u0300-\u036F]/g, '')
-	b = b.toLowerCase().replace(/\s|-|_/g, '').normalize('NFKD').replace(/[\u0300-\u036F]/g, '')
-	return a == b
-}
-
 let metrics = new MetricsStorage()
 
 export async function startWebserver(port: number) {
@@ -74,10 +68,14 @@ export async function startWebserver(port: number) {
 	app.use(passport.session())
 
 	app.use(cachingProxy, (req, res) => {
+		const url = req.query['q']
+		if (!url || typeof url != 'string' || !url.startsWith('http'))
+			return res.status(404).send('No URL provided')
+
 		// inject cache header for images
 		res.setHeader('Cache-Control', `public, max-age=${100 * 24 * 60 * 60}`)
-		const url = req.query['q'] ?? ''
 		req.pipe(request(url)).pipe(res)
+		return
 	})
 
 	app.use((req, res, next) => {
@@ -114,6 +112,10 @@ export async function startWebserver(port: number) {
 		const campusName = Object.keys(campusDBs).find(k => isLinguisticallySimilar(k, req.params['campus']))
 		if (!campusName || !campusDBs[campusName])
 			return errorPage(res, `Campus ${req.params['campus']} is not supported by Find Peers (yet)`)
+
+		// saving anonymized metrics
+		metrics.addVisitor(user)
+
 		const campusDB: CampusDB = campusDBs[campusName]
 		if (!campusDB.projects.length)
 			return errorPage(res, "Empty database (please try again later)")
@@ -136,9 +138,6 @@ export async function startWebserver(port: number) {
 			userNewStatusThresholdDays: env.userNewStatusThresholdDays,
 		}
 		res.render('index.ejs', settings)
-
-		// saving anonymized metrics
-		metrics.addVisitor(user)
 	})
 
 	app.get('/status/pull', (req, res) => {
@@ -154,7 +153,7 @@ export async function startWebserver(port: number) {
 		res.json(metrics.generateMetrics())
 	})
 
-	app.set("views", path.join(__dirname, "../../views"))
+	app.set("views", path.join(__dirname, "../views"))
 	app.set('viewengine', 'ejs')
 	app.use('/public', express.static('public/'))
 

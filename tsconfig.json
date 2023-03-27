@@ -1,36 +1,32 @@
-// Visit https://aka.ms/tsconfig.json to read more about this file
 {
 	"compilerOptions": {
-		"target": "ES2022",
-		"module": "commonjs",
-		"allowJs": true,
-		// "checkJs": true,
+		"target": "ES2020",
+		"module": "ES2020",
+		"moduleResolution": "node",
 		"outDir": "./build/",
-		"rootDirs": ["./src/", "env"],
-		"removeComments": true,
-		"downlevelIteration": false,
-		// "strict": true,
-		// "noImplicitAny": true,
-		"strictNullChecks": true,
-		"strictFunctionTypes": true,
-		"strictBindCallApply": true,
-		"strictPropertyInitialization": true,
-		"noImplicitThis": true,
+		"rootDir": "./src/",
+		"allowUnreachableCode": false,
+		"allowUnusedLabels": false,
 		"alwaysStrict": true,
-		"noUnusedLocals": true,
-		"noImplicitReturns": true,
-		"noFallthroughCasesInSwitch": true,
-		"noUncheckedIndexedAccess": true,
-		"noPropertyAccessFromIndexSignature": true,
-		"esModuleInterop": true,
-		"preserveSymlinks": true,
-		"skipLibCheck": true,
-		// "sourceMap": true, //debugger
+		"allowJs": false,
 		"forceConsistentCasingInFileNames": true,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitAny": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"noUncheckedIndexedAccess": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"removeComments": true,
 		"resolveJsonModule": true,
+		"strict": true,
+		"allowSyntheticDefaultImports": true,
+		"skipLibCheck": true, // skip checking types in node_modules
+		// "sourceMap": true, // enable debugger
 	},
-	"exclude": [
-		"node_modules/",
+	"include": [
+		"src/"
 	],
-	"include": ["src/"]
+	"ts-node": {
+		"esm": true
+	}
 }

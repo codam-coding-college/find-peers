@@ -1,7 +1,11 @@
-.dockerignore
-.git
-.gitignroe
+**/.DS_Store*
+**/node_modules
+**/README.md
+**/.dockerignore
+**/README.*
+
 database
-Dockerfile
-node_modules
-README.md
+/build
+/.git
+/Dockerfile*
+/docker-compose.yml

@@ -2,10 +2,13 @@ import { log } from './logger'
 import path from 'path'
 import campusIDs from '../env/campusIDs.json'
 import projectIDs from '../env/projectIDs.json'
-import { assertEnvInt, assertEnvStr } from './util'
+import { assertEnvInt, assertEnvStr, mapObject } from './util'
+
+export type CampusID = typeof campusIDs[keyof typeof campusIDs]
+export type CampusName = keyof typeof campusIDs
 
 export interface Campus {
-	name: string
+	name: CampusName
 	id: number
 	databasePath: string // path to the database subfolder for this campus
 	projectUsersPath: string // users that are subscribed to a project
@@ -18,7 +21,7 @@ export interface Env {
 	projectIDs: typeof projectIDs
 	campusIDs: typeof campusIDs
 	databaseRoot: string
-	campuses: Campus[]
+	campuses: Record<CampusName, Campus>
 	projectStatuses: typeof projectStatuses
 	sessionStorePath: string // session key data
 	userDBpath: string // users associated with sessions
@@ -44,17 +47,13 @@ export interface Env {
 }
 
 const databaseRoot = 'database'
-let campuses: Campus[] = []
-for (const campusName in campusIDs) {
-	const campus: Campus = {
-		name: campusName,
-		id: campusIDs[campusName!],
-		databasePath: path.join(databaseRoot, campusName),
-		projectUsersPath: path.join(databaseRoot, campusName, 'projectUsers.json'),
-		lastPullPath: path.join(databaseRoot, campusName, 'lastpull.txt'),
-	}
-	campuses.push(campus)
-}
+const campuses: Record<CampusName, Campus> = mapObject(campusIDs, (name, id) => ({
+	name,
+	id,
+	databasePath: path.join(databaseRoot, name),
+	projectUsersPath: path.join(databaseRoot, name, 'projectUsers.json'),
+	lastPullPath: path.join(databaseRoot, name, 'lastpull.txt'),
+}))
 
 // known statuses, in the order we want them displayed on the website
 const projectStatuses = [

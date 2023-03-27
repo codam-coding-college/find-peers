@@ -72,7 +72,8 @@ export async function startWebserver(port: number) {
 	app.use(cachingProxy, (req, res) => {
 		const url = req.query['q']
 		if (!url || typeof url !== 'string' || !url.startsWith('http')) {
-			return res.status(404).send('No URL provided')
+			res.status(404).send('No URL provided')
+			return
 		}
 
 		// inject cache header for images

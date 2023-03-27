@@ -4,7 +4,7 @@
 		"module": "ES2020",
 		"moduleResolution": "node",
 		"outDir": "./build/",
-		"rootDir": "./src/",
+		"rootDir": "./",
 		"allowUnreachableCode": false,
 		"allowUnusedLabels": false,
 		"alwaysStrict": true,

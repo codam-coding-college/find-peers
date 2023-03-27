@@ -43,8 +43,8 @@ for (const i in env.campuses) {
 
 // Next time we use SQL
 function findProjectUserByLogin(login: string, projectName: string): ProjectSubscriber | undefined {
-	for (const campus of env.campuses) {
-		const projects = campusDBs[campus.name]!.projects as Project[]
+	for (const campus of Object.values(env.campuses)) {
+		const projects = campusDBs[campus.name].projects as Project[]
 		for (const project of projects) {
 			if (project.name !== projectName)
 				continue
@@ -138,7 +138,7 @@ export async function syncCampuses(): Promise<void> {
 	const startPull = Date.now()
 
 	log(1, 'starting pull')
-	for (const campus of env.campuses) {
+	for (const campus of Object.values(env.campuses)) {
 		const lastPullAgo = Date.now() - campusDBs[campus.name].lastPull
 		logCampus(2, campus.name, '', `last pull was on ${nowISO(campusDBs[campus.name].lastPull)}, ${(lastPullAgo / 1000 / 60).toFixed(0)} minutes ago`)
 		if (lastPullAgo < env.pullTimeout) {

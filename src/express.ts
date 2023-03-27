@@ -13,7 +13,7 @@ import { isLinguisticallySimilar } from './util'
 
 function errorPage(res, error: string): void {
 	const settings = {
-		campuses: env.campuses.sort((a, b) => a.name < b.name ? -1 : 1),
+		campuses: Object.values(env.campuses).sort((a, b) => a.name < b.name ? -1 : 1),
 		error
 	}
 	res.render('error.ejs', settings)
@@ -132,7 +132,7 @@ export async function startWebserver(port: number) {
 			requestedStatus,
 			projectStatuses: env.projectStatuses,
 			campusName,
-			campuses: env.campuses.sort((a, b) => a.name < b.name ? -1 : 1),
+			campuses: Object.values(env.campuses).sort((a, b) => a.name < b.name ? -1 : 1),
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0),
 			usage: `${v.day} unique visitors today, ${v.month} this month, from ${campuses} different campuses`,
 			userNewStatusThresholdDays: env.userNewStatusThresholdDays,

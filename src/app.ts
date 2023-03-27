@@ -10,7 +10,7 @@ util.inspect.defaultOptions.depth = 10
 
 function msUntilNextPull(): number {
 	let nextPull = env.pullTimeout
-	for (const campus of env.campuses) {
+	for (const campus of Object.values(env.campuses)) {
 		const lastPullAgo = Date.now() - campusDBs[campus.name].lastPull
 		const msUntilNexPull = Math.max(0, env.pullTimeout - lastPullAgo)
 		nextPull = Math.min(nextPull, msUntilNexPull)

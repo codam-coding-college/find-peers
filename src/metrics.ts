@@ -65,7 +65,7 @@ export class MetricsStorage {
 		const day = this.uniqueVisitorsInLast(24 * 3600 * 1000)
 		const month = this.uniqueVisitorsInLast(30 * 24 * 3600 * 1000)
 
-		const uniqVisitorsCampus = env.campuses
+		const uniqVisitorsCampus = Object.values(env.campuses)
 			.map((campus) => ({
 				name: campus.name,
 				hour: hour.filter((x) => x.campus === campus.name).length,

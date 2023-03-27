@@ -39,3 +39,12 @@ export function assertEnvInt(env: string): number {
 		throw new Error(`Environment variable "${value}" is not a number`)
 	return num
 }
+
+export function mapObject<Key extends string | number | symbol, Value, NewValue>(object: Record<Key, Value>, mapFn: (key: Key, value: Value) => NewValue): Record<Key, NewValue> {
+	const newObj: Record<Key, NewValue> = {} as Record<Key, NewValue>
+
+	for (const key in object) {
+		newObj[key] = mapFn(key, object[key])
+	}
+	return newObj
+}

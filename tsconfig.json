@@ -1,36 +1,36 @@
-// Visit https://aka.ms/tsconfig.json to read more about this file
 {
 	"compilerOptions": {
-		"target": "ES2022",
-		"module": "commonjs",
-		"allowJs": true,
-		// "checkJs": true,
-		"outDir": "./build/",
-		"rootDirs": ["./src/", "env"],
-		"removeComments": true,
-		"downlevelIteration": false,
-		// "strict": true,
-		// "noImplicitAny": true,
-		"strictNullChecks": true,
-		"strictFunctionTypes": true,
-		"strictBindCallApply": true,
-		"strictPropertyInitialization": true,
-		"noImplicitThis": true,
-		"alwaysStrict": true,
-		"noUnusedLocals": true,
-		"noImplicitReturns": true,
-		"noFallthroughCasesInSwitch": true,
-		"noUncheckedIndexedAccess": true,
-		"noPropertyAccessFromIndexSignature": true,
+		"target": "ES2020",
+		"module": "NodeNext",
+		"moduleResolution": "node",
 		"esModuleInterop": true,
-		"preserveSymlinks": true,
-		"skipLibCheck": true,
-		// "sourceMap": true, //debugger
+		"outDir": "./build",
+		"rootDirs": ["./src", "./env"],
+		// "declaration": true,
+		//
+		// code quality options
+		"allowUnreachableCode": false,
+		"allowUnusedLabels": false,
+		"alwaysStrict": true,
+		"allowJs": false,
 		"forceConsistentCasingInFileNames": true,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitAny": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"noUncheckedIndexedAccess": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"removeComments": true,
 		"resolveJsonModule": true,
+		"strict": true,
+		"allowSyntheticDefaultImports": true,
+		"skipLibCheck": true, // skip checking types in node_modules
+		// "sourceMap": true, // enable debugger
 	},
-	"exclude": [
-		"node_modules/",
+	"include": [
+		"src/"
 	],
-	"include": ["src/"]
+	"ts-node": {
+		"esm": true
+	}
 }

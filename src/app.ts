@@ -1,3 +1,4 @@
+// eslint-disable-next-line
 require('dotenv').config({ path: __dirname + '/../env/.env' })
 
 import { syncCampuses, campusDBs } from './db'
@@ -18,7 +19,7 @@ function msUntilNextPull(): number {
 	return nextPull
 }
 
-(async () => {
+;(async () => {
 	const port = parseInt(process.env['PORT'] || '8080')
 	await startWebserver(port)
 

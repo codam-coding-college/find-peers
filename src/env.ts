@@ -4,7 +4,7 @@ import campusIDs from '../env/campusIDs.json'
 import projectIDs from '../env/projectIDs.json'
 import { assertEnvInt, assertEnvStr, mapObject } from './util'
 
-export type CampusID = typeof campusIDs[keyof typeof campusIDs]
+export type CampusID = (typeof campusIDs)[keyof typeof campusIDs]
 export type CampusName = keyof typeof campusIDs
 
 export interface Campus {
@@ -31,16 +31,16 @@ export interface Env {
 	provider: string
 	authPath: string
 	tokens: {
-		metricsSalt: string,
+		metricsSalt: string
 		userAuth: {
-			UID: string,
-			secret: string,
-			callbackURL: string,
-		},
+			UID: string
+			secret: string
+			callbackURL: string
+		}
 		sync: {
-			UID: string,
-			secret: string,
-			maxRequestPerSecond: number,
+			UID: string
+			secret: string
+			maxRequestPerSecond: number
 		}
 	}
 	userNewStatusThresholdDays: number
@@ -56,18 +56,11 @@ const campuses: Record<CampusName, Campus> = mapObject(campusIDs, (name, id) => 
 }))
 
 // known statuses, in the order we want them displayed on the website
-const projectStatuses = [
-	'creating_group',
-	'searching_a_group',
-	'in_progress',
-	'waiting_for_correction',
-	'finished',
-	'parent',
-] as const
-export type ProjectStatus = typeof projectStatuses[number]
+const projectStatuses = ['creating_group', 'searching_a_group', 'in_progress', 'waiting_for_correction', 'finished', 'parent'] as const
+export type ProjectStatus = (typeof projectStatuses)[number]
 
 export const env: Readonly<Env> = {
-	logLevel: process.env['NODE_ENV'] == 'production' ? 3 : 1, // 0 being no logging
+	logLevel: process.env['NODE_ENV'] === 'production' ? 3 : 1, // 0 being no logging
 	pullTimeout: 24 * 60 * 60 * 1000, // how often to pull the project users statuses form the intra api (in Ms)
 	projectIDs,
 	campusIDs,
@@ -92,7 +85,7 @@ export const env: Readonly<Env> = {
 			UID: assertEnvStr('SYNC_UID'),
 			secret: assertEnvStr('SYNC_SECRET'),
 			maxRequestPerSecond: assertEnvInt('SYNC_MAX_REQUESTS_PER_SECOND'),
-		}
+		},
 	},
 	userNewStatusThresholdDays: 7,
 }

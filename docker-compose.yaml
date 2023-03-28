@@ -18,9 +18,7 @@ services:
   find-peers:
     container_name: find-peers
     restart: unless-stopped
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/codam-coding-college/find-peers/find-peers:latest
     volumes:
       - $HOME/find-peers/database:/app/database
     env_file: ./env/.env

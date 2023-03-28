@@ -24,7 +24,9 @@ const cachingProxy = '/proxy'
 function filterUsers(users: ProjectSubscriber[], requestedStatus: string | undefined): ProjectSubscriber[] {
 	const newUsers = users
 		.filter(user => {
-			if (user.staff) return false
+			if (user.staff) {
+				return false
+			}
 			if (user.login.match(/^3b3/)) {
 				// accounts who's login start with 3b3 are deactivated
 				return false

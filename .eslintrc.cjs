@@ -15,6 +15,7 @@ module.exports = {
 		// 'prettier/prettier': ['error'], // TODO
 
 		'array-callback-return': 'error',
+		'curly': ['error', 'all'],
 		'no-array-constructor': 'error',
 		'no-duplicate-imports': ['error', { includeExports: true }],
 		'no-extend-native': 'error',

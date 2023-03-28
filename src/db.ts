@@ -26,9 +26,13 @@ function setupCampusDB(campus: Campus) {
 	}
 
 	fs.mkdirSync(campus.databasePath, { recursive: true })
-	if (!fs.existsSync(campus.projectUsersPath)) fs.writeFileSync(campus.projectUsersPath, '[]')
+	if (!fs.existsSync(campus.projectUsersPath)) {
+		fs.writeFileSync(campus.projectUsersPath, '[]')
+	}
 	campusDB.projects = JSON.parse(fs.readFileSync(campus.projectUsersPath).toString())
-	if (!fs.existsSync(campus.lastPullPath)) fs.writeFileSync(campus.lastPullPath, '0')
+	if (!fs.existsSync(campus.lastPullPath)) {
+		fs.writeFileSync(campus.lastPullPath, '0')
+	}
 	campusDB.lastPull = parseInt(fs.readFileSync(campus.lastPullPath).toString())
 	campusDBs[campus.name] = campusDB
 }
@@ -42,18 +46,26 @@ function findProjectUserByLogin(login: string, projectName: string): ProjectSubs
 	for (const campus of Object.values(env.campuses)) {
 		const projects = campusDBs[campus.name].projects as Project[]
 		for (const project of projects) {
-			if (project.name !== projectName) continue
+			if (project.name !== projectName) {
+				continue
+			}
 			const user = project.users.find(x => x.login === login)
-			if (user) return user
+			if (user) {
+				return user
+			}
 		}
 	}
 	return undefined
 }
 
 function getUpdate(status: ProjectStatus, existingUser?: ProjectSubscriber): { new: boolean; lastChangeD: Date } {
-	if (!existingUser) return { new: true, lastChangeD: new Date() }
+	if (!existingUser) {
+		return { new: true, lastChangeD: new Date() }
+	}
 
-	if (status !== existingUser.status) return { new: true, lastChangeD: new Date() }
+	if (status !== existingUser.status) {
+		return { new: true, lastChangeD: new Date() }
+	}
 
 	const lastChangeD = new Date(existingUser.lastChangeD)
 	const isNew = Date.now() - lastChangeD.getTime() < env.userNewStatusThresholdDays * 24 * 60 * 60 * 1000
@@ -94,7 +106,9 @@ export async function getProjectSubscribers(campusID: number, projectID: number,
 		`/v2/projects/${projectID}/projects_users?filter[campus]=${campusID}&page[size]=100`
 		// (data) => console.log(data)
 	)
-	if (!ok || !users) throw new Error('Could not get project subscribers')
+	if (!ok || !users) {
+		throw new Error('Could not get project subscribers')
+	}
 	return users.map(u => toProjectSubscriber(u, projectName)).filter(x => !!x) as ProjectSubscriber[]
 }
 

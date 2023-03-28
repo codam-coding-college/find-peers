@@ -17,7 +17,9 @@ export function authenticate(req: Request, res: Response, next: NextFunction) {
 
 const usersDB: UserProfile[] = []
 const emptyUsersDB: string = JSON.stringify(usersDB)
-if (!fs.existsSync(env.userDBpath) || fs.statSync(env.userDBpath).size < emptyUsersDB.length) fs.writeFileSync(env.userDBpath, emptyUsersDB)
+if (!fs.existsSync(env.userDBpath) || fs.statSync(env.userDBpath).size < emptyUsersDB.length) {
+	fs.writeFileSync(env.userDBpath, emptyUsersDB)
+}
 
 const users: UserProfile[] = JSON.parse(fs.readFileSync(env.userDBpath).toString())
 

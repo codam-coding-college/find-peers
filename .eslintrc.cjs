@@ -12,10 +12,10 @@ module.exports = {
 	},
 	plugins: ['@typescript-eslint', 'prettier'],
 	rules: {
-		// 'prettier/prettier': ['error'], // TODO
+		'prettier/prettier': ['error'],
 
 		'array-callback-return': 'error',
-		'curly': ['error', 'all'],
+		curly: ['error', 'all'],
 		'no-array-constructor': 'error',
 		'no-duplicate-imports': ['error', { includeExports: true }],
 		'no-extend-native': 'error',
@@ -33,7 +33,7 @@ module.exports = {
 		'prefer-const': 'error',
 		'prefer-template': 'error',
 		'require-await': 'error',
-		'no-constant-condition': ['error', { 'checkLoops': false }],
+		'no-constant-condition': ['error', { checkLoops: false }],
 		eqeqeq: ['error', 'smart'],
 		'@typescript-eslint/ban-ts-comment': 'off',
 

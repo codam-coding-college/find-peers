@@ -156,7 +156,7 @@ export async function startWebserver(port: number) {
 
 	app.get('/status/pull', (_, res) => {
 		const obj = Object.values(campusDBs).map(campus => ({
-			name: campus,
+			name: campus.name,
 			lastPull: new Date(campus.lastPull),
 			hoursAgo: (Date.now() - campus.lastPull) / 1000 / 60 / 60,
 		}))

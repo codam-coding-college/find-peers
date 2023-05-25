@@ -3,6 +3,7 @@ import { API } from '42-connector'
 import { ApiProject, Project, ProjectSubscriber } from './types'
 import { env, Campus, ProjectStatus, CampusName } from './env'
 import { logCampus, log, msToHuman, nowISO } from './logger'
+import * as StatsD from './statsd'
 
 const Api: API = new API(env.tokens.sync.UID, env.tokens.sync.secret, {
 	maxRequestPerSecond: env.tokens.sync.maxRequestPerSecond,
@@ -101,11 +102,11 @@ function toProjectSubscriber(x: Readonly<ApiProject>, projectName: string): Proj
 	}
 }
 
-export async function getProjectSubscribers(campusID: number, projectID: number, projectName: string): Promise<ProjectSubscriber[]> {
-	const { ok, json: users }: { ok: boolean; json?: ApiProject[] } = await Api.getPaged(
-		`/v2/projects/${projectID}/projects_users?filter[campus]=${campusID}&page[size]=100`
-		// (data) => console.log(data)
-	)
+export async function getProjectSubscribers(campus: Campus, projectID: number, projectName: string): Promise<ProjectSubscriber[]> {
+	const url = `/v2/projects/${projectID}/projects_users?filter[campus]=${campus.id}&page[size]=100`
+	const onPage = () => StatsD.increment('db_sync:fetch', StatsD.strToTag('campus', campus.name))
+
+	const { ok, json: users }: { ok: boolean; json?: ApiProject[] } = await Api.getPaged(url, onPage)
 	if (!ok || !users) {
 		throw new Error('Could not get project subscribers')
 	}
@@ -122,7 +123,7 @@ export async function saveAllProjectSubscribers(campus: Campus): Promise<number>
 		try {
 			item = {
 				name,
-				users: await getProjectSubscribers(campus.id, id, name),
+				users: await getProjectSubscribers(campus, id, name),
 			}
 		} catch (e) {
 			return 0

@@ -104,7 +104,7 @@ function toProjectSubscriber(x: Readonly<ApiProject>, projectName: string): Proj
 
 export async function getProjectSubscribers(campus: Campus, projectID: number, projectName: string): Promise<ProjectSubscriber[]> {
 	const url = `/v2/projects/${projectID}/projects_users?filter[campus]=${campus.id}&page[size]=100`
-	const onPage = () => StatsD.increment('db_sync:fetch', StatsD.strToTag('campus', campus.name))
+	const onPage = () => StatsD.increment('dbfetch', StatsD.strToTag('campus', campus.name))
 
 	const { ok, json: users }: { ok: boolean; json?: ApiProject[] } = await Api.getPaged(url, onPage)
 	if (!ok || !users) {

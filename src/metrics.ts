@@ -43,7 +43,7 @@ export class MetricsStorage {
 
 		// if the user has visited the page in the last n minutes, do not count it as a new visitor
 		const lastVisit = findLast(this.visitors, x => x.id === id)
-		if (lastVisit && Date.now() - lastVisit.date.getTime() < 1000 * 60 * 60 * 15) {
+		if (lastVisit && Date.now() - lastVisit.date.getTime() < 1000 * 60 * 30) {
 			return
 		}
 

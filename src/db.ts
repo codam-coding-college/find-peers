@@ -113,6 +113,19 @@ export async function getProjectSubscribers(campus: Campus, projectID: number, p
 	return users.map(u => toProjectSubscriber(u, projectName)).filter(x => !!x) as ProjectSubscriber[]
 }
 
+export async function writeAllProjectIds() {
+	const a = (await Api.getPaged(`/v2/projects`)) as {
+		ok: true
+		status: 200
+		json: ({ id: string; slug: string; name: string } & Record<string, unknown>)[]
+	}
+	const path = 'env/allProjectIDs.json'
+	const summary = a.json.map(x => ({ id: x.id, slug: x.slug, name: x.name }))
+	fs.writeFileSync(path, JSON.stringify(summary, null, 4))
+	console.log('Project IDs written to', path)
+}
+// writeAllProjectIds()
+
 // @return number of users pulled
 export async function saveAllProjectSubscribers(campus: Campus): Promise<number> {
 	let usersPulled = 0

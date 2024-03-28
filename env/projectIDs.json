@@ -32,11 +32,18 @@
 	"ft_transcendence": 1337,
 
 	"Internship I": 1638,
-    "internship I - Contract Upload": 1640,
+    "Internship I - Contract Upload": 1640,
     "Internship I - Duration": 1639,
     "Internship I - Company Mid Evaluation": 1641,
     "Internship I - Company Final Evaluation": 1642,
     "Internship I - Peer Video": 1643,
+
+	"startup internship": 1055,
+    "startup internship - Contract Upload": 1663,
+    "startup internship - Duration": 1664,
+    "startup internship - Company Mid Evaluation": 1665,
+    "startup internship - Company Final Evaluation": 1666,
+    "startup internship - Peer Video": 1667,
 
 	"Piscine Python Django": 1483,
 	"camagru": 1396,

@@ -120,6 +120,7 @@
 	"dslr": 1453,
 	"total-perspective-vortex": 1460,
 	"multilayer-perceptron": 1457,
+	"ft_kalman": 2098,
 
 	"ft_ls": 1479,
 	"ft_select": 1469,

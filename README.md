@@ -34,7 +34,7 @@ This value should not be higher than 2 * the pull timeout (currently 24 hours)
 | File path                                    | Description                                                                           | Managed by server |
 |----------------------------------------------|---------------------------------------------------------------------------------------|-------------------|
 | `./env/projectIDs.json`                      | List of all the projects and their corresponding ID to be displayed on the front page | no                |
-| `./env/allProjectIDs.json`                   | List of all projects in the 42 network (as of march 2022)                             | no                |
+| `./env/allProjectIDs.json`                   | List of all projects in the 42 network (as of march 2025)                             | no                |
 | `./env/.env-example`                         | Example file for api tokens, rename to `.env` to activate                             | no                |
 | `./env/campusIDs.json`                       | List of all campuses and their corresponding ID that are fetched from the 42 API      | no                |
 | `./database/`                                | All database files, mount this when running in a docker container                     | yes               |

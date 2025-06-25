@@ -66,13 +66,13 @@
     },
     {
         "id": 1645,
-        "slug": "professional-experience-ii-professional-experience-ii-contract-upload",
-        "name": "Professional Experience II - Contract Upload"
+        "slug": "work-experience-ii-work-experience-ii-contract-upload",
+        "name": "Work Experience II - Contract Upload"
     },
     {
         "id": 1640,
-        "slug": "professional-experience-i-professional-experience-i-contract-upload",
-        "name": "Professional Experience I - Contract Upload"
+        "slug": "work-experience-i-work-experience-i-contract-upload",
+        "name": "Work Experience I - Contract Upload"
     },
     {
         "id": 1636,
@@ -726,13 +726,13 @@
     },
     {
         "id": 1646,
-        "slug": "professional-experience-ii-professional-experience-ii-duration",
-        "name": "Professional Experience II - Duration"
+        "slug": "work-experience-ii-work-experience-ii-duration",
+        "name": "Work Experience II - Duration"
     },
     {
         "id": 1639,
-        "slug": "professional-experience-i-professional-experience-i-duration",
-        "name": "Professional Experience I - Duration"
+        "slug": "work-experience-i-work-experience-i-duration",
+        "name": "Work Experience I - Duration"
     },
     {
         "id": 1637,
@@ -1026,13 +1026,13 @@
     },
     {
         "id": 1647,
-        "slug": "professional-experience-ii-professional-experience-ii-company-mid-evaluation",
-        "name": "Professional Experience II - Company Mid Evaluation"
+        "slug": "work-experience-ii-work-experience-ii-company-mid-evaluation",
+        "name": "Work Experience II - Company Mid Evaluation"
     },
     {
         "id": 1641,
-        "slug": "professional-experience-i-professional-experience-i-company-mid-evaluation",
-        "name": "Professional Experience I - Company Mid Evaluation"
+        "slug": "work-experience-i-work-experience-i-company-mid-evaluation",
+        "name": "Work Experience I - Company Mid Evaluation"
     },
     {
         "id": 1622,
@@ -1296,13 +1296,13 @@
     },
     {
         "id": 1648,
-        "slug": "professional-experience-ii-professional-experience-ii-company-final-evaluation",
-        "name": "Professional Experience II - Company Final Evaluation"
+        "slug": "work-experience-ii-work-experience-ii-company-final-evaluation",
+        "name": "Work Experience II - Company Final Evaluation"
     },
     {
         "id": 1642,
-        "slug": "professional-experience-i-professional-experience-i-company-final-evaluation",
-        "name": "Professional Experience I - Company Final Evaluation"
+        "slug": "work-experience-i-work-experience-i-company-final-evaluation",
+        "name": "Work Experience I - Company Final Evaluation"
     },
     {
         "id": 1623,
@@ -1546,13 +1546,13 @@
     },
     {
         "id": 1649,
-        "slug": "professional-experience-ii-professional-experience-ii-peer-video",
-        "name": "Professional Experience II - Peer Video"
+        "slug": "work-experience-ii-work-experience-ii-peer-video",
+        "name": "Work Experience II - Peer Video"
     },
     {
         "id": 1643,
-        "slug": "professional-experience-i-professional-experience-i-peer-video",
-        "name": "Professional Experience I - Peer Video"
+        "slug": "work-experience-i-work-experience-i-peer-video",
+        "name": "Work Experience I - Peer Video"
     },
     {
         "id": 1624,
@@ -5126,13 +5126,13 @@
     },
     {
         "id": 1638,
-        "slug": "professional-experience-i",
-        "name": "Professional Experience I"
+        "slug": "work-experience-i",
+        "name": "Work Experience I"
     },
     {
         "id": 1644,
-        "slug": "professional-experience-ii",
-        "name": "Professional Experience II"
+        "slug": "work-experience-ii",
+        "name": "Work Experience II"
     },
     {
         "id": 1650,

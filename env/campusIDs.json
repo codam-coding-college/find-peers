@@ -20,6 +20,7 @@
 	"Yerevan": 32,
 	"Bangkok": 33,
 	"Kuala Lumpur": 34,
+	"Amman": 35,
 	"Adelaide": 36,
 	"Malaga": 37,
 	"Lisboa": 38,
@@ -42,10 +43,14 @@
 	"Prague": 56,
 	"London": 57,
 	"Porto": 58,
+	"Luxembourg": 59,
+	"Perpignan": 60,
 	"Le Havre": 62,
 	"Singapore": 64,
 	"Antananarivo": 65,
 	"Warsaw": 67,
 	"Luanda":68,
-	"Gyeongsan":69
+	"Gyeongsan":69,
+	"Beirut": 71,
+	"Rabat": 75
 }

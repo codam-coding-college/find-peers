@@ -66,13 +66,13 @@
     },
     {
         "id": 1645,
-        "slug": "internship-ii-internship-ii-contract-upload",
-        "name": "internship II - Contract Upload"
+        "slug": "professional-experience-ii-professional-experience-ii-contract-upload",
+        "name": "Professional Experience II - Contract Upload"
     },
     {
         "id": 1640,
-        "slug": "internship-i-internship-i-contract-upload",
-        "name": "internship I - Contract Upload"
+        "slug": "professional-experience-i-professional-experience-i-contract-upload",
+        "name": "Professional Experience I - Contract Upload"
     },
     {
         "id": 1636,
@@ -711,8 +711,8 @@
     },
     {
         "id": 1664,
-        "slug": "startup-internship-startup-internship-duration",
-        "name": "Startup Internship - Duration"
+        "slug": "startup-experience-startup-experience-duration",
+        "name": "Startup Experience - Duration"
     },
     {
         "id": 1658,
@@ -726,13 +726,13 @@
     },
     {
         "id": 1646,
-        "slug": "internship-ii-internship-ii-duration",
-        "name": "Internship II - Duration"
+        "slug": "professional-experience-ii-professional-experience-ii-duration",
+        "name": "Professional Experience II - Duration"
     },
     {
         "id": 1639,
-        "slug": "internship-i-internship-i-duration",
-        "name": "Internship I - Duration"
+        "slug": "professional-experience-i-professional-experience-i-duration",
+        "name": "Professional Experience I - Duration"
     },
     {
         "id": 1637,
@@ -1026,13 +1026,13 @@
     },
     {
         "id": 1647,
-        "slug": "internship-ii-internship-ii-company-mid-evaluation",
-        "name": "Internship II - Company Mid Evaluation"
+        "slug": "professional-experience-ii-professional-experience-ii-company-mid-evaluation",
+        "name": "Professional Experience II - Company Mid Evaluation"
     },
     {
         "id": 1641,
-        "slug": "internship-i-internship-i-company-mid-evaluation",
-        "name": "internship I - Company Mid Evaluation"
+        "slug": "professional-experience-i-professional-experience-i-company-mid-evaluation",
+        "name": "Professional Experience I - Company Mid Evaluation"
     },
     {
         "id": 1622,
@@ -1296,13 +1296,13 @@
     },
     {
         "id": 1648,
-        "slug": "internship-ii-internship-ii-company-final-evaluation",
-        "name": "Internship II - Company Final Evaluation"
+        "slug": "professional-experience-ii-professional-experience-ii-company-final-evaluation",
+        "name": "Professional Experience II - Company Final Evaluation"
     },
     {
         "id": 1642,
-        "slug": "internship-i-internship-i-company-final-evaluation",
-        "name": "internship I - Company Final Evaluation"
+        "slug": "professional-experience-i-professional-experience-i-company-final-evaluation",
+        "name": "Professional Experience I - Company Final Evaluation"
     },
     {
         "id": 1623,
@@ -1546,13 +1546,13 @@
     },
     {
         "id": 1649,
-        "slug": "internship-ii-internship-ii-peer-video",
-        "name": "Internship II - Peer Video"
+        "slug": "professional-experience-ii-professional-experience-ii-peer-video",
+        "name": "Professional Experience II - Peer Video"
     },
     {
         "id": 1643,
-        "slug": "internship-i-internship-i-peer-video",
-        "name": "Internship I - Peer Video"
+        "slug": "professional-experience-i-professional-experience-i-peer-video",
+        "name": "Professional Experience I - Peer Video"
     },
     {
         "id": 1624,
@@ -5126,13 +5126,13 @@
     },
     {
         "id": 1638,
-        "slug": "internship-i",
-        "name": "Internship I"
+        "slug": "professional-experience-i",
+        "name": "Professional Experience I"
     },
     {
         "id": 1644,
-        "slug": "internship-ii",
-        "name": "Internship II"
+        "slug": "professional-experience-ii",
+        "name": "Professional Experience II"
     },
     {
         "id": 1650,
@@ -5146,8 +5146,8 @@
     },
     {
         "id": 1662,
-        "slug": "42cursus-startup-internship",
-        "name": "Startup Internship"
+        "slug": "42cursus-startup-experience",
+        "name": "Startup Experience"
     },
     {
         "id": 1673,

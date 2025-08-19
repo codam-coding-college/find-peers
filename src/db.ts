@@ -30,7 +30,26 @@ function setupCampusDB(campus: Campus) {
 	if (!fs.existsSync(campus.projectUsersPath)) {
 		fs.writeFileSync(campus.projectUsersPath, '[]')
 	}
-	campusDB.projects = JSON.parse(fs.readFileSync(campus.projectUsersPath).toString())
+	// Check whether the to be parsed file exists.
+	const filePath = campus.projectUsersPath;
+	if (!fs.existsSync(filePath)) {
+		throw new Error(`File not found: ${filePath}`);
+	}
+	// Check whether the file contains information.
+	const rawData = fs.readFileSync(filePath, 'utf-8');
+	if (!rawData.trim()) {
+		throw new Error(`File is empty: ${filePath}`);
+	}
+	try {
+		campusDB.projects = JSON.parse(rawData);
+	} catch (err: unknown) {
+		if (err instanceof Error) {
+			console.error(`Failed to parse JSON from ${filePath}:`, err.message);
+		} else {
+			console.error(`Failed to parse JSON from ${filePath}:, uknown error`);
+		}
+	throw err;
+	}
 	if (!fs.existsSync(campus.lastPullPath)) {
 		fs.writeFileSync(campus.lastPullPath, '0')
 	}

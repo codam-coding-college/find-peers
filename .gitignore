@@ -8,5 +8,4 @@ database/*.db
 /test.ts
 /sessions/
 *.swp
-.sync-timestamp
 /prisma/*.db

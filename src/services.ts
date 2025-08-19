@@ -16,6 +16,20 @@ export class DatabaseService {
 
 
 	/**
+	 * Get the last synchronization timestamp.
+	 */
+	static getLastSyncTimestamp = async function(): Promise<Date> {
+		const sync = await prisma.sync.findUnique({
+			where: { id: 1 },
+			select: { last_pull: true }
+		});
+		if (!sync) {
+			throw new Error('No synchronization record found');
+		}
+		return sync.last_pull;
+	}
+
+	/**
 	 * Retrieve Users based on the given campus.
 	 * @param status The campus to filter on.
 	 * @returns The list of filtered users.
@@ -106,6 +120,17 @@ export class DatabaseService {
 	* Insert Methods														  *
 	\*************************************************************************/
 
+	/**
+	 * Save the synchronization timestamp.
+	 * @param timestamp The timestamp to save
+	 */
+	static saveSyncTimestamp = async function(timestamp: Date): Promise<void> {
+		await prisma.sync.upsert({
+			where: { id: 1 },
+			update: { last_pull: timestamp },
+			create: { last_pull: timestamp }
+		});
+	}
 
 	/**
 	 * Inserts a project user into the database.

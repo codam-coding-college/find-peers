@@ -1,4 +1,3 @@
-import fs from 'fs';
 import Fast42 from "@codam/fast42";
 import { env } from "./env";
 import { syncData, syncDataCB } from "./wrapper";
@@ -46,10 +45,10 @@ export const syncWithIntra = async function(): Promise<void> {
 
 	console.info(`Starting Intra synchronization at ${now.toISOString()}...`);
 	try {
-		const lastSync = await getLastSyncTimestamp();
+		const lastSync = await DatabaseService.getLastSyncTimestamp();
 
 		await syncProjectUsersCB(fast42Api, lastSync);
-		await saveSyncTimestamp(now);
+		await DatabaseService.saveSyncTimestamp(now);
 
 		console.info(`Intra synchronization completed at ${new Date().toISOString()}.`);
 	}
@@ -206,29 +205,4 @@ async function syncProjects(projects: any[]): Promise<void> {
 		console.error('Failed to sync projects:', error);
 		throw error;
 	}
-}
-
-/**
- * Get the last synchronization timestamp.
- */
-export const getLastSyncTimestamp = async function(): Promise<Date> {
-	return new Promise((resolve) => {
-		fs.readFile('.sync-timestamp', 'utf8', (err, data) => {
-			if (err) {
-				return resolve(new Date(0));
-			}
-			return resolve(new Date(parseInt(data)));
-		});
-	});
-}
-
-/**
- * Save the synchronization timestamp.
- * @param timestamp The timestamp to save
- */
-const saveSyncTimestamp = async function(timestamp: Date): Promise<void> {
-	console.log('Saving timestamp of synchronization to ./.sync-timestamp...');
-	// Save to current folder in .sync-timestamp file
-	fs.writeFileSync('.sync-timestamp', timestamp.getTime().toString());
-	console.log('Timestamp saved to ./.sync-timestamp');
 }

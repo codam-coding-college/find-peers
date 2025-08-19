@@ -4,7 +4,7 @@
 /node_modules/
 /token*.json
 /env/.env
-/database*/
+database/*.db
 /test.ts
 /sessions/
 *.swp

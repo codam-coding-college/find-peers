@@ -8,3 +8,5 @@
 /test.ts
 /sessions/
 *.swp
+.sync-timestamp
+/src/generated/prisma

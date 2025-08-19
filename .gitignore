@@ -9,4 +9,4 @@ database/*.db
 /sessions/
 *.swp
 .sync-timestamp
-/src/generated/prisma
+/prisma/*.db

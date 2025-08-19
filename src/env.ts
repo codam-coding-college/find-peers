@@ -4,6 +4,9 @@ import campusIDs from '../env/campusIDs.json'
 import projectIDs from '../env/projectIDs.json'
 import { assertEnvInt, assertEnvStr, mapObject } from './util'
 
+export const DEV_DAYS_LIMIT: number = process.env['DEV_DAYS_LIMIT'] ? parseInt(process.env['DEV_DAYS_LIMIT'] as string) : 365;
+export const NODE_ENV = process.env['NODE_ENV'] || 'development';
+
 export type CampusID = (typeof campusIDs)[keyof typeof campusIDs]
 export type CampusName = keyof typeof campusIDs
 

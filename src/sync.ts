@@ -4,10 +4,6 @@ import { syncData, syncDataCB } from "./wrapper";
 import { transformApiCampusToDb, transformApiProjectUserToDb, transformApiUserToDb, transformApiProjectToDb } from './transform';
 import { DatabaseService } from './services';
 import { log } from "./logger";
-// import path from "path";
-// import fs from "fs";
-
-
 
 const fast42Api = new Fast42(
 	[
@@ -73,7 +69,7 @@ export const syncWithIntra = async function(): Promise<void> {
  */
 async function syncProjectUsersCB(fast42Api: Fast42, lastPullDate: Date | undefined): Promise<void> {
     return new Promise((resolve, reject) => {
-        const batches: any[][] = []; // Store all batches first
+        const batches: any[][] = [];
         
         const callback = async (projectUsers: any[]) => {
             try {
@@ -81,7 +77,6 @@ async function syncProjectUsersCB(fast42Api: Fast42, lastPullDate: Date | undefi
                     log(2, 'No project users found to sync.');
                     return;
                 }
-                // Just collect batches, don't process yet
                 batches.push(projectUsers);
                 log(2, `Collected batch of ${projectUsers.length} project users...`);
             } catch (error) {
@@ -94,48 +89,40 @@ async function syncProjectUsersCB(fast42Api: Fast42, lastPullDate: Date | undefi
             { 'page[size]': '100', 'filter[campus]': '14' }, callback)
             .then(async () => {
                 log(2, `Collected ${batches.length} batches. Processing sequentially...`);
-
-                // NOW process all batches sequentially using for...of
                 let batchIndex = 0;
                 for (const batch of batches) {
                     batchIndex++;
                     log(2, `Processing batch ${batchIndex}/${batches.length} (${batch.length} project users)...`);
 
-                    // Process this batch sequentially
                     const missingProjects = await DatabaseService.getMissingProjects(batch);
                     if (missingProjects.length > 0) {
                         log(2, `Found ${missingProjects.length} missing projects, syncing...`);
                         await syncProjects(missingProjects);
                     }
-
                     const missingUserIds = await DatabaseService.getMissingUserIds(batch);
                     if (missingUserIds.length > 0) {
                         log(2, `Found ${missingUserIds.length} missing users, syncing...`);
-                        await syncUsersCB(fast42Api, lastPullDate, missingUserIds);
+                        await syncUsers(fast42Api, lastPullDate, missingUserIds);
                     }
 
-
-					// Double-check missing projects and users
                     const stillMissingProjects = await DatabaseService.getMissingProjects(batch);
                     const stillMissingUsers = await DatabaseService.getMissingUserIds(batch);
-
                     if (stillMissingProjects.length > 0) {
                         console.error(`ERROR: Still missing ${stillMissingProjects.length} projects after sync:`, stillMissingProjects);
                         await syncProjects(stillMissingProjects);
                     }
-
                     if (stillMissingUsers.length > 0) {
                         console.error(`ERROR: Still missing ${stillMissingUsers.length} users after sync:`, stillMissingUsers);
-                        await syncUsersCB(fast42Api, lastPullDate, stillMissingUsers);
+                        await syncUsers(fast42Api, lastPullDate, stillMissingUsers);
                     }
 
 
-                    log(2, `-------Inserting ${batch.length} project users...`);
+                    log(2, `Inserting ${batch.length} project users...`);
                     const dbProjectUsers = batch.map(transformApiProjectUserToDb);
                     await DatabaseService.insertManyProjectUsers(dbProjectUsers);
                 }
 
-                log(2, 'Finished syncing project users with sequential batch method.');
+                log(2, 'Finished syncing project users.');
                 resolve();
             })
             .catch((error) => {
@@ -144,73 +131,17 @@ async function syncProjectUsersCB(fast42Api: Fast42, lastPullDate: Date | undefi
             });
     });
 }
-// async function syncProjectUsersCB(fast42Api: Fast42, lastPullDate: Date | undefined): Promise<void> {
-//     return new Promise((resolve, reject) => {
-//         const callback = async (projectUsers: any[]) => {
-//             try {
-//                 if (projectUsers.length === 0) {
-//                     console.log('No project users found to sync.');
-//                     return;
-//                 }
-//                 console.log(`Processing batch of ${projectUsers.length} project users...`);
-
-// 				// If any project doesn't exist in the 'project' table, create an entry in 'project' table.
-// 				const missingProjects = await DatabaseService.getMissingProjects(projectUsers);
-// 				if (missingProjects.length > 0) {
-// 					console.log(`Found ${missingProjects.length} missing projects, syncing...`);
-// 					await syncProjects(missingProjects);
-// 				}
-
-// 				// If any projectUser doesn't exist in the 'user' table, create an entry in 'user' table.
-// 				const missingUserIds = await DatabaseService.getMissingUserIds(projectUsers);
-// 				if (missingUserIds.length > 0) {
-// 					console.log(`Found ${missingUserIds.length} missing users, syncing...`);
-// 					await syncUsersCB(fast42Api, lastPullDate, missingUserIds);
-// 				}
-
-// 				log(2, `-------Inserting ${projectUsers.length} project users...`);
-// 				if (projectUsers.length > 1) {
-// 					const dbProjectUsers = projectUsers.map(transformApiProjectUserToDb);
-// 					await DatabaseService.insertManyProjectUsers(dbProjectUsers);
-// 				} else if (projectUsers.length === 1) {
-// 					const dbProjectUser = transformApiProjectUserToDb(projectUsers[0]);
-// 					await DatabaseService.insertProjectUser(dbProjectUser);
-// 				} else if (!Array.isArray(projectUsers)) {
-// 					const dbProjectUser = transformApiProjectUserToDb(projectUsers);
-// 					await DatabaseService.insertProjectUser(dbProjectUser);
-// 				}
-// 			} catch (error) {
-// 				console.error('Failed to process project users batch:', error);
-// 				throw error;
-//             }
-//         };
-
-//         syncDataCB(fast42Api, new Date(), lastPullDate, '/projects_users',
-// 			{ 'page[size]': '100', 'filter[campus]': '14' }, callback)
-//             .then(() => {
-//                 console.log('Finished syncing project users with callback method.');
-//                 resolve();
-//             })
-//             .catch((error) => {
-//                 console.error('Failed to sync project users with callback:', error);
-//                 reject(error);
-//             });
-//     });
-// }
 
 /**
- * Sync users with the Fast42 API using a callback.
+ * Sync users with the Fast42 API.
  * @param fast42Api The Fast42 API instance to use for fetching project users
  * @param lastPullDate The date of the last synchronization
  * @returns A promise that resolves when the synchronization is complete
  */
-async function syncUsersCB(fast42Api: Fast42, lastPullDate: Date | undefined, userIds: number[]): Promise<void> {
-    // Process users ONE AT A TIME instead of all at once
+async function syncUsers(fast42Api: Fast42, lastPullDate: Date | undefined, userIds: number[]): Promise<void> {
     for (const userId of userIds) {
         try {
             log(2, `Processing missing user ${userId}...`);
-
-            // WAIT for this API call to complete before moving to next user
             const userApi = await syncData(fast42Api, new Date(), lastPullDate, `/users/${userId}`, {});
 			const user = userApi[0];
 
@@ -221,11 +152,10 @@ async function syncUsersCB(fast42Api: Fast42, lastPullDate: Date | undefined, us
 
             const dbUser = transformApiUserToDb(user);
             
-            // Check for missing campus for THIS user only
             const missingCampusId = await DatabaseService.getMissingCampusId(user);
             if (missingCampusId !== null) {
                 log(2, `Found missing campus ID ${missingCampusId}, syncing...`);
-                // GUARANTEED: Campus insert completes BEFORE user insert
+
                 try {
                     await syncCampus(fast42Api, lastPullDate, missingCampusId);
                 } catch (error) {
@@ -234,59 +164,14 @@ async function syncUsersCB(fast42Api: Fast42, lastPullDate: Date | undefined, us
                     dbUser.primary_campus_id = 1; // Assign to Ghost Campus
                 }
             }
-            // SAFE: Campus definitely exists in database by now
             await DatabaseService.insertUser(dbUser);
 
         } catch (error) {
             console.error(`Failed to process user ${userId}:`, error);
-            // Continue with next user instead of failing completely
         }
     }
     log(2, 'Syncing Users completed.');
 }
-// async function syncUsersCB(fast42Api: Fast42, lastPullDate: Date | undefined, userIds: number[]): Promise<void> {
-// 	const promises = userIds.map(userId => {
-// 		return new Promise((resolve, reject) => {
-// 			const callback = async (user: any) => {
-// 				try {
-// 					if (!user) {
-// 						console.log('No users found to sync.');
-// 						return;
-// 					}
-// 					console.log(`-----------Processing missing user ${user.id}...`);
-
-// 					// If any projectUser doesn't exist in the 'user' table, create an entry in 'user' table.
-// 					const missingCampusId = await DatabaseService.getMissingCampusId(user);
-// 					log(2, `-----------Missing Campus ID for user ${user.id}: ${missingCampusId}`);
-// 					if (missingCampusId !== null) {
-// 						console.log(`------------------Found missing campus ID ${missingCampusId}, syncing...`);
-// 						await syncCampus(fast42Api, lastPullDate, missingCampusId);
-// 					}
-
-// 					const dbUser = transformApiUserToDb(user);
-// 					await DatabaseService.insertUser(dbUser);
-// 				} catch (error) {
-// 					console.error('Failed to process project users batch:', error);
-// 					throw error;
-// 				}
-// 			};
-
-// 			// Fetch user for each userId
-// 			syncDataCB(fast42Api, new Date(), lastPullDate, `/users/${userId}`,
-// 				{ 'page[size]': '100' }, callback)
-// 				.then(() => {
-// 					console.log('Finished syncing users with callback method.');
-// 					resolve(undefined);
-// 				})
-// 				.catch((error) => {
-// 					console.error('Failed to sync users with callback:', error);
-// 					reject(error);
-// 				});
-// 		});
-// 	});
-// 	await Promise.all(promises);
-// 	console.log('Syncing Users completed.');
-// }
 
 /**
  * Sync campuses with the Fast42 API.

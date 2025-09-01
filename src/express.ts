@@ -5,11 +5,15 @@ import { env, ProjectStatus } from './env'
 import session from 'express-session'
 import { log } from './logger'
 import compression from 'compression'
-// import request from 'request'
 import cookieParser from 'cookie-parser'
 import { DatabaseService } from './services'
 import { displayProject } from './types'
 
+/**
+ * Render the error page.
+ * @param res The response object
+ * @param error The error message to display
+ */
 async function errorPage(res: Response, error: string): Promise<void> {
 	const settings = {
 		campuses: await DatabaseService.getAllCampuses(),
@@ -20,7 +24,12 @@ async function errorPage(res: Response, error: string): Promise<void> {
 
 const cachingProxy = '/proxy'
 
-async function getUserCampusFromAPI(accessToken: string): Promise<{ campusId: number, campusName: string }> {
+/**
+ * Get the user's campus information using the 42 API.
+ * @param accessToken The access token to use for authentication
+ * @returns The user's campus information
+ */
+async function getUserCampusFromAPI(accessToken: string): Promise<{ campusId: number, campusName: string | null }> {
     try {
         const response = await fetch('https://api.intra.42.fr/v2/me', {
             headers: {
@@ -33,11 +42,13 @@ async function getUserCampusFromAPI(accessToken: string): Promise<{ campusId: nu
         }
 
         const userData = await response.json();
-        const primaryCampus = userData.campus[0]; // User's primary campus
+		const primaryCampusUser = userData.campus_users.find(c => c.is_primary);
+		const primaryCampusId = primaryCampusUser ? primaryCampusUser.campus_id : userData.campus_users[0].campus_id;
 
+		const primaryCampus = await DatabaseService.getCampusNameById(primaryCampusId);
         return {
-            campusId: primaryCampus.id,
-            campusName: primaryCampus.name
+            campusId: primaryCampusId,
+			campusName: primaryCampus?.name ? primaryCampus.name : null
         };
     } catch (error) {
         console.error('Error fetching user campus:', error);
@@ -46,6 +57,12 @@ async function getUserCampusFromAPI(accessToken: string): Promise<{ campusId: nu
     }
 }
 
+/**
+ * Get the projects for a specific campus and status.
+ * @param campusId The ID of the campus
+ * @param requestedStatus The status of the projects to retrieve
+ * @returns A list of projects for the specified campus and status, sorted on status.
+ */
 async function getProjects(campusId: number, requestedStatus: string | undefined): Promise<displayProject[]> {
 	const projectList = await DatabaseService.getAllProjects();
 	if (!projectList.length) {
@@ -73,6 +90,10 @@ async function getProjects(campusId: number, requestedStatus: string | undefined
 	}));
 }
 
+/**
+ * Start the web server.
+ * @param port The port to listen on
+ */
 export async function startWebserver(port: number) {
 	const app = express()
 
@@ -89,20 +110,7 @@ export async function startWebserver(port: number) {
 	app.use(passport.initialize())
 	app.use(passport.session())
 
-
-
-	// app.use(cachingProxy, (req, res) => {
-	// 	const url = req.query['q']
-	// 	if (!url || typeof url !== 'string' || !url.startsWith('http')) {
-	// 		res.status(404).send('No URL provided')
-	// 		return
-	// 	}
-
-	// 	// inject cache header for images
-	// 	res.setHeader('Cache-Control', `public, max-age=${100 * 24 * 60 * 60}`)
-	// 	req.pipe(request(url)).pipe(res)
-	// })
-
+	// Caching proxy
 	app.use(cachingProxy, async (req, res) => {
 		const url = req.query['q']
 		if (!url || typeof url !== 'string' || !url.startsWith('http')) {
@@ -136,8 +144,7 @@ export async function startWebserver(port: number) {
 		}
 	})
 
-
-
+	// Compression middleware
 	app.use((req, res, next) => {
 		try {
 			compression()(req, res, next)
@@ -148,11 +155,13 @@ export async function startWebserver(port: number) {
 		next()
 	})
 
+	// Robots.txt
 	app.get('/robots.txt', (_, res) => {
 		res.type('text/plain')
 		res.send('User-agent: *\nAllow: /')
 	})
 
+	// Authentication routes
 	app.get(`/auth/${env.provider}/`, passport.authenticate(env.provider, { scope: env.scope }))
 	app.get(
 		`/auth/${env.provider}/callback`,
@@ -162,6 +171,7 @@ export async function startWebserver(port: number) {
 		})
 	)
 
+	// Main route
 	app.get('/', authenticate, async (req, res) => {
 		const user = req.user as any;
 		const accessToken = user?.accessToken;
@@ -173,6 +183,7 @@ export async function startWebserver(port: number) {
 		res.redirect(`/${await getUserCampusFromAPI(accessToken).then(data => data.campusName)}`);
 	})
 
+	// Campus-specific route
 	app.get('/:campus', authenticate, async (req, res) => {
 		const user = req.user as any;
 		const accessToken = user?.accessToken;
@@ -195,6 +206,7 @@ export async function startWebserver(port: number) {
 			return errorPage(res, `Unknown status ${req.query['status']}`)
 		}
 
+		// Get all necessary data to be displayed to the user
 		const userTimeZone = req.cookies.timezone || 'Europe/Amsterdam'
 		const settings = {
 			projects: await getProjects(campusId, requestedStatus),
@@ -211,6 +223,7 @@ export async function startWebserver(port: number) {
 		res.render('index.ejs', settings)
 	})
 
+	// Monitoring route
 	app.get('/status/pull', async (_, res) => {
 		const lastSync = await DatabaseService.getLastSyncTimestamp();
 		res.json(lastSync);

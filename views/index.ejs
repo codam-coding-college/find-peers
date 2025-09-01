@@ -168,6 +168,8 @@
 	Built by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a> - <a href="https://github.com/codam-coding-college/find-peers">Source</a><br/>
 	This page is updated every <%= updateEveryHours %> hours, last update was on <%= lastUpdate %>: <%= hoursAgo %> hours ago<br/>
 </div>
+
+
 <div id="search-bar">
 	<label for="campus-selector"> campus</label>
 	<select id="campus-selector" onchange="window.location.href='/'+this.value">
@@ -175,6 +177,7 @@
 			<option value="<%= campus.name %>" <% if (campusName == campus.name) { %>selected<% } %>><%= campus.name %></option>
 		<% }) %>
 	</select>
+
 	<label for="status-selector"> status</label>
 	<select id="status-selector" onchange="window.location.href='?status='+this.value">
 		<option value="" <% if (!requestedStatus) { %>selected<% } %>>all</option>
@@ -182,6 +185,7 @@
 			<option value="<%= status %>" <% if (requestedStatus == status) { %>selected<% } %>><%= status %></option>
 		<% }) %>
 	</select>
+
 	<label for="project-selector"> project</label>
 	<input list="project-datalist" id="project-selector" onchange="window.location.href='#'+this.value; this.value=''" placeholder="project name"/>
 	<datalist id="project-datalist">
@@ -191,6 +195,7 @@
 			<% }) %>
 	</datalist>
 </div>
+
 
 <div id="projects">
 	<% projects.forEach(project=>{ %>
@@ -203,6 +208,7 @@
 					<%= project.users.length %> users
 				</div>
 			</div>
+
 			<div class="users">
 				<% if (project.users.length == 0 && !requestedStatus) { %>
 					<p><small> No users are subscribed to this project </small></p>
@@ -225,6 +231,7 @@
 		</div>
 	<% }) %>
 </div>
+
 
 <footer>
 	<a href="https://github.com/codam-coding-college/find-peers">Source</a>

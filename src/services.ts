@@ -3,6 +3,11 @@ import { log } from 'console';
 
 const prisma = new PrismaClient();
 
+/**
+ * Get a user-friendly error message from an error object.
+ * @param error The error object to extract the message from.
+ * @returns A user-friendly error message.
+ */
 function getErrorMessage(error: unknown): string {
     if (error instanceof Error)
 		return error.message;
@@ -73,6 +78,11 @@ export class DatabaseService {
 		});
 	}
 
+	/**
+	 * Get the ID of a campus by its name.
+	 * @param campus_name The campus name to look for.
+	 * @returns The ID of the campus.
+	 */
 	static async getCampusIdByName(campus_name: string | undefined): Promise<number> {
 		if (!campus_name) return -1;
 

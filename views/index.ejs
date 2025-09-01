@@ -13,6 +13,8 @@
 			font-family: monospace;
 			padding: 0;
 
+			--accent: #ffffff;
+
 			--search-height: 50px;
 			--root-padding: 32px;
 
@@ -46,18 +48,29 @@
 		}
 
 		.project {
-			margin: 80px 0px;
+			margin: 40px 0;
+			padding: 32px;
+			background: #350f32;
+			border-radius: 16px;
+			box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+			border: 1px solid #222;
 		}
 
 		.project-name {
+			margin-bottom: 16px;
 			font-size: var(--font-size-2);
-			display: flex;
-			flex-direction: row;
-			align-items: flex-end;
+			font-weight: bold;
+			color: #4a98c5;
+		}
+
+		.project-title {
+			cursor: pointer;
+			color: var(--accent);
+			transition: color 0.2s;
 		}
 
 		.project-title:hover {
-			cursor: pointer;
+			color: #4a98c5;
 			text-decoration: underline;
 		}
 
@@ -107,8 +120,9 @@
 		}
 
 		.n-users {
+			color: #aaa;
 			font-size: var(--font-size-4);
-			padding: 5px 20px;
+			margin-left: 16px;
 		}
 
 		#search-bar {
@@ -121,7 +135,7 @@
 			right: 0;
 			padding: 0 var(--root-padding);
 			height: var(--search-height);
-			background: black;
+			background: rgb(111, 26, 114);
 			box-shadow: 0 0 3px 0px black;
 			font-size: var(--font-size-3);
 			z-index: 2;

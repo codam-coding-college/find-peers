@@ -24,7 +24,11 @@ export class DatabaseService {
 			where: { id: 1 },
 			select: { last_pull: true }
 		});
-		return sync?.last_pull || null;
+		if (sync?.last_pull === null || sync?.last_pull === undefined) {
+			log(2, `No last sync timestamp found, returning null.`);
+			return null;
+		}
+		return new Date(sync.last_pull);
 	}
 
 	/**
@@ -36,22 +40,25 @@ export class DatabaseService {
 	 */
 	static async getProjectUserInfo(
 		project_id: any, campus_id: any, requestedStatus: string | undefined): Promise<any[]> {
-			const whereClause: any = {
-				project_id: project_id,
-				user: { primary_campus_id: campus_id }
-			};
-			if (typeof requestedStatus === 'string') {
-				whereClause.status = requestedStatus;
-			}
+		const whereClause: any = {
+			project_id: project_id,
+			user: { primary_campus_id: campus_id }
+		};
+		if (typeof requestedStatus === 'string' && requestedStatus.length > 0) {
+			whereClause.status = requestedStatus;
+		}
 
-			return prisma.projectUser.findMany({
-				where: whereClause,
-				select: {
-					project: { select: { name: true } },
-					user: { select: { login: true, image_url: true } },
-					status: true
-				}
-			});
+		const projusers = await prisma.projectUser.findMany({
+			where: whereClause,
+			select: {
+				user: { select: { login: true, image_url: true } },
+				status: true
+			}
+		});
+		if (requestedStatus == 'finished') {
+			return projusers;
+		}
+		return projusers.filter(pu => pu.status !== 'finished');
 	}
 
 	/**
@@ -64,6 +71,16 @@ export class DatabaseService {
 			where: { id: campus_id },
 			select: { name: true }
 		});
+	}
+
+	static async getCampusIdByName(campus_name: string | undefined): Promise<number> {
+		if (!campus_name) return -1;
+
+		const campus = await prisma.campus.findFirst({
+			where: { name: campus_name },
+			select: { id: true }
+		});
+		return campus?.id ?? -1;
 	}
 
 	/**
@@ -106,6 +123,15 @@ export class DatabaseService {
 	static async getAllCampuses(): Promise<Campus[]> {
 		return prisma.campus.findMany({
 			orderBy: { name: 'asc' }
+		});
+	}
+
+	/**
+	 * @returns The list of all users in ascending (id) order.
+	 */
+	static async getAllUsers(): Promise<User[]> {
+		return prisma.user.findMany({
+			orderBy: { id: 'asc' }
 		});
 	}
 
@@ -189,6 +215,21 @@ export class DatabaseService {
 		return campusIds.filter(id => !existingCampusIds.has(id));
 	}
 
+	static async getMissingCampusId(user: any): Promise<number | null> {
+		const campusId = user.campus_users.find((cu: any) => cu.is_primary)?.campus_id;
+		if (campusId === null || campusId === undefined) {
+			return null;
+		}
+		const existingCampus = await prisma.campus.findUnique({
+			where: { id: campusId },
+			select: { id: true }
+		});
+		if (!existingCampus) {
+			return campusId;
+		}
+		return null;
+	}
+
 
 	/*************************************************************************\
 	* Insert Methods														  *
@@ -201,8 +242,8 @@ export class DatabaseService {
 	static saveSyncTimestamp = async function(timestamp: Date): Promise<void> {
 		await prisma.sync.upsert({
 			where: { id: 1 },
-			update: { last_pull: timestamp },
-			create: { last_pull: timestamp }
+			update: { last_pull: timestamp.toISOString() },
+			create: { id: 1, last_pull: timestamp.toISOString() }
 		});
 	}
 
@@ -277,13 +318,13 @@ export class DatabaseService {
 	 */
 	static async insertManyUsers(users: User[]): Promise<void> {
 		try {
-			const insert = users.map(user =>
-				prisma.user.upsert({
+			const insert = users.map(user => {
+				return prisma.user.upsert({
 					where: { id: user.id },
 					update: user,
 					create: user
-				})
-			);
+				});
+			});
 			await prisma.$transaction(insert);
 		} catch (error) {
 			throw new Error(`Failed to insert users: ${getErrorMessage(error)}`);
@@ -297,13 +338,14 @@ export class DatabaseService {
 	 */
 	static async insertCampus(campus: Campus): Promise<Campus> {
 		try {
+			log(2, `-------------Inserted campus`);
 			return prisma.campus.upsert({
 				where: { id: campus.id },
 				update: campus,
 				create: campus
 			});
 		} catch (error) {
-			throw new Error(`Failed to insert user ${campus.id}: ${getErrorMessage(error)}`);
+			throw new Error(`-------Failed to insert campus ${campus.id}: ${getErrorMessage(error)}`);
 		}
 	}
 

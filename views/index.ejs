@@ -158,19 +158,15 @@
 		}
 		setTimezoneCookie();
 	</script>
-
 </head>
 
 <body>
-
 <div id="title">
 	Find Peers
 </div>
 <div id="description">
 	Built by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a> - <a href="https://github.com/codam-coding-college/find-peers">Source</a><br/>
 	This page is updated every <%= updateEveryHours %> hours, last update was on <%= lastUpdate %>: <%= hoursAgo %> hours ago<br/>
-	<img class="inline" src="/public/new.svg"></img> indicates that the user's project status was changed in the last <%= userNewStatusThresholdDays %> days<br />
-	<%= usage %><br/>
 </div>
 <div id="search-bar">
 	<label for="campus-selector"> campus</label>
@@ -194,7 +190,6 @@
 		<option value="<%= project.name.toLowerCase().replaceAll(' ', '-') %>">
 			<% }) %>
 	</datalist>
-
 </div>
 
 <div id="projects">
@@ -216,9 +211,6 @@
 				<% } else { %>
 				<% project.users.forEach(user=>{ %>
 					<a class="user" href="https://profile.intra.42.fr/users/<%= user.login %>" target="_blank">
-						<% if (user.new) { %>
-							<img class="overlay" src="/public/new.svg"></img>
-						<% } %>
 						<img class="user-image" src="<%= user.image_url %>" alt="<%= user.login %>" loading="lazy"/>
 						<div>
 							<%= user.login %>
@@ -235,7 +227,7 @@
 </div>
 
 <footer>
-	<a href="https://github.com/SirMorfield/find-peers">Source</a>
+	<a href="https://github.com/codam-coding-college/find-peers">Source</a>
 </footer>
 
 </body>

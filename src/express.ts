@@ -51,11 +51,11 @@ async function getProjects(campusId: number, requestedStatus: string | undefined
 	if (!projectList.length) {
 		return [];
 	}
-	return Promise.all(projectList.map(async project => ({
+	const projectsWithUsers: displayProject[] = await Promise.all(projectList.map(async project => ({
 		name: project.name,
 		users: (await DatabaseService.getProjectUserInfo(project.id, campusId, requestedStatus)).map(projUser => ({
-			login: projUser.login,
-			image_url: projUser.image_url,
+			login: projUser.user.login,
+			image_url: projUser.user.image_url,
 			status: projUser.status,
 		})).sort((a, b) => {
 			if (a.status !== b.status) {
@@ -67,6 +67,10 @@ async function getProjects(campusId: number, requestedStatus: string | undefined
 			return a.login < b.login ? -1 : 1
 		})
 	})));
+	return projectsWithUsers.map(project => ({
+		...project,
+		users: project.users.filter(user => !user.login.match(/^3b3/) && !user.login.match(/^3c3/))
+	}));
 }
 
 export async function startWebserver(port: number) {
@@ -175,14 +179,17 @@ export async function startWebserver(port: number) {
 		if (!accessToken) {
 			return errorPage(res, 'Access token not found for user');
 		}
-		const { campusId, campusName } = await getUserCampusFromAPI(accessToken);
+		let { campusId, campusName } = await getUserCampusFromAPI(accessToken);
+
+		if (req.params['campus'] !== undefined) {
+			campusName = req.params['campus'];
+			campusId = await DatabaseService.getCampusIdByName(campusName);
+			if (campusId === -1) {
+				return errorPage(res, `Unknown campus ${campusName}`);
+			}
+		}
 
 		const requestedStatus: string | undefined = req.query['status']?.toString()
-
-		const campusProjectUserIds = await DatabaseService.getCampusProjectUsersIds(campusId);
-		if (!campusProjectUserIds.length) {
-			return errorPage(res, 'Empty database (please try again later)')
-		}
 
 		if (requestedStatus && !env.projectStatuses.includes(requestedStatus as ProjectStatus)) {
 			return errorPage(res, `Unknown status ${req.query['status']}`)
@@ -191,8 +198,9 @@ export async function startWebserver(port: number) {
 		const userTimeZone = req.cookies.timezone || 'Europe/Amsterdam'
 		const settings = {
 			projects: await getProjects(campusId, requestedStatus),
+			users: await DatabaseService.getUsersByCampus(campusId),
 			lastUpdate: await DatabaseService.getLastSyncTimestamp().then(date => date ? date.toLocaleString('en-NL', { timeZone: userTimeZone }).slice(0, -3) : 'N/A'),
-			hoursAgo: ((Date.now()) - await DatabaseService.getLastSyncTimestamp().then(date => date ? date.getTime() : 0)).toFixed(2),
+			hoursAgo: (((Date.now()) - await DatabaseService.getLastSyncTimestamp().then(date => date ? date.getTime() : 0)) / (1000 * 60 * 60)).toFixed(2), // hours ago
 			requestedStatus,
 			projectStatuses: env.projectStatuses,
 			campusName,

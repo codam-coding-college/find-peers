@@ -22,19 +22,14 @@ export function transformApiProjectUserToDb(apiProjectUser: any): ProjectUser {
  * @returns User object for the database
  */
 export function transformApiUserToDb(apiUser: any): User {
-	let primaryCampus;
-	if (apiUser.campus_users && apiUser.campus_users.length > 1) {
-		// get campus where campus_users[i].primary is true
-		primaryCampus = apiUser.campus_users.find((cu: any) => cu.primary);
+	const primaryCampus = apiUser.campus_users.find((cu: any) => cu.is_primary);
+	if (apiUser.staff) {
+		apiUser.login = "3c3" + apiUser.login;
 	}
-	else if (apiUser.campus_users && apiUser.campus_users.length === 1) {
-		primaryCampus = apiUser.campus_users[0];
-	}
-
 	return {
 		id: apiUser.id,
 		login: apiUser.login,
-		primary_campus_id: primaryCampus ? primaryCampus.campus_id : null,
+		primary_campus_id: primaryCampus ? primaryCampus.campus_id : 1,
 		image_url: apiUser.image?.versions?.medium || null,
 		anonymize_date: apiUser.anonymize_date || null
 	};
@@ -48,7 +43,7 @@ export function transformApiUserToDb(apiUser: any): User {
 export function transformApiCampusToDb(apiCampus: any): Campus {
 	return {
 		id: apiCampus.id,
-		name: apiCampus.name || ''
+		name: apiCampus.name
 	};
 }
 

@@ -189,7 +189,7 @@ export const syncDataCB = async function(api: Fast42, syncDate: Date, lastSyncDa
 			lastSyncDate = new Date(lastSyncDate.getTime() - 72 * 60 * 60 * 1000);
 			params['range[begin_at]'] = `${lastSyncDate.toISOString()},${syncDate.toISOString()}`;
 		}
-		console.log(`Fetching data from Intra API updated on path ${path} since ${lastSyncDate.toISOString()}...`);
+		// console.log(`Fetching data from Intra API updated on path ${path} since ${lastSyncDate.toISOString()}...`);
 	}
 	else {
 		console.log(`Fetching all data from Intra API on path ${path}...`);

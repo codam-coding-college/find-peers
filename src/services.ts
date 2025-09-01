@@ -1,4 +1,5 @@
 import { PrismaClient, User, Project, Campus, ProjectUser } from '@prisma/client'
+import { log } from 'console';
 
 const prisma = new PrismaClient();
 
@@ -16,17 +17,53 @@ export class DatabaseService {
 
 
 	/**
-	 * Get the last synchronization timestamp.
+	 * @returns The last synchronization timestamp.
 	 */
-	static getLastSyncTimestamp = async function(): Promise<Date> {
+	static getLastSyncTimestamp = async function(): Promise<Date | null> {
 		const sync = await prisma.sync.findUnique({
 			where: { id: 1 },
 			select: { last_pull: true }
 		});
-		if (!sync) {
-			throw new Error('No synchronization record found');
-		}
-		return sync.last_pull;
+		return sync?.last_pull || null;
+	}
+
+	/**
+	 * Get project users by project, status, and campus.
+	 * @param project The project to filter by.
+	 * @param requestedStatus The status to filter by.
+	 * @param campus The campus to filter by.
+	 * @returns Project; name. Users; login, image_url. Project Status.
+	 */
+	static async getProjectUserInfo(
+		project_id: any, campus_id: any, requestedStatus: string | undefined): Promise<any[]> {
+			const whereClause: any = {
+				project_id: project_id,
+				user: { primary_campus_id: campus_id }
+			};
+			if (typeof requestedStatus === 'string') {
+				whereClause.status = requestedStatus;
+			}
+
+			return prisma.projectUser.findMany({
+				where: whereClause,
+				select: {
+					project: { select: { name: true } },
+					user: { select: { login: true, image_url: true } },
+					status: true
+				}
+			});
+	}
+
+	/**
+	 * Get the name of a campus by its ID.
+	 * @param campus_id The campus ID to look for.
+	 * @returns The name of the campus.
+	 */
+	static async getCampusNameById(campus_id: any): Promise<{ name: string } | null> {
+		return prisma.campus.findUnique({
+			where: { id: campus_id },
+			select: { name: true }
+		});
 	}
 
 	/**
@@ -52,13 +89,44 @@ export class DatabaseService {
     }
 
 	/**
+	 * Retrieve Project Users IDs based on the given campus.
+	 * @param campus_id The campus ID to filter on.
+	 * @returns The list of project user IDs.
+	 */
+	static async getCampusProjectUsersIds(campus_id: number): Promise<{ user_id: number; }[]> {
+		return prisma.projectUser.findMany({
+			where: { user: { primary_campus_id: campus_id } },
+			select: { user_id: true }
+		});
+	}
+
+	/**
+	 * @returns The list of all campuses in ascending (name) order.
+	 */
+	static async getAllCampuses(): Promise<Campus[]> {
+		return prisma.campus.findMany({
+			orderBy: { name: 'asc' }
+		});
+	}
+
+	/**
+	 * @returns The list of all projects in ascending (id) order.
+	 */
+	static async getAllProjects(): Promise<Project[]> {
+		return prisma.project.findMany({
+			orderBy: { id: 'asc' }
+		});
+	}
+
+	/**
 	 * Retrieve user IDs that are missing from the user table.
 	 * @param projectUsers The list of project users to check against the database.
 	 * @returns The list of missing user IDs.
 	 */
 	static async getMissingUserIds(projectUsers: any[]): Promise<number[]> {
-		const userIds = [...new Set(projectUsers.map(pu => pu.user_id))];
+		const usersArray = Array.isArray(projectUsers) ? projectUsers : [projectUsers];
 
+		const userIds = [...new Set(usersArray.map(pu => pu.user.id).filter((id) => id !== null && id !== undefined))];
 		const existingUsers = await prisma.user.findMany({
 			where: { id: { in: userIds } },
 			select: { id: true }
@@ -74,7 +142,9 @@ export class DatabaseService {
 	 * @returns The list of missing project IDs.
 	 */
 	static async getMissingProjects(projectUsers: any[]): Promise<any[]> {
-		const projectIds = [...new Set(projectUsers.map(pu => pu.project_id))];
+		const projectsArray = Array.isArray(projectUsers) ? projectUsers : [projectUsers];
+
+		const projectIds = [...new Set(projectsArray.map(pu => pu.project.id).filter((id) => id !== null && id !== undefined))];
 		const existingProjects = await prisma.project.findMany({
 			where: { id: { in: projectIds } },
 			select: {
@@ -83,19 +153,22 @@ export class DatabaseService {
 				slug: true
 			}
 		});
-		const existingProjectIds = new Set(existingProjects.map(p => p.id));
-		const missingProjectIds = projectIds.filter(id => !existingProjectIds.has(id));
-		const projectDataMap = new Map();
+		const existingProjectIds: Set<number> = new Set(existingProjects.map((p: { id: number }) => p.id));
+		const missingProjects = projectIds.filter(id => !existingProjectIds.has(id));
+		const projectDataMap: Map<number, any> = new Map();
 		projectUsers.forEach(pu => {
-			if (!projectDataMap.has(pu.project_id)) {
-				projectDataMap.set(pu.project_id, {
-					id: pu.project_id,
-					name: pu.name,
-					slug: pu.slug
-				});
+			if (!projectDataMap.has(pu.project.id)) {
+				projectDataMap.set(pu.project.id, pu.project);
 			}
 		});
-		return missingProjectIds.map(id => projectDataMap.get(id));
+		return missingProjects.map(id => {
+			const project = projectDataMap.get(id);
+			return {
+				id,
+				name: project.name,
+				slug: project.slug
+			};
+		});
 	}
 
 	/**
@@ -104,8 +177,9 @@ export class DatabaseService {
 	 * @returns The list of missing campus IDs.
 	 */
 	static async getMissingCampusIds(users: any[]): Promise<number[]> {
-		const campusIds = [...new Set(users.map(u => u.primary_campus_id))];
+		const usersArray = Array.isArray(users) ? users : [users];
 
+		const campusIds = [...new Set(usersArray.map(u => u.primary_campus_id).filter((id) => id !== null && id !== undefined))];
 		const existingCampus = await prisma.campus.findMany({
 			where: { id: { in: campusIds } },
 			select: { id: true }

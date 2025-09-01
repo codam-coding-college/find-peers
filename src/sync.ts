@@ -3,6 +3,7 @@ import { env } from "./env";
 import { syncData, syncDataCB } from "./wrapper";
 import { transformApiCampusToDb, transformApiProjectUserToDb, transformApiUserToDb, transformApiProjectToDb } from './transform';
 import { DatabaseService } from './services';
+import { log } from "./logger";
 
 
 
@@ -45,7 +46,8 @@ export const syncWithIntra = async function(): Promise<void> {
 
 	console.info(`Starting Intra synchronization at ${now.toISOString()}...`);
 	try {
-		const lastSync = await DatabaseService.getLastSyncTimestamp();
+		let lastSyncRaw = await DatabaseService.getLastSyncTimestamp();
+		let lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
 
 		await syncProjectUsersCB(fast42Api, lastSync);
 		await DatabaseService.saveSyncTimestamp(now);
@@ -67,7 +69,7 @@ export const syncWithIntra = async function(): Promise<void> {
  * @param lastPullDate The date of the last synchronization
  * @returns A promise that resolves when the synchronization is complete
  */
-async function syncProjectUsersCB(fast42Api: Fast42, lastPullDate: Date): Promise<void> {
+async function syncProjectUsersCB(fast42Api: Fast42, lastPullDate: Date | undefined): Promise<void> {
     return new Promise((resolve, reject) => {
         const callback = async (projectUsers: any[]) => {
             try {
@@ -79,6 +81,9 @@ async function syncProjectUsersCB(fast42Api: Fast42, lastPullDate: Date): Promis
 
 				// If any project doesn't exist in the 'project' table, create an entry in 'project' table.
 				const missingProjects = await DatabaseService.getMissingProjects(projectUsers);
+				missingProjects.forEach(project => {
+					log(2, `Missing Project - ID: ${project.id}, Name: ${project.name}`);
+				});
 				if (missingProjects.length > 0) {
 					console.log(`Found ${missingProjects.length} missing projects, syncing...`);
 					await syncProjects(missingProjects);
@@ -91,16 +96,21 @@ async function syncProjectUsersCB(fast42Api: Fast42, lastPullDate: Date): Promis
 					await syncUsersCB(fast42Api, lastPullDate, missingUserIds);
 				}
 
-                const dbProjectUsers = projectUsers.map(transformApiProjectUserToDb);
-                await DatabaseService.insertManyProjectUsers(dbProjectUsers);
-            } catch (error) {
-                console.error('Failed to process project users batch:', error);
-                throw error;
+				if (projectUsers.length > 1) {
+					const dbProjectUsers = projectUsers.map(transformApiProjectUserToDb);
+					await DatabaseService.insertManyProjectUsers(dbProjectUsers);
+				} else if (projectUsers.length === 1) {
+					const dbProjectUser = transformApiProjectUserToDb(projectUsers[0]);
+					await DatabaseService.insertProjectUser(dbProjectUser);
+				}
+			} catch (error) {
+				console.error('Failed to process project users batch:', error);
+				throw error;
             }
         };
 
         syncDataCB(fast42Api, new Date(), lastPullDate, '/projects_users',
-			{ 'page[size]': '100' }, callback)
+			{ 'page[size]': '100', 'filter[campus]': '14' }, callback)
             .then(() => {
                 console.log('Finished syncing project users with callback method.');
                 resolve();
@@ -118,7 +128,7 @@ async function syncProjectUsersCB(fast42Api: Fast42, lastPullDate: Date): Promis
  * @param lastPullDate The date of the last synchronization
  * @returns A promise that resolves when the synchronization is complete
  */
-async function syncUsersCB(fast42Api: Fast42, lastPullDate: Date, userIds: number[]): Promise<void> {
+async function syncUsersCB(fast42Api: Fast42, lastPullDate: Date | undefined, userIds: number[]): Promise<void> {
 	const promises = userIds.map(userId => {
 		return new Promise((resolve, reject) => {
 			const callback = async (users: any[]) => {
@@ -136,8 +146,13 @@ async function syncUsersCB(fast42Api: Fast42, lastPullDate: Date, userIds: numbe
 						await syncCampus(fast42Api, lastPullDate, missingCampusIds);
 					}
 
-					const dbUsers = users.map(transformApiUserToDb);
-					await DatabaseService.insertManyUsers(dbUsers);
+					if (users.length > 1) {
+						const dbUsers = users.map(transformApiUserToDb);
+						await DatabaseService.insertManyUsers(dbUsers);
+					} else if (users.length === 1) {
+						const dbUser = transformApiUserToDb(users[0]);
+						await DatabaseService.insertUser(dbUser);
+					}
 				} catch (error) {
 					console.error('Failed to process project users batch:', error);
 					throw error;
@@ -168,7 +183,7 @@ async function syncUsersCB(fast42Api: Fast42, lastPullDate: Date, userIds: numbe
  * @param campusIds The IDs of the campuses to sync
  * @returns A promise that resolves when the synchronization is complete
  */
-async function syncCampus(fast42Api: Fast42, lastPullDate: Date, campusIds: number[]): Promise<void> {
+async function syncCampus(fast42Api: Fast42, lastPullDate: Date | undefined, campusIds: number[]): Promise<void> {
 	// Fetch all campuses in one API call using filter[id]
 	try {
 		const campuses = await syncData(fast42Api, new Date(), lastPullDate, '/campus',
@@ -181,8 +196,13 @@ async function syncCampus(fast42Api: Fast42, lastPullDate: Date, campusIds: numb
 		}
 
 		console.log(`Processing ${campuses.length} campuses...`);
-		const dbCampuses = campuses.map(transformApiCampusToDb);
-		await DatabaseService.insertManyCampuses(dbCampuses);
+		if (campuses.length > 1) {
+			const dbCampuses = campuses.map(transformApiCampusToDb);
+			await DatabaseService.insertManyCampuses(dbCampuses);
+		} else if (campuses.length === 1) {
+			const dbCampus = transformApiCampusToDb(campuses[0]);
+			await DatabaseService.insertCampus(dbCampus);
+		}
 		console.log('Finished syncing campuses.');
 	} catch (error) {
 		console.error('Failed to sync campuses:', error);

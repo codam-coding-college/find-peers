@@ -151,6 +151,12 @@
 
 	<script async>
 		console.log('Source: https://github.com/codam-coding-college/find-peers')
+
+		function setTimezoneCookie() {
+			const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+			document.cookie = `timezone=${timezone}; path=/; max-age=31536000`; // (1 year)
+		}
+		setTimezoneCookie();
 	</script>
 
 </head>

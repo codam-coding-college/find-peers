@@ -1,19 +1,18 @@
 import path from 'path'
 import express, { Response } from 'express'
 import { passport, authenticate } from './authentication'
-import { CampusName, env, ProjectStatus } from './env'
+import { env, ProjectStatus } from './env'
 import session from 'express-session'
-import { campusDBs, CampusDB } from './db'
-import { Project, ProjectSubscriber, UserProfile } from './types'
 import { log } from './logger'
-import { MetricsStorage } from './metrics'
 import compression from 'compression'
-import request from 'request'
-import { isLinguisticallySimilar } from './util'
+// import request from 'request'
+import cookieParser from 'cookie-parser'
+import { DatabaseService } from './services'
+import { displayProject } from './types'
 
-function errorPage(res: Response, error: string): void {
+async function errorPage(res: Response, error: string): Promise<void> {
 	const settings = {
-		campuses: Object.values(env.campuses).sort((a, b) => (a.name < b.name ? -1 : 1)),
+		campuses: await DatabaseService.getAllCampuses(),
 		error,
 	}
 	res.render('error.ejs', settings)
@@ -21,23 +20,44 @@ function errorPage(res: Response, error: string): void {
 
 const cachingProxy = '/proxy'
 
-function filterUsers(users: ProjectSubscriber[], requestedStatus: string | undefined): ProjectSubscriber[] {
-	const newUsers = users
-		.filter(user => {
-			if (user.staff) {
-				return false
-			}
-			if (user.login.match(/^3b3/)) {
-				// accounts who's login start with 3b3 are deactivated
-				return false
-			}
-			if ((requestedStatus === 'finished' || user.status !== 'finished') && (!requestedStatus || user.status === requestedStatus)) {
-				return true
-			}
-			return false
-		})
-		.map(user => ({ ...user, image_url: `${cachingProxy}?q=${user.image_url}` }))
-		.sort((a, b) => {
+async function getUserCampusFromAPI(accessToken: string): Promise<{ campusId: number, campusName: string }> {
+    try {
+        const response = await fetch('https://api.intra.42.fr/v2/me', {
+            headers: {
+                'Authorization': `Bearer ${accessToken}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch user data from 42 API');
+        }
+
+        const userData = await response.json();
+        const primaryCampus = userData.campus[0]; // User's primary campus
+
+        return {
+            campusId: primaryCampus.id,
+            campusName: primaryCampus.name
+        };
+    } catch (error) {
+        console.error('Error fetching user campus:', error);
+        // Fallback to a default campus
+        return { campusId: 14, campusName: 'Amsterdam' };
+    }
+}
+
+async function getProjects(campusId: number, requestedStatus: string | undefined): Promise<displayProject[]> {
+	const projectList = await DatabaseService.getAllProjects();
+	if (!projectList.length) {
+		return [];
+	}
+	return Promise.all(projectList.map(async project => ({
+		name: project.name,
+		users: (await DatabaseService.getProjectUserInfo(project.id, campusId, requestedStatus)).map(projUser => ({
+			login: projUser.login,
+			image_url: projUser.image_url,
+			status: projUser.status,
+		})).sort((a, b) => {
 			if (a.status !== b.status) {
 				const preferredOrder = env.projectStatuses
 				const indexA = preferredOrder.findIndex(x => x === a.status)
@@ -46,20 +66,14 @@ function filterUsers(users: ProjectSubscriber[], requestedStatus: string | undef
 			}
 			return a.login < b.login ? -1 : 1
 		})
-	return newUsers
+	})));
 }
-
-function filterProjects(projects: Project[], requestedStatus: string | undefined): Project[] {
-	return projects.map(project => ({
-		name: project.name,
-		users: filterUsers(project.users, requestedStatus),
-	}))
-}
-
-const metrics = new MetricsStorage()
 
 export async function startWebserver(port: number) {
 	const app = express()
+
+	// Add cookie parser middleware
+	app.use(cookieParser())
 
 	app.use(
 		session({
@@ -71,17 +85,54 @@ export async function startWebserver(port: number) {
 	app.use(passport.initialize())
 	app.use(passport.session())
 
-	app.use(cachingProxy, (req, res) => {
+
+
+	// app.use(cachingProxy, (req, res) => {
+	// 	const url = req.query['q']
+	// 	if (!url || typeof url !== 'string' || !url.startsWith('http')) {
+	// 		res.status(404).send('No URL provided')
+	// 		return
+	// 	}
+
+	// 	// inject cache header for images
+	// 	res.setHeader('Cache-Control', `public, max-age=${100 * 24 * 60 * 60}`)
+	// 	req.pipe(request(url)).pipe(res)
+	// })
+
+	app.use(cachingProxy, async (req, res) => {
 		const url = req.query['q']
 		if (!url || typeof url !== 'string' || !url.startsWith('http')) {
 			res.status(404).send('No URL provided')
 			return
 		}
+		try {
+			// inject cache header for images
+			res.setHeader('Cache-Control', `public, max-age=${100 * 24 * 60 * 60}`)
 
-		// inject cache header for images
-		res.setHeader('Cache-Control', `public, max-age=${100 * 24 * 60 * 60}`)
-		req.pipe(request(url)).pipe(res)
+			const response = await fetch(url)
+			if (!response.ok) {
+				res.status(404).send('Resource not found')
+				return
+			}
+
+			// Copy headers
+			response.headers.forEach((value, key) => {
+				res.setHeader(key, value)
+			})
+
+			// Stream the response
+			if (response.body) {
+				// Convert web ReadableStream to Node.js stream
+				const { Readable } = require('stream');
+				Readable.fromWeb(response.body).pipe(res);
+			}
+		} catch (error) {
+			console.error('Proxy error:', error)
+			res.status(500).send('Proxy error')
+		}
 	})
+
+
 
 	app.use((req, res, next) => {
 		try {
@@ -107,26 +158,29 @@ export async function startWebserver(port: number) {
 		})
 	)
 
-	app.get('/', authenticate, (req, res) => {
-		const user: UserProfile = req.user as UserProfile
-		res.redirect(`/${user.campusName}`)
-	})
+	app.get('/', authenticate, async (req, res) => {
+		const user = req.user as any;
+		const accessToken = user?.accessToken;
 
-	app.get('/:campus', authenticate, (req, res) => {
-		const user: UserProfile = req.user as UserProfile
-		const requestedStatus: string | undefined = req.query['status']?.toString()
-
-		const campus = req.params['campus'] as string
-		const campusName: CampusName | undefined = Object.keys(campusDBs).find(k => isLinguisticallySimilar(k, campus)) as CampusName | undefined
-		if (!campusName || !campusDBs[campusName]) {
-			return errorPage(res, `Campus ${campus} is not supported by Find Peers (yet)`)
+		if (!accessToken) {
+			return errorPage(res, 'Access token not found for user');
 		}
 
-		// saving anonymized metrics
-		metrics.addVisitor(user)
+		res.redirect(`/${await getUserCampusFromAPI(accessToken).then(data => data.campusName)}`);
+	})
 
-		const campusDB: CampusDB = campusDBs[campusName]
-		if (!campusDB.projects.length) {
+	app.get('/:campus', authenticate, async (req, res) => {
+		const user = req.user as any;
+		const accessToken = user?.accessToken;
+		if (!accessToken) {
+			return errorPage(res, 'Access token not found for user');
+		}
+		const { campusId, campusName } = await getUserCampusFromAPI(accessToken);
+
+		const requestedStatus: string | undefined = req.query['status']?.toString()
+
+		const campusProjectUserIds = await DatabaseService.getCampusProjectUsersIds(campusId);
+		if (!campusProjectUserIds.length) {
 			return errorPage(res, 'Empty database (please try again later)')
 		}
 
@@ -134,37 +188,24 @@ export async function startWebserver(port: number) {
 			return errorPage(res, `Unknown status ${req.query['status']}`)
 		}
 
-		const { uniqVisitorsTotal: v, uniqVisitorsCampus } = metrics.generateMetrics()
-		const campuses = uniqVisitorsCampus.reduce((acc, visitors) => {
-			acc += visitors.month > 0 ? 1 : 0
-			return acc
-		}, 0)
+		const userTimeZone = req.cookies.timezone || 'Europe/Amsterdam'
 		const settings = {
-			projects: filterProjects(campusDB.projects, requestedStatus),
-			lastUpdate: new Date(campusDB.lastPull).toLocaleString('en-NL', { timeZone: user.timeZone }).slice(0, -3),
-			hoursAgo: ((Date.now() - campusDB.lastPull) / 1000 / 60 / 60).toFixed(2),
+			projects: await getProjects(campusId, requestedStatus),
+			lastUpdate: await DatabaseService.getLastSyncTimestamp().then(date => date ? date.toLocaleString('en-NL', { timeZone: userTimeZone }).slice(0, -3) : 'N/A'),
+			hoursAgo: ((Date.now()) - await DatabaseService.getLastSyncTimestamp().then(date => date ? date.getTime() : 0)).toFixed(2),
 			requestedStatus,
 			projectStatuses: env.projectStatuses,
 			campusName,
-			campuses: Object.values(env.campuses).sort((a, b) => (a.name < b.name ? -1 : 1)),
+			campuses: await DatabaseService.getAllCampuses(),
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0),
-			usage: `${v.day} unique visitors today, ${v.month} this month, from ${campuses} different campuses`,
 			userNewStatusThresholdDays: env.userNewStatusThresholdDays,
 		}
 		res.render('index.ejs', settings)
 	})
 
-	app.get('/status/pull', (_, res) => {
-		const obj = Object.values(campusDBs).map(campus => ({
-			name: campus.name,
-			lastPull: new Date(campus.lastPull),
-			hoursAgo: (Date.now() - campus.lastPull) / 1000 / 60 / 60,
-		}))
-		res.json(obj)
-	})
-
-	app.get('/status/metrics', authenticate, (_, res) => {
-		res.json(metrics.generateMetrics())
+	app.get('/status/pull', async (_, res) => {
+		const lastSync = await DatabaseService.getLastSyncTimestamp();
+		res.json(lastSync);
 	})
 
 	app.set('views', path.join(__dirname, '../views'))

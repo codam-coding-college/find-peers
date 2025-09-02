@@ -220,7 +220,7 @@ export async function startWebserver(port: number) {
 			requestedStatus,
 			projectStatuses: env.projectStatuses,
 			campusName,
-			campuses: await DatabaseService.getAllCampuses(),
+			campuses: (await DatabaseService.getAllCampuses()).filter(c => c.id !== 1), // hide ghost campus
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0),
 			userNewStatusThresholdDays: env.userNewStatusThresholdDays,
 			hideEmptyProjects,

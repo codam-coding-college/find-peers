@@ -42,7 +42,6 @@ export const syncWithIntra = async function(): Promise<void> {
 	}
 	const now = new Date();
 
-	// console.info(`Starting Intra synchronization at ${now.toISOString()}...`);
 	try {
 		let lastSyncRaw = await DatabaseService.getLastSyncTimestamp();
 		let lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
@@ -105,17 +104,20 @@ async function syncProjectUsersCB(fast42Api: Fast42, lastPullDate: Date | undefi
                         await syncUsers(fast42Api, lastPullDate, missingUserIds);
                     }
 
-                    const stillMissingProjects = await DatabaseService.getMissingProjects(batch);
-                    const stillMissingUsers = await DatabaseService.getMissingUserIds(batch);
-                    if (stillMissingProjects.length > 0) {
-                        console.error(`ERROR: Still missing ${stillMissingProjects.length} projects after sync:`, stillMissingProjects);
+                    // Double-check missing projects and users (retry 3 times)
+                    let stillMissingProjects = await DatabaseService.getMissingProjects(batch);
+                    for (let retries = 3; stillMissingProjects.length > 0 && retries > 0; retries--) {
+                        console.error(`ERROR: [Retries left: ${retries}] Still missing ${stillMissingProjects.length} projects after sync:`, stillMissingProjects);
                         await syncProjects(stillMissingProjects);
+                        stillMissingProjects = await DatabaseService.getMissingProjects(batch);
                     }
-                    if (stillMissingUsers.length > 0) {
-                        console.error(`ERROR: Still missing ${stillMissingUsers.length} users after sync:`, stillMissingUsers);
+                    
+                    let stillMissingUsers = await DatabaseService.getMissingUserIds(batch);
+                    for (let retries = 3; stillMissingUsers.length > 0 && retries > 0; retries--) {
+                        console.error(`ERROR: [Retries left: ${retries}] Still missing ${stillMissingUsers.length} users after sync:`, stillMissingUsers);
                         await syncUsers(fast42Api, lastPullDate, stillMissingUsers);
+                        stillMissingUsers = await DatabaseService.getMissingUserIds(batch);
                     }
-
 
                     log(2, `Inserting ${batch.length} project users...`);
                     const dbProjectUsers = batch.map(transformApiProjectUserToDb);

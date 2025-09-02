@@ -86,7 +86,7 @@ async function syncProjectUsersCB(fast42Api: Fast42, lastPullDate: Date | undefi
         };
 
         syncDataCB(fast42Api, new Date(), lastPullDate, '/projects_users',
-            { 'page[size]': '100', 'filter[campus]': '14' }, callback)
+            { 'page[size]': '100' }, callback)
             .then(async () => {
                 log(2, `Collected ${batches.length} batches. Processing sequentially...`);
                 let batchIndex = 0;

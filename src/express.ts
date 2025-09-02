@@ -210,7 +210,6 @@ export async function startWebserver(port: number) {
 		const userTimeZone = req.cookies.timezone || 'Europe/Amsterdam'
 		const settings = {
 			projects: await getProjects(campusId, requestedStatus),
-			users: await DatabaseService.getUsersByCampus(campusId),
 			lastUpdate: await DatabaseService.getLastSyncTimestamp().then(date => date ? date.toLocaleString('en-NL', { timeZone: userTimeZone }).slice(0, -3) : 'N/A'),
 			hoursAgo: (((Date.now()) - await DatabaseService.getLastSyncTimestamp().then(date => date ? date.getTime() : 0)) / (1000 * 60 * 60)).toFixed(2), // hours ago
 			requestedStatus,

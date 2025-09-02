@@ -212,10 +212,27 @@
 		<option value="<%= project.name.toLowerCase().replaceAll(' ', '-') %>">
 			<% }) %>
 	</datalist>
+
+	<label for="hide-empty-projects"> hide empty projects
+		<input type="checkbox" id="hide-empty-projects" onchange="toggleEmptyProjects()" <% if (hideEmptyProjects) { %>checked<% } %> />
+	</label>
+	<script>
+		function toggleEmptyProjects() {
+			const checked = document.getElementById('hide-empty-projects').checked;
+			const params = new URLSearchParams(window.location.search);
+			if (checked) {
+				params.set('hideEmptyProjects', '1');
+			} else {
+				params.delete('hideEmptyProjects');
+			}
+			window.location.search = params.toString();
+		}
+	</script>
 </div>
 
 
 <div id="projects">
+	
 	<% projects.forEach(project=>{ %>
 		<div class="project">
 			<div class="project-name">

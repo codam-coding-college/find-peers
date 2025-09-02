@@ -63,7 +63,7 @@ async function getUserCampusFromAPI(accessToken: string): Promise<{ campusId: nu
  * @param requestedStatus The status of the projects to retrieve
  * @returns A list of projects for the specified campus and status, sorted on status.
  */
-async function getProjects(campusId: number, requestedStatus: string | undefined): Promise<displayProject[]> {
+async function getProjects(campusId: number, requestedStatus: string | undefined, hideEmptyProjects: boolean): Promise<displayProject[]> {
 	const projectList = await DatabaseService.getAllProjects();
 	if (!projectList.length) {
 		return [];
@@ -84,10 +84,13 @@ async function getProjects(campusId: number, requestedStatus: string | undefined
 			return a.login < b.login ? -1 : 1
 		})
 	})));
-	return projectsWithUsers.map(project => ({
+	const filteredProjects = projectsWithUsers.map(project => ({
 		...project,
 		users: project.users.filter(user => !user.login.match(/^3b3/) && !user.login.match(/^3c3/))
 	}));
+	return hideEmptyProjects
+		? filteredProjects.filter(project => project.users.length > 0)
+		: filteredProjects;
 }
 
 /**
@@ -206,10 +209,12 @@ export async function startWebserver(port: number) {
 			return errorPage(res, `Unknown status ${req.query['status']}`)
 		}
 
+		const hideEmptyProjects: boolean = req.query['hideEmptyProjects'] === '1';
+
 		// Get all necessary data to be displayed to the user
 		const userTimeZone = req.cookies.timezone || 'Europe/Amsterdam'
 		const settings = {
-			projects: await getProjects(campusId, requestedStatus),
+			projects: await getProjects(campusId, requestedStatus, hideEmptyProjects),
 			lastUpdate: await DatabaseService.getLastSyncTimestamp().then(date => date ? date.toLocaleString('en-NL', { timeZone: userTimeZone }).slice(0, -3) : 'N/A'),
 			hoursAgo: (((Date.now()) - await DatabaseService.getLastSyncTimestamp().then(date => date ? date.getTime() : 0)) / (1000 * 60 * 60)).toFixed(2), // hours ago
 			requestedStatus,
@@ -218,6 +223,7 @@ export async function startWebserver(port: number) {
 			campuses: await DatabaseService.getAllCampuses(),
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0),
 			userNewStatusThresholdDays: env.userNewStatusThresholdDays,
+			hideEmptyProjects,
 		}
 		res.render('index.ejs', settings)
 	})

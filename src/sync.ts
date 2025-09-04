@@ -46,7 +46,7 @@ export const syncWithIntra = async function(): Promise<void> {
 		let lastSyncRaw = await DatabaseService.getLastSyncTimestamp();
 		let lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
 
-		await syncProjectUsersCB(fast42Api, lastSync);
+		await syncProjectUsers(fast42Api, lastSync);
 		await DatabaseService.saveSyncTimestamp(now);
 
 		console.info(`Intra synchronization completed at ${new Date().toISOString()}.`);
@@ -69,25 +69,29 @@ export const syncWithIntra = async function(): Promise<void> {
 async function syncProjectUsers(fast42Api: Fast42, lastPullDate: Date | undefined): Promise<void> {
     let pageIndex = 0;
     let hasMorePages = true;
-    
+    let params: { [key: string]: string } = { 'page[size]': '100' };
+
+    if (lastPullDate) {
+        let syncDate = new Date();
+        params['range[updated_at]'] = `${lastPullDate.toISOString()},${syncDate.toISOString()}`;
+    }
     while (hasMorePages) {
         try {
             pageIndex++;
+            params['page[number]'] = pageIndex.toString();
             log(2, `Fetching page ${pageIndex} of project users...`);
-            let params: { [key: string]: string } = { 
-                'page[size]': '100',
-                'page[number]': pageIndex.toString()
-            };
-            if (lastPullDate) {
-                let syncDate = new Date();
-                params['range[updated_at]'] = `${lastPullDate.toISOString()},${syncDate.toISOString()}`;
-            }
 
-            const projectUsersData = await fetchSingle42ApiPage(fast42Api, '/projects_users', params);
-            if (!projectUsersData || projectUsersData.length === 0) {
+            const totalProjectUsersData = await fetchSingle42ApiPage(fast42Api, '/projects_users', params);
+            if (!totalProjectUsersData || totalProjectUsersData.length === 0) {
                 log(2, `No more project users found on page ${pageIndex}. Stopping.`);
                 hasMorePages = false;
                 break;
+            }
+
+            const projectUsersData = await DatabaseService.filterNewProjectUsers(totalProjectUsersData);
+            if (projectUsersData.length === 0) {
+                log(2, `Page ${pageIndex} contains no new project users. Skipping.`);
+                continue;
             }
 
             log(2, `Processing page ${pageIndex} with ${projectUsersData.length} project users...`);
@@ -98,15 +102,13 @@ async function syncProjectUsers(fast42Api: Fast42, lastPullDate: Date | undefine
             log(2, `Inserting ${projectUsersData.length} project users from page ${pageIndex}...`);
             const dbProjectUsers = projectUsersData.map(transformApiProjectUserToDb);
             await DatabaseService.insertManyProjectUsers(dbProjectUsers);
-            
-            log(2, `✓ Successfully processed page ${pageIndex}`);
 
+            log(2, `✓ Successfully processed page ${pageIndex}`);
         } catch (error) {
             console.error(`Failed to process page ${pageIndex}:`, error);
             throw error;
         }
     }
-    
     log(2, `Finished syncing project users. Processed ${pageIndex} pages total.`);
 }
 
@@ -179,7 +181,7 @@ async function syncUsers(fast42Api: Fast42, lastPullDate: Date | undefined, user
             }
 
             const dbUser = transformApiUserToDb(user);
-            
+
             const missingCampusId = await DatabaseService.getMissingCampusId(user);
             if (missingCampusId !== null) {
                 log(2, `Found missing campus ID ${missingCampusId}, syncing...`);

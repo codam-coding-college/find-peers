@@ -240,6 +240,54 @@ export class DatabaseService {
 		return null;
 	}
 
+	/**
+	 * Filter project users to only return those that are new or updated
+	 * @param projectUsersData Array of project user data from API
+	 * @returns Array of project users that need to be processed
+	 */
+	static async filterNewProjectUsers(projectUsersData: any[]): Promise<any[]> {
+		if (projectUsersData.length === 0) return [];
+
+		const projectUserChecks = projectUsersData.map(pu => ({
+			user_id: pu.user.id,
+			project_id: pu.project.id,
+			updated_at: new Date(pu.updated_at)
+		}));
+
+		// Get existing project users with their update timestamps
+		const existing = await prisma.projectUser.findMany({
+			where: {
+				OR: projectUserChecks.map(pu => ({
+					AND: [
+						{ user_id: pu.user_id },
+						{ project_id: pu.project_id }
+					]
+				}))
+			},
+			select: {
+				user_id: true,
+				project_id: true,
+				updated_at: true
+			}
+		});
+
+		// Create a lookup map for faster checking
+		const existingMap = new Map();
+		existing.forEach(pu => { existingMap.set(`${pu.user_id}-${pu.project_id}`, pu.updated_at); });
+
+		// Filter to only new or updated project users
+		return projectUsersData.filter(pu => {
+			const key = `${pu.user.id}-${pu.project.id}`;
+			const existingTimestamp = existingMap.get(key);
+
+			if (!existingTimestamp) {
+				return true;
+			}
+
+			const apiTimestamp = new Date(pu.updated_at);
+			return apiTimestamp > existingTimestamp;
+		});
+	}
 
 	/*************************************************************************\
 	* Insert Methods														  *

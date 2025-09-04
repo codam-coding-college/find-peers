@@ -66,7 +66,7 @@ export const syncWithIntra = async function(): Promise<void> {
  * @param lastPullDate The date of the last synchronization
  * @returns A promise that resolves when the synchronization is complete
  */
-async function syncProjectUsersCB(fast42Api: Fast42, lastPullDate: Date | undefined): Promise<void> {
+async function syncProjectUsers(fast42Api: Fast42, lastPullDate: Date | undefined): Promise<void> {
     let pageIndex = 0;
     let hasMorePages = true;
     

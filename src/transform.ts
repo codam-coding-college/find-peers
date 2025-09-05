@@ -52,10 +52,13 @@ export function transformApiCampusToDb(apiCampus: any): Campus {
  * @param apiProjectUser Fetched data from the 42Api
  * @returns Project object for the database
  */
-export function transformApiProjectToDb(apiProjectUser: any): Project {
+export function transformApiProjectToDb(apiProject: any): Project {
+	const campusIds = apiProject.campus ? apiProject.campus.map((campus: any) => campus.id) : [];
+
 	return {
-		id: apiProjectUser.id,
-		slug: apiProjectUser.slug,
-		name: apiProjectUser.name || '',
+		id: apiProject.id,
+		slug: apiProject.slug,
+		name: apiProject.name || '',
+		campus_ids: JSON.stringify(campusIds)
 	};
 }

@@ -155,6 +155,23 @@ export class DatabaseService {
 	}
 
 	/**
+	 * Retrieve all projects associated with a specific campus.
+	 * @param campus_id The campus ID to filter on.
+	 * @returns The list of projects associated with the campus.
+	 */
+	static async getAllProjectsFromCampus(campus_id: number): Promise<Project[]> {
+		const projects = await prisma.project.findMany({
+			where: {
+				campus_ids: {
+					contains: campus_id.toString()
+				}
+			},
+			orderBy: { id: 'asc' }
+		});
+		return projects;
+	}
+
+	/**
 	 * Retrieve user IDs that are missing from the user table.
 	 * @param projectUsers The list of project users to check against the database.
 	 * @returns The list of missing user IDs.

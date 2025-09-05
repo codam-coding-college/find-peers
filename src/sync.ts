@@ -134,15 +134,30 @@ async function syncMissingProjects(projectUsersData: any[]): Promise<void> {
  * @returns A promise that resolves when the synchronization is complete
  */
 async function syncProjects(projects: any[]): Promise<void> {
-	try {
-		log(2, `Processing ${projects.length} projects...`);
-		const dbProjects = projects.map(transformApiProjectToDb);
-		await DatabaseService.insertManyProjects(dbProjects);
-		log(2, 'Finished syncing projects.');
-	} catch (error) {
-		console.error('Failed to sync projects:', error);
-		throw error;
-	}
+    try {
+        log(2, `Processing ${projects.length} projects...`);
+        for (const project of projects) {
+            try {
+                const apiProjectData = await syncData(fast42Api, new Date(), undefined, `/projects/${project.id}`, {});
+                if (apiProjectData && apiProjectData.length > 0) {
+                    const dbProject = transformApiProjectToDb(apiProjectData[0]);
+                    await DatabaseService.insertProject(dbProject);
+                } else {
+                    log(2, `No data found for project ID: ${project.id}`);
+                    await DatabaseService.insertProject(
+                        { name: project.name, id: project.id, slug: project.slug, campus_ids: '' });
+                }
+            } catch (error) {
+                console.error(`Failed to fetch project ${project.id}:`, error);
+                await DatabaseService.insertProject(
+                    { name: project.name, id: project.id, slug: project.slug, campus_ids: '' });
+            }
+        }
+        log(2, 'Finished syncing projects.');
+    } catch (error) {
+        console.error('Failed to sync projects:', error);
+        throw error;
+    }
 }
 
 /**

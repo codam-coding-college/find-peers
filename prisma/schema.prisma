@@ -23,6 +23,7 @@ model Project {
   id    Int    @id
   slug  String
   name  String
+  campus_ids  String
   users ProjectUser[]
 }
 

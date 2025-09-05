@@ -231,7 +231,7 @@
 		<div class="project">
 			<div class="project-name">
 				<div id="<%= project.name.toLowerCase().replaceAll(' ', '-') %>" class="project-title">
-					<%= project.name %>
+					<%= project.name.toLowerCase().replaceAll(' ', '-') %>
 				</div>
 				<div class="n-users">
 					<%= project.users.length %> users

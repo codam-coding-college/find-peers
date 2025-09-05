@@ -34,10 +34,12 @@ passport.deserializeUser(async (accessToken: string, done) => {
         if (response.ok) {
             done(null, { accessToken, isAuthenticated: true });
         } else {
-            done('Token expired', null);
+            log(2, 'Access token is no longer valid');
+            done(null, false);
         }
     } catch (error) {
-        done('Cannot verify token', null);
+        log(2, 'Cannot verify token');
+        done(null, false);
     }
 })
 

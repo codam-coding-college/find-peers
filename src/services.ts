@@ -83,8 +83,8 @@ export class DatabaseService {
 	 * @param campus_name The campus name to look for.
 	 * @returns The ID of the campus.
 	 */
-	static async getCampusIdByName(campus_name: string | undefined): Promise<number> {
-		if (!campus_name) return -1;
+	static async getCampusIdByName(campus_name: string | null): Promise<number> {
+		if (campus_name === null) return -1;
 
 		const campus = await prisma.campus.findFirst({
 			where: { name: campus_name },

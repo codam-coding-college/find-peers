@@ -41,10 +41,7 @@ async function getUserCampusFromAPI(accessToken: string): Promise<{ campusId: nu
             throw new Error('Failed to fetch user data from 42 API');
         }
 
-        const userData = await response.json();
-		const primaryCampusUser = userData.campus_users.find(c => c.is_primary);
-		const primaryCampusId = primaryCampusUser ? primaryCampusUser.campus_id : userData.campus_users[0].campus_id;
-
+		const primaryCampusId = await getPrimaryCampusId(response);
 		const primaryCampus = await DatabaseService.getCampusNameById(primaryCampusId);
         return {
             campusId: primaryCampusId,
@@ -55,6 +52,21 @@ async function getUserCampusFromAPI(accessToken: string): Promise<{ campusId: nu
         // Fallback to a default campus
         return { campusId: 14, campusName: 'Amsterdam' };
     }
+}
+
+/**
+ * Get the primary campus ID from the fetch response.
+ * @param response The fetch response object
+ * @returns The primary campus ID
+ */
+async function getPrimaryCampusId(response: globalThis.Response): Promise<number> {
+	interface CampusUser { campus_id: number; is_primary: boolean; }
+	const userData: { campus_users: CampusUser[] } = await response.json();
+	const primaryCampusUser: CampusUser | undefined = userData.campus_users.find((c: CampusUser) => c.is_primary);
+	const primaryCampusId = primaryCampusUser
+		? primaryCampusUser.campus_id
+		: (userData.campus_users[0] !== undefined ? userData.campus_users[0].campus_id : 14);
+	return primaryCampusId;
 }
 
 /**

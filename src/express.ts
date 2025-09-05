@@ -86,6 +86,8 @@ async function getProjects(campusId: number, requestedStatus: string | undefined
 			login: projUser.user.login,
 			image_url: projUser.user.image_url,
 			status: projUser.status,
+			pool: projUser.user.pool ? projUser.user.pool : 'N/A',
+			new: (Date.now() - new Date(projUser.created_at).getTime()) < env.userNewStatusThresholdDays * 24 * 60 * 60 * 1000,
 		})).sort((a, b) => {
 			if (a.status !== b.status) {
 				const preferredOrder = env.projectStatuses

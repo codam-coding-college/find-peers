@@ -56,8 +56,9 @@ export class DatabaseService {
 		const projusers = await prisma.projectUser.findMany({
 			where: whereClause,
 			select: {
-				user: { select: { login: true, image_url: true } },
-				status: true
+				user: { select: { login: true, image_url: true, pool: true } },
+				status: true,
+				created_at: true
 			}
 		});
 		if (requestedStatus == 'finished') {

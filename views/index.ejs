@@ -246,12 +246,18 @@
 				<% } else { %>
 				<% project.users.forEach(user=>{ %>
 					<a class="user" href="https://profile.intra.42.fr/users/<%= user.login %>" target="_blank">
+						<% if (user.new) { %>
+							<img class="overlay" src="/public/new.svg"></img>
+						<% } %>
 						<img class="user-image" src="<%= user.image_url %>" alt="<%= user.login %>" loading="lazy"/>
 						<div>
 							<%= user.login %>
 						</div>
 						<div class="status">
 							<%= user.status %>
+						</div>
+						<div class="pool">
+							<%= user.pool %>
 						</div>
 					</a>
 					<% }) %>

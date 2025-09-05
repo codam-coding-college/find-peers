@@ -32,6 +32,7 @@ model User {
   login             String  @unique
   primary_campus_id Int?
   image_url         String?
+  pool              String
   anonymize_date    String?
 
   campus   Campus?       @relation(fields: [primary_campus_id], references: [id])

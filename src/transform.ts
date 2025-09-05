@@ -31,6 +31,7 @@ export function transformApiUserToDb(apiUser: any): User {
 		login: apiUser.login,
 		primary_campus_id: primaryCampus ? primaryCampus.campus_id : 1,
 		image_url: apiUser.image?.versions?.medium || null,
+		pool: apiUser.pool_month + ' ' + apiUser.pool_year,
 		anonymize_date: apiUser.anonymize_date || null
 	};
 }

@@ -4,5 +4,7 @@ export interface displayProject {
 		login: string,
 		image_url: string,
 		status: string,
+		pool: string,
+		new: boolean,
 	}[]
 }

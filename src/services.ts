@@ -95,63 +95,11 @@ export class DatabaseService {
 	}
 
 	/**
-	 * Retrieve Users based on the given campus.
-	 * @param status The campus to filter on.
-	 * @returns The list of filtered users.
-	 */
-	static async getUsersByCampus(campus_id: number): Promise<User[]> {
-		return prisma.user.findMany({
-			where: { primary_campus_id: campus_id }
-		});
-	}
-
-	/**
-	 * Retrieve Project Users based on the given status.
-	 * @param status The project status to filter on.
-	 * @returns The list of filtered project users.
-	 */
-	static async getProjectUsersByStatus(status: string): Promise<ProjectUser[]> {
-		return prisma.projectUser.findMany({
-			where: { status: status }
-		});
-    }
-
-	/**
-	 * Retrieve Project Users IDs based on the given campus.
-	 * @param campus_id The campus ID to filter on.
-	 * @returns The list of project user IDs.
-	 */
-	static async getCampusProjectUsersIds(campus_id: number): Promise<{ user_id: number; }[]> {
-		return prisma.projectUser.findMany({
-			where: { user: { primary_campus_id: campus_id } },
-			select: { user_id: true }
-		});
-	}
-
-	/**
 	 * @returns The list of all campuses in ascending (name) order.
 	 */
 	static async getAllCampuses(): Promise<Campus[]> {
 		return prisma.campus.findMany({
 			orderBy: { name: 'asc' }
-		});
-	}
-
-	/**
-	 * @returns The list of all users in ascending (id) order.
-	 */
-	static async getAllUsers(): Promise<User[]> {
-		return prisma.user.findMany({
-			orderBy: { id: 'asc' }
-		});
-	}
-
-	/**
-	 * @returns The list of all projects in ascending (id) order.
-	 */
-	static async getAllProjects(): Promise<Project[]> {
-		return prisma.project.findMany({
-			orderBy: { id: 'asc' }
 		});
 	}
 
@@ -226,23 +174,10 @@ export class DatabaseService {
 	}
 
 	/**
-	 * Retrieve campus IDs that are missing from the campus table.
-	 * @param users The list of users to check against the database.
-	 * @returns The list of missing campus IDs.
+	 * Retrieve the missing campus ID for a user.
+	 * @param user The user object from the API.
+	 * @returns The missing campus ID or null if not found.
 	 */
-	static async getMissingCampusIds(users: any[]): Promise<number[]> {
-		const usersArray = Array.isArray(users) ? users : [users];
-
-		const campusIds = [...new Set(usersArray.map(u => u.primary_campus_id).filter((id) => id !== null && id !== undefined))];
-		const existingCampus = await prisma.campus.findMany({
-			where: { id: { in: campusIds } },
-			select: { id: true }
-		});
-
-		const existingCampusIds = new Set(existingCampus.map(c => c.id));
-		return campusIds.filter(id => !existingCampusIds.has(id));
-	}
-
 	static async getMissingCampusId(user: any): Promise<number | null> {
 		const campusId = user.campus_users.find((cu: any) => cu.is_primary)?.campus_id;
 		if (campusId === null || campusId === undefined) {
@@ -324,28 +259,6 @@ export class DatabaseService {
 	}
 
 	/**
-	 * Inserts a project user into the database.
-	 * @param {ProjectUser} projectUser - The project user data to insert.
-	 * @returns {Promise<ProjectUser>} - The ID of the inserted project user.
-	 */
-	static async insertProjectUser(projectUser: ProjectUser): Promise<ProjectUser> {
-		try {
-			return prisma.projectUser.upsert({
-				where: {
-					project_id_user_id: {
-						user_id: projectUser.user_id,
-						project_id: projectUser.project_id
-					}
-				},
-				update: projectUser,
-				create: projectUser
-			});
-		} catch (error) {
-			throw new Error(`Failed to insert project user ${projectUser.user_id}: ${getErrorMessage(error)}`);
-		}
-	}
-
-	/**
 	 * Inserts multiple project users into the database.
 	 * @param projectUsers - The list of project user data to insert.
 	 * @returns {Promise<void>} - Resolves when all project users are inserted.
@@ -388,26 +301,6 @@ export class DatabaseService {
 	}
 
 	/**
-	 * Inserts multiple users into the database.
-	 * @param {User} users - The list of user data to insert.
-	 * @returns {Promise<void>} - Resolves when the user is inserted.
-	 */
-	static async insertManyUsers(users: User[]): Promise<void> {
-		try {
-			const insert = users.map(user => {
-				return prisma.user.upsert({
-					where: { id: user.id },
-					update: user,
-					create: user
-				});
-			});
-			await prisma.$transaction(insert);
-		} catch (error) {
-			throw new Error(`Failed to insert users: ${getErrorMessage(error)}`);
-		}
-	}
-
-	/**
 	 * Inserts a campus into the database.
 	 * @param campus - The campus data to insert.
 	 * @returns {Promise<Campus>} - The ID of the inserted campus.
@@ -426,26 +319,6 @@ export class DatabaseService {
 	}
 
 	/**
-	 * Inserts multiple campuses into the database.
-	 * @param campuses - The list of campus data to insert.
-	 * @returns {Promise<void>} - Resolves when all campuses are inserted.
-	 */
-	static async insertManyCampuses(campuses: Campus[]): Promise<void> {
-		try {
-			const insert = campuses.map(campus =>
-				prisma.campus.upsert({
-					where: { id: campus.id },
-					update: campus,
-					create: campus
-				})
-			);
-			await prisma.$transaction(insert);
-		} catch (error) {
-			throw new Error(`Failed to insert campuses: ${getErrorMessage(error)}`);
-		}
-	}
-
-	/**
 	 * Inserts a project into the database.
 	 * @param project - The project data to insert.
 	 * @returns {Promise<Project>} - Resolves when all projects are inserted.
@@ -460,26 +333,6 @@ export class DatabaseService {
 		}
 		catch (error) {
 			throw new Error(`Failed to insert project ${project.id}: ${getErrorMessage(error)}`);
-		}
-	}
-
-	/**
-	 * Inserts multiple projects into the database.
-	 * @param projects - The list of project data to insert.
-	 * @returns {Promise<void>} - Resolves when all projects are inserted.
-	 */
-	static async insertManyProjects(projects: Project[]): Promise<void> {
-		try {
-			const insert = projects.map(project =>
-				prisma.project.upsert({
-					where: { id: project.id },
-					update: project,
-					create: project
-				})
-			);
-			await prisma.$transaction(insert);
-		} catch (error) {
-			throw new Error(`Failed to insert projects: ${getErrorMessage(error)}`);
 		}
 	}
 }

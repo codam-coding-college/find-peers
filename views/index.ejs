@@ -27,19 +27,63 @@
 		}
 
 		body {
-			margin: 0 auto;
+			background: #1a1a1a;
+			background-image:
+				linear-gradient(to right, #00babc11 1px, transparent 1px),
+				linear-gradient(to bottom, #00babc11 1px, transparent 1px);
+			background-size: 20px 20px;
+			min-height: 100vh;
 			padding: var(--search-height) var(--root-padding) 0px;
 		}
 
 		#title {
 			font-size: var(--font-size-1);
 			font-weight: bold;
+			text-align: center;
+		}
+
+		#title-small {
+			font-size: var(--font-size-2.5);
+			font-weight: normal;
+			color: #ffffff;
+			text-align: center;
 		}
 
 		#description {
 			font-size: var(--font-size-3);
 			line-height: 1.2em;
 			font-weight: bold;
+			color: #ffffff;
+			display: flex;
+			gap: 32px;
+		}
+
+		.description-left {
+			flex: 1.5;
+			padding: 16px;
+		}
+
+		.description-right {
+			flex: 1;
+			padding: 16px;
+		}
+
+		.description {
+			margin: 40px 0;
+			padding: 32px;
+			background: #2c7385;
+			border-radius: 16px;
+			box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+			border: 1px solid #222;
+		}
+
+		.banner {
+			position: relative;
+			margin: calc(-1 * var(--search-height)) calc(-1 * var(--root-padding)) 0;
+			padding: calc(var(--search-height) + 64px) var(--root-padding) 64px;
+			background: #78a9bd;
+			width: 100vw;
+			margin-left: calc(-50vw + 50%);
 		}
 
 		#projects {
@@ -50,7 +94,7 @@
 		.project {
 			margin: 40px 0;
 			padding: 32px;
-			background: #350f32;
+			background: #1c566d;
 			border-radius: 16px;
 			box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 			border: 1px solid #222;
@@ -92,6 +136,10 @@
 			font-size: var(--font-size-4);
 		}
 
+		.pool {
+			font-size: var(--font-size-4);
+		}
+
 		.user-image {
 			display: block;
 			object-fit: cover;
@@ -110,7 +158,7 @@
 
 		.user:hover,
 		.user:focus {
-			box-shadow: 0 0 3px white;
+			box-shadow: 0 0 7px white;
 		}
 
 		.n-users {
@@ -129,7 +177,7 @@
 			right: 0;
 			padding: 0 var(--root-padding);
 			height: var(--search-height);
-			background: rgb(111, 26, 114);
+			background: rgb(26, 32, 126);
 			box-shadow: 0 0 3px 0px black;
 			font-size: var(--font-size-3);
 			z-index: 2;
@@ -168,20 +216,31 @@
 	</script>
 </head>
 
-<body>
-<div id="title">
-	Find Peers
+<div class="banner">
+    <div id="title">
+        - Find Peers -
+    </div>
+	<div id="title-small">
+		What are 42 students working on?
+	</div>
 </div>
+
+<div class="description">
 <div id="description">
-	Built by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a> - <a href="https://github.com/codam-coding-college/find-peers">Source</a><br/>
-	This page is updated every <%= updateEveryHours %> hours, last update was on <%= lastUpdate %>: <%= hoursAgo %> hours ago<br/>
-	<br/>
-	This page displays what projects 42 students are working on, allowing them to find peers to collaborate with.<br/>
-	You can filter projects by campus, project status, and -name using the search bar above.<br/>
-	Clicking on a user will take you to their intra profile page.<br/>
+	<div class="description-left">
+		This page displays what projects 42 students are working on, allowing them to find peers to collaborate with.<br/>
+		Clicking on a user will take you to their intra profile page.<br/><br/>
+		<img class="inline" src="/public/new.svg"></img> indicates that the user's project status was changed in the last <%= userNewStatusThresholdDays %> days<br/><br/>
+		Built by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a> - <a href="https://github.com/codam-coding-college/find-peers">Source</a><br/>
+	</div>
+	<div class="description-right">
+		This page is updated every <%= updateEveryHours %> hours. <br/>
+		last update was on <%= lastUpdate %>: <%= hoursAgo %> hours ago<br/>
+	</div>
+</div>
 </div>
 
-
+<body>
 <div id="search-bar">
 	<label for="campus-selector"> campus</label>
 	<select id="campus-selector" onchange="window.location.href='/'+this.value">

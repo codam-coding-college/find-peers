@@ -179,12 +179,12 @@ export async function startWebserver(port: number) {
 	})
 
 	// Authentication routes
-	app.get(`/auth/${env.provider}/`, passport.authenticate(env.provider, { scope: env.scope }))
+	app.get(`${env.authPath}/`, passport.authenticate(env.provider, { scope: env.scope }))
 	app.get(
-		`/auth/${env.provider}/callback`,
+		`${env.authPath}/callback`,
 		passport.authenticate(env.provider, {
 			successRedirect: '/',
-			failureRedirect: `/auth/${env.provider}`,
+			failureRedirect: `${env.authPath}`,
 		})
 	)
 
@@ -207,8 +207,10 @@ export async function startWebserver(port: number) {
 		if (!accessToken) {
 			return errorPage(res, 'Access token not found for user');
 		}
-		let { campusId, campusName } = await getUserCampusFromAPI(accessToken);
 
+		// Campus to use if none is provided. (User's primary campus)
+		let { campusId, campusName } = await getUserCampusFromAPI(accessToken);
+		// If a campus is explicitly provided, use that one
 		if (req.params['campus'] !== undefined) {
 			campusName = req.params['campus'];
 			campusId = await DatabaseService.getCampusIdByName(campusName);
@@ -218,7 +220,6 @@ export async function startWebserver(port: number) {
 		}
 
 		const requestedStatus: string | undefined = req.query['status']?.toString()
-
 		if (requestedStatus && !env.projectStatuses.includes(requestedStatus as ProjectStatus)) {
 			return errorPage(res, `Unknown status ${req.query['status']}`)
 		}

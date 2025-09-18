@@ -152,7 +152,7 @@ async function syncProjects(projects: any[]): Promise<void> {
             } catch (error) {
                 console.error(`Failed to fetch project ${project.id}:`, error);
                 await DatabaseService.insertProject(
-                    { name: project.name, id: project.id, difficulty: project.difficulty || undefined });
+                    { name: project.name, id: project.id, slug: project.slug || '', difficulty: project.difficulty || undefined });
             }
         }
         log(2, 'Finished syncing projects.');

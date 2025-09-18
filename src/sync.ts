@@ -19,6 +19,9 @@ const fast42Api = new Fast42(
  */
 let fast42Initialized = false;
 async function initializeFast42() {
+    if (fast42Initialized) {
+        return;
+    }
 	try {
 		await fast42Api.init();
 		fast42Initialized = true;
@@ -36,10 +39,11 @@ async function initializeFast42() {
  * @throws Will throw an error if the synchronization fails
  */
 export const syncWithIntra = async function(): Promise<void> {
-	if (!fast42Initialized) {
-		console.log('Failed to initialize fast42...');
+    await initializeFast42();
+    if (!fast42Initialized) {
+        console.log('Failed to initialize fast42...');
         return;
-	}
+    }
 	const now = new Date();
 
 	try {

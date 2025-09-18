@@ -21,9 +21,8 @@ model Campus {
 
 model Project {
   id    Int    @id
-  slug  String
   name  String
-  campus_ids  String
+  difficulty  Int?
   users ProjectUser[]
 }
 

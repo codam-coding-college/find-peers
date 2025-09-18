@@ -10,7 +10,9 @@ const fast42Api = new Fast42(
 			client_id: env.tokens.sync.UID,
 			client_secret: env.tokens.sync.secret,
 		},
-	]
+	],
+    undefined,      // concurrentOffset (keep default)
+    60000           // jobExpiration: 60 seconds
 );
 
 /**

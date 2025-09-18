@@ -76,7 +76,7 @@ async function getPrimaryCampusId(response: globalThis.Response): Promise<number
  * @returns A list of projects for the specified campus and status, sorted on status.
  */
 async function getProjects(campusId: number, requestedStatus: string | undefined, showEmptyProjects: boolean): Promise<DisplayProject[]> {
-	const projectList = await DatabaseService.getAllProjectsFromCampus(campusId);
+	const projectList = await DatabaseService.getAllProjects();
 	if (!projectList.length) {
 		return [];
 	}
@@ -245,7 +245,7 @@ export async function startWebserver(port: number) {
 	})
 
 	app.set('views', path.join(__dirname, '../views'))
-	app.set('viewengine', 'ejs')
+	app.set('view engine', 'ejs')
 	app.use('/public', express.static('public/'))
 
 	await app.listen(port)

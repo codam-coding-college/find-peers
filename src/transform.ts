@@ -55,12 +55,9 @@ export function transformApiCampusToDb(apiCampus: any): Campus {
  * @returns Project object for the database
  */
 export function transformApiProjectToDb(apiProject: any): Project {
-	const campusIds = apiProject.campus ? apiProject.campus.map((campus: any) => campus.id) : [];
-
 	return {
 		id: apiProject.id,
-		slug: apiProject.slug,
 		name: apiProject.name || '',
-		campus_ids: JSON.stringify(campusIds)
+		difficulty: apiProject.difficulty || undefined
 	};
 }

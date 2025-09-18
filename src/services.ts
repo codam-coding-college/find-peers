@@ -104,20 +104,12 @@ export class DatabaseService {
 	}
 
 	/**
-	 * Retrieve all projects associated with a specific campus.
-	 * @param campus_id The campus ID to filter on.
-	 * @returns The list of projects associated with the campus.
+	 * @returns The list of all projects in ascending (difficulty) order.
 	 */
-	static async getAllProjectsFromCampus(campus_id: number): Promise<Project[]> {
-		const projects = await prisma.project.findMany({
-			where: {
-				campus_ids: {
-					contains: campus_id.toString()
-				}
-			},
-			orderBy: { id: 'asc' }
+	static async getAllProjects(): Promise<Project[]> {
+		return prisma.project.findMany({
+			orderBy: { difficulty: 'asc'}
 		});
-		return projects;
 	}
 
 	/**
@@ -152,7 +144,6 @@ export class DatabaseService {
 			select: {
 				id: true,
 				name: true,
-				slug: true
 			}
 		});
 		const existingProjectIds: Set<number> = new Set(existingProjects.map((p: { id: number }) => p.id));

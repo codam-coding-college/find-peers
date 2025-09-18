@@ -146,14 +146,12 @@ async function syncProjects(projects: any[]): Promise<void> {
                     const dbProject = transformApiProjectToDb(apiProjectData[0]);
                     await DatabaseService.insertProject(dbProject);
                 } else {
-                    log(2, `No data found for project ID: ${project.id}`);
-                    await DatabaseService.insertProject(
-                        { name: project.name, id: project.id, slug: project.slug, campus_ids: '' });
+                    throw new Error(`No data found for project ID: ${project.id}`);
                 }
             } catch (error) {
                 console.error(`Failed to fetch project ${project.id}:`, error);
                 await DatabaseService.insertProject(
-                    { name: project.name, id: project.id, slug: project.slug, campus_ids: '' });
+                    { name: project.name, id: project.id, difficulty: project.difficulty || undefined });
             }
         }
         log(2, 'Finished syncing projects.');

@@ -82,6 +82,7 @@ async function syncProjectUsers(fast42Api: Fast42, lastPullDate: Date | undefine
         try {
             pageIndex++;
             params['page[number]'] = pageIndex.toString();
+            params['filter[cursus]'] = '21,9'; // Filter for 42 cursus (21) and Pisciners (9)
             log(2, `Fetching page ${pageIndex} of project users...`);
 
             const totalProjectUsersData = await fetchSingle42ApiPage(fast42Api, '/projects_users', params);

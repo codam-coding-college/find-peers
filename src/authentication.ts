@@ -3,6 +3,7 @@ import { Strategy as OAuth2Strategy } from 'passport-oauth2'
 import fetch from 'node-fetch'
 import { env } from './env'
 import { Request, Response, NextFunction } from 'express'
+import { log } from './logger'
 
 /**
  * Middleware to ensure user is authenticated.

@@ -34,7 +34,7 @@ export type ProjectStatus = (typeof projectStatuses)[number]
 
 export const env: Readonly<Env> = {
 	logLevel: process.env['NODE_ENV'] === 'production' ? 3 : 1, // 0 being no logging
-	pullTimeout: 24 * 60 * 60 * 1000, // how often to pull the project users statuses form the intra api (in Ms)
+	pullTimeout: 24 * 60 * 60 * 1000, // how often to sync with the 42 API (in ms)
 	projectStatuses,
 	authorizationURL: 'https://api.intra.42.fr/oauth/authorize',
 	tokenURL: 'https://api.intra.42.fr/oauth/token',

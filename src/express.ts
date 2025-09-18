@@ -16,7 +16,7 @@ import { DisplayProject } from './types'
  */
 async function errorPage(res: Response, error: string): Promise<void> {
 	const settings = {
-		campuses: await DatabaseService.getAllCampuses(),
+		campuses: (await DatabaseService.getAllCampuses()).filter(c => c.id !== 1),
 		error,
 	}
 	res.render('error.ejs', settings)

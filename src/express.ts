@@ -243,12 +243,6 @@ export async function startWebserver(port: number) {
 		res.render('index.ejs', settings)
 	})
 
-	// Monitoring route
-	app.get('/status/pull', async (_, res) => {
-		const lastSync = await DatabaseService.getLastSyncTimestamp();
-		res.json(lastSync);
-	})
-
 	app.set('views', path.join(__dirname, '../views'))
 	app.set('viewengine', 'ejs')
 	app.use('/public', express.static('public/'))

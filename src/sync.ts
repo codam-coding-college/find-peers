@@ -262,7 +262,7 @@ export const fetchMultiple42ApiPages = async function(api: Fast42, path: string,
             let i = 0;
             const pageItems = await Promise.all(pages.map(async (page) => {
                 let p = null;
-                pageFetch: while (!p) {
+                while (!p) {
                     p = await page;
                     if (p.status == 429) {
                         console.error('Intra API rate limit exceeded, let\'s wait a bit...');
@@ -270,7 +270,7 @@ export const fetchMultiple42ApiPages = async function(api: Fast42, path: string,
                         console.log(`Waiting ${waitFor} seconds...`);
                         await new Promise((resolve) => setTimeout(resolve, waitFor * 1000 + Math.random() * 1000));
                         p = null;
-                        continue pageFetch;
+                        continue;
                     }
                     if (!p.ok) {
                         throw new Error(`Intra API error: ${p.status} ${p.statusText} on ${p.url}`);

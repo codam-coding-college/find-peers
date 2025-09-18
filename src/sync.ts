@@ -37,8 +37,8 @@ async function initializeFast42() {
  */
 export const syncWithIntra = async function(): Promise<void> {
 	if (!fast42Initialized) {
-		console.log('Waiting for Fast42 to initialize...');
-		await initializeFast42();
+		console.log('Failed to initialize fast42...');
+        return;
 	}
 	const now = new Date();
 

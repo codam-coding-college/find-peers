@@ -7,7 +7,7 @@ import { log } from './logger'
 import compression from 'compression'
 import cookieParser from 'cookie-parser'
 import { DatabaseService } from './services'
-import { displayProject } from './types'
+import { DisplayProject } from './types'
 
 /**
  * Render the error page.
@@ -75,12 +75,12 @@ async function getPrimaryCampusId(response: globalThis.Response): Promise<number
  * @param requestedStatus The status of the projects to retrieve
  * @returns A list of projects for the specified campus and status, sorted on status.
  */
-async function getProjects(campusId: number, requestedStatus: string | undefined, showEmptyProjects: boolean): Promise<displayProject[]> {
+async function getProjects(campusId: number, requestedStatus: string | undefined, showEmptyProjects: boolean): Promise<DisplayProject[]> {
 	const projectList = await DatabaseService.getAllProjectsFromCampus(campusId);
 	if (!projectList.length) {
 		return [];
 	}
-	const projectsWithUsers: displayProject[] = await Promise.all(projectList.map(async project => ({
+	const projectsWithUsers: DisplayProject[] = await Promise.all(projectList.map(async project => ({
 		name: project.name,
 		users: (await DatabaseService.getProjectUserInfo(project.id, campusId, requestedStatus)).map(projUser => ({
 			login: projUser.user.login,

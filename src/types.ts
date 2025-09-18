@@ -1,4 +1,4 @@
-export interface displayProject {
+export interface DisplayProject {
 	name: string,
 	users: {
 		login: string,

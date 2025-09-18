@@ -235,7 +235,8 @@ export async function startWebserver(port: number) {
 			requestedStatus,
 			projectStatuses: env.projectStatuses,
 			campusName,
-			campuses: (await DatabaseService.getAllCampuses()).filter(c => c.id !== 1), // hide ghost campus
+			// Hide the Ghost Campus (id 1) from the selectable list of campuses in the dropdown (website header)
+			campuses: (await DatabaseService.getAllCampuses()).filter(c => c.id !== 1),
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0),
 			userNewStatusThresholdDays: env.userNewStatusThresholdDays,
 			showEmptyProjects,

@@ -22,8 +22,6 @@ async function errorPage(res: Response, error: string): Promise<void> {
 	res.render('error.ejs', settings)
 }
 
-const cachingProxy = '/proxy'
-
 /**
  * Get the user's campus information using the 42 API.
  * @param accessToken The access token to use for authentication
@@ -126,40 +124,6 @@ export async function startWebserver(port: number) {
 	)
 	app.use(passport.initialize())
 	app.use(passport.session())
-
-	// Caching proxy
-	app.use(cachingProxy, async (req, res) => {
-		const url = req.query['q']
-		if (!url || typeof url !== 'string' || !url.startsWith('http')) {
-			res.status(404).send('No URL provided')
-			return
-		}
-		try {
-			// inject cache header for images
-			res.setHeader('Cache-Control', `public, max-age=${100 * 24 * 60 * 60}`)
-
-			const response = await fetch(url)
-			if (!response.ok) {
-				res.status(404).send('Resource not found')
-				return
-			}
-
-			// Copy headers
-			response.headers.forEach((value, key) => {
-				res.setHeader(key, value)
-			})
-
-			// Stream the response
-			if (response.body) {
-				// Convert web ReadableStream to Node.js stream
-				const { Readable } = require('stream');
-				Readable.fromWeb(response.body).pipe(res);
-			}
-		} catch (error) {
-			console.error('Proxy error:', error)
-			res.status(500).send('Proxy error')
-		}
-	})
 
 	// Compression middleware
 	app.use((req, res, next) => {

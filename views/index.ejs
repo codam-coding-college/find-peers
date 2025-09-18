@@ -43,7 +43,7 @@
 		}
 
 		#title-small {
-			font-size: var(--font-size-2.5);
+			font-size: var(--font-size-2-5);
 			font-weight: normal;
 			color: #ffffff;
 			text-align: center;
@@ -231,13 +231,17 @@
 		This page displays what projects 42 students are working on, allowing them to find peers to collaborate with.<br/>
 		Clicking on a user will take you to their intra profile page.<br/><br/>
 		<img class="inline" src="/public/new.svg"></img> indicates that the user's project status was changed in the last <%= userNewStatusThresholdDays %> days<br/><br/>
-		Built by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a> - <a href="https://github.com/codam-coding-college/find-peers">Source</a><br/>
+		Built by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a><br/>
+		Maintained by Noah Mattos Oudejans/<a href="https://profile.intra.42.fr/users/nmattos-">@nmattos-</a><br/>
+		<a href="https://github.com/codam-coding-college/find-peers">Source</a><br/>
 	</div>
 	<div class="description-right">
-		This page is updated every <%= updateEveryHours %> hours. <br/>
-		last update was on <%= lastUpdate %>: <%= hoursAgo %> hours ago<br/>
+		This page is updated every <%= updateEveryHours %> hours. <br/><br/>
+		Last update was on <%= lastUpdate %>
+		<% if (lastUpdate != 'N/A') { %>
+			: <%= hoursAgo %> hours ago<br/>
+		<% } %>
 	</div>
-</div>
 </div>
 
 <body>

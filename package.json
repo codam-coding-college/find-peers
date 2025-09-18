@@ -49,6 +49,7 @@
 		"node": ">=18.0.0"
 	},
 	"devDependencies": {
-		"@types/passport-oauth2": "^1.8.0"
+		"@types/passport-oauth2": "^1.8.0",
+		"ts-node-dev": "^2.0.0"
 	}
 }

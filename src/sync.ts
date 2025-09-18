@@ -207,8 +207,8 @@ async function syncUsers(fast42Api: Fast42, lastPullDate: Date | undefined, user
                     await syncCampus(fast42Api, lastPullDate, missingCampusId);
                 } catch (error) {
                     console.error(`Assigning to non-existent campus; failed to fetch ${missingCampusId}:`, error);
-                    DatabaseService.insertCampus({ id: 1, name: `Ghost Campus` });
-                    dbUser.primary_campus_id = 1; // Assign to Ghost Campus
+                    DatabaseService.insertCampus({ id: 42, name: `Ghost Campus` });
+                    dbUser.primary_campus_id = 42; // Assign to Ghost Campus
                 }
             }
             await DatabaseService.insertUser(dbUser);

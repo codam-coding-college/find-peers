@@ -58,6 +58,7 @@ export function transformApiProjectToDb(apiProject: any): Project {
 	return {
 		id: apiProject.id,
 		name: apiProject.name || '',
+		slug: apiProject.slug || '',
 		difficulty: apiProject.difficulty || undefined
 	};
 }

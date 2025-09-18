@@ -16,7 +16,8 @@ import { DisplayProject } from './types'
  */
 async function errorPage(res: Response, error: string): Promise<void> {
 	const settings = {
-		campuses: (await DatabaseService.getAllCampuses()).filter(c => c.id !== 1),
+		// Hide the Ghost Campus (id 42) from the selectable list of campuses in the dropdown (website header)
+		campuses: (await DatabaseService.getAllCampuses()).filter(c => c.id !== 42),
 		error,
 	}
 	res.render('error.ejs', settings)
@@ -80,6 +81,7 @@ async function getProjects(campusId: number, requestedStatus: string | undefined
 	}
 	const projectsWithUsers: DisplayProject[] = await Promise.all(projectList.map(async project => ({
 		name: project.name,
+		slug: project.slug,
 		users: (await DatabaseService.getProjectUserInfo(project.id, campusId, requestedStatus)).map(projUser => ({
 			login: projUser.user.login,
 			image_url: projUser.user.image_url,
@@ -199,8 +201,8 @@ export async function startWebserver(port: number) {
 			requestedStatus,
 			projectStatuses: env.projectStatuses,
 			campusName,
-			// Hide the Ghost Campus (id 1) from the selectable list of campuses in the dropdown (website header)
-			campuses: (await DatabaseService.getAllCampuses()).filter(c => c.id !== 1),
+			// Hide the Ghost Campus (id 42) from the selectable list of campuses in the dropdown (website header)
+			campuses: (await DatabaseService.getAllCampuses()).filter(c => c.id !== 42),
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0),
 			userNewStatusThresholdDays: env.userNewStatusThresholdDays,
 			showEmptyProjects,

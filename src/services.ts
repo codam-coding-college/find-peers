@@ -113,6 +113,37 @@ export class DatabaseService {
 	}
 
 	/**
+	 * Retrieve project user IDs that are missing from the project_user table.
+	 * @param projectUsers The list of project users to check against the database.
+	 * @returns The list of missing project user IDs.
+	 */
+	static async getMissingProjectUserIds(projectUsers: any[]): Promise<any[]> {
+		const projectUsersArray = Array.isArray(projectUsers) ? projectUsers : [projectUsers];
+
+		const projectUserIds = projectUsersArray.map(pu => ({
+			user_id: pu.user.id,
+			project_id: pu.project.id
+		}));
+		const existingProjectUsers = await prisma.projectUser.findMany({
+			where: {
+				OR: projectUserIds.map(pu => ({
+					AND: [
+						{ user_id: pu.user_id },
+						{ project_id: pu.project_id }
+					]
+				}))
+			},
+			select: {
+				user_id: true,
+				project_id: true
+			}
+		});
+
+		const existingSet = new Set(existingProjectUsers.map(pu => `${pu.user_id}-${pu.project_id}`));
+		return projectUserIds.filter(pu => !existingSet.has(`${pu.user_id}-${pu.project_id}`));
+	}
+
+	/**
 	 * Retrieve user IDs that are missing from the user table.
 	 * @param projectUsers The list of project users to check against the database.
 	 * @returns The list of missing user IDs.
@@ -310,20 +341,22 @@ export class DatabaseService {
 	}
 
 	/**
-	 * Inserts a project into the database.
-	 * @param project - The project data to insert.
-	 * @returns {Promise<Project>} - Resolves when all projects are inserted.
+	 * Inserts multiple projects into the database.
+	 * @param projects - The list of project data to insert.
+	 * @returns {Promise<void>} - Resolves when all projects are inserted.
 	 */
-	static async insertProject(project: Project): Promise<Project> {
+	static async insertManyProjects(projects: Project[]): Promise<void> {
 		try {
-			return prisma.project.upsert({
-				where: { id: project.id },
-				update: project,
-				create: project
-			});
-		}
-		catch (error) {
-			throw new Error(`Failed to insert project ${project.id}: ${getErrorMessage(error)}`);
+			const insert = projects.map(project =>
+				prisma.project.upsert({
+					where: { id: project.id },
+					update: project,
+					create: project
+				})
+			);
+			await prisma.$transaction(insert);
+		} catch (error) {
+			throw new Error(`Failed to insert projects: ${getErrorMessage(error)}`);
 		}
 	}
 }

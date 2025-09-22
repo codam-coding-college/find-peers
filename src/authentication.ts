@@ -69,7 +69,8 @@ async function fetchandInsertUserData(accessToken: string) {
 	})
 	const json = await response.json();
 	const userDB = transformApiUserToDb(json);
-	if (await DatabaseService.findUserByLogin(userDB.login) === null) {
+	if (await DatabaseService.findUserByLogin(userDB.login) === null
+		&& await DatabaseService.findUserByLogin('3c3' + userDB.login) === null) {
 		const missingCampusId = await DatabaseService.getMissingCampusId(json);
 		if (missingCampusId !== null) {
 			log(2, `Found missing campus ID ${missingCampusId}, syncing...`);

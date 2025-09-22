@@ -258,7 +258,7 @@ export const fetchMultiple42ApiPages = async function(api: Fast42, path: string,
 export const fetchSingle42ApiPage = async function(api: Fast42, path: string, params: { [key: string]: string } = {}): Promise<any> {
     return new Promise(async (resolve, reject) => {
         try {
-            retry: while (true) {
+            while (true) {
                 const page = await api.get(path, params);
 
                 if (page.status == 429) {
@@ -266,7 +266,7 @@ export const fetchSingle42ApiPage = async function(api: Fast42, path: string, pa
                     const waitFor = parseInt(page.headers.get('Retry-After') ?? '1');
                     console.log(`Waiting ${waitFor} seconds...`);
                     await new Promise((resolve) => setTimeout(resolve, waitFor * 1000 + Math.random() * 1000));
-                    continue retry;
+                    continue;
                 }
                 if (page.ok) {
                     const data = await page.json();

@@ -8,7 +8,6 @@ import compression from 'compression'
 import cookieParser from 'cookie-parser'
 import { DatabaseService } from './services'
 import { DisplayProject } from './types'
-import { prisma } from './prismaClient'
 
 /**
  * Render the error page.
@@ -22,51 +21,6 @@ async function errorPage(res: Response, error: string): Promise<void> {
 		error,
 	}
 	res.render('error.ejs', settings)
-}
-
-/**
- * Get the user's campus information using the 42 API.
- * @param accessToken The access token to use for authentication
- * @returns The user's campus information
- */
-async function getUserCampusFromAPI(accessToken: string): Promise<{ campusId: number, campusName: string | null }> {
-    try {
-        const response = await fetch('https://api.intra.42.fr/v2/me', {
-            headers: {
-                'Authorization': `Bearer ${accessToken}`
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('Failed to fetch user data from 42 API');
-        }
-
-		const primaryCampusId = await getPrimaryCampusId(response);
-		const primaryCampus = await DatabaseService.getCampusNameById(primaryCampusId);
-        return {
-            campusId: primaryCampusId,
-			campusName: primaryCampus?.name ? primaryCampus.name : null
-        };
-    } catch (error) {
-        console.error('Error fetching user campus:', error);
-        // Fallback to a default campus
-        return { campusId: 14, campusName: 'Amsterdam' };
-    }
-}
-
-/**
- * Get the primary campus ID from the fetch response.
- * @param response The fetch response object
- * @returns The primary campus ID
- */
-async function getPrimaryCampusId(response: globalThis.Response): Promise<number> {
-	interface CampusUser { campus_id: number; is_primary: boolean; }
-	const userData: { campus_users: CampusUser[] } = await response.json();
-	const primaryCampusUser: CampusUser | undefined = userData.campus_users.find((c: CampusUser) => c.is_primary);
-	const primaryCampusId = primaryCampusUser
-		? primaryCampusUser.campus_id
-		: (userData.campus_users[0] !== undefined ? userData.campus_users[0].campus_id : 14);
-	return primaryCampusId;
 }
 
 /**

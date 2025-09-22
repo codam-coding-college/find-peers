@@ -4,7 +4,6 @@ require('dotenv').config({ path: __dirname + '/../env/.env' })
 import { startWebserver } from './express'
 import { env } from './env'
 import { DatabaseService } from './services';
-import { anonymizeDatabase } from './anonymize'
 import { syncWithIntra } from './sync'
 import util from 'util'
 

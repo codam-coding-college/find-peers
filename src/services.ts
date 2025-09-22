@@ -264,12 +264,21 @@ export class DatabaseService {
 		});
 	}
 
-	static async getCampusByUser(userLogin: string): Promise<{name: string, id: number}> {
+	static async getCampusByUser(userLogin: string): Promise<{name: string, id: number} | null> {
 		const campus = await prisma.campus.findFirst({
 			where: { users: { some: { login: userLogin } } },
 			select: { name: true, id: true }
 		});
+		if (!campus) {
+			return null;
+		}
 		return {name: campus.name, id: campus.id};
+	}
+
+	static async findUserByLogin(login: string): Promise<User | null> {
+		return prisma.user.findFirst({
+			where: { login: login }
+		});
 	}
 
 	/*************************************************************************\
@@ -381,7 +390,7 @@ export class DatabaseService {
 		await prisma.projectUser.deleteMany({
 			where: {
 				OR: [
-					{ user: { anonymize_date: { lt: new Date() } } },
+					{ user: { anonymize_date: { lt: new Date().toISOString() } } },
 					{ user: { login: { startsWith: '3b3' } } }
 				]
 			}
@@ -389,7 +398,7 @@ export class DatabaseService {
 		await prisma.user.deleteMany({
 			where: {
 				OR: [
-					{ anonymize_date: { lt: new Date() } },
+					{ anonymize_date: { lt: new Date().toISOString() } },
 					{ login: { startsWith: '3b3' } }
 				]
 			}

@@ -264,6 +264,14 @@ export class DatabaseService {
 		});
 	}
 
+	static async getCampusByUser(userLogin: string): Promise<{name: string, id: number}> {
+		const campus = await prisma.campus.findFirst({
+			where: { users: { some: { login: userLogin } } },
+			select: { name: true, id: true }
+		});
+		return {name: campus.name, id: campus.id};
+	}
+
 	/*************************************************************************\
 	* Insert Methods														  *
 	\*************************************************************************/

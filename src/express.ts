@@ -8,6 +8,7 @@ import compression from 'compression'
 import cookieParser from 'cookie-parser'
 import { DatabaseService } from './services'
 import { DisplayProject } from './types'
+import { prisma } from './prismaClient'
 
 /**
  * Render the error page.
@@ -163,7 +164,11 @@ export async function startWebserver(port: number) {
 			return errorPage(res, 'Access token not found for user');
 		}
 
-		res.redirect(`/${await getUserCampusFromAPI(accessToken).then(data => data.campusName)}`);
+		const campus = await DatabaseService.getCampusByUser(user.login);
+		if (!campus) {
+			return errorPage(res, 'User campus not found in database');
+		}
+		res.redirect(`/${campus.name}`);
 	})
 
 	// Campus-specific route
@@ -175,13 +180,17 @@ export async function startWebserver(port: number) {
 		}
 
 		// Campus to use if none is provided. (User's primary campus)
-		let { campusId, campusName } = await getUserCampusFromAPI(accessToken);
+		const campus = await DatabaseService.getCampusByUser(user.login);
+		if (!campus) {
+			return errorPage(res, 'User campus not found in database');
+		}
+
 		// If a campus is explicitly provided, use that one
 		if (req.params['campus'] !== undefined) {
-			campusName = req.params['campus'];
-			campusId = await DatabaseService.getCampusIdByName(campusName);
-			if (campusId === -1) {
-				return errorPage(res, `Unknown campus ${campusName}`);
+			campus.name = req.params['campus'];
+			campus.id = await DatabaseService.getCampusIdByName(campus.name);
+			if (campus.id === -1) {
+				return errorPage(res, `Unknown campus ${campus.name}`);
 			}
 		}
 
@@ -195,12 +204,12 @@ export async function startWebserver(port: number) {
 		// Get all necessary data to be displayed to the user
 		const userTimeZone = req.cookies.timezone || 'Europe/Amsterdam'
 		const settings = {
-			projects: await getProjects(campusId, requestedStatus, showEmptyProjects),
+			projects: await getProjects(campus.id, requestedStatus, showEmptyProjects),
 			lastUpdate: await DatabaseService.getLastSyncTimestamp().then(date => date ? date.toLocaleString('en-NL', { timeZone: userTimeZone }).slice(0, -3) : 'N/A'),
 			hoursAgo: (((Date.now()) - await DatabaseService.getLastSyncTimestamp().then(date => date ? date.getTime() : 0)) / (1000 * 60 * 60)).toFixed(2), // hours ago
 			requestedStatus,
 			projectStatuses: env.projectStatuses,
-			campusName,
+			campusName: campus.name,
 			// Hide the Ghost Campus (id 42) from the selectable list of campuses in the dropdown (website header)
 			campuses: (await DatabaseService.getAllCampuses()).filter(c => c.id !== 42),
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0),

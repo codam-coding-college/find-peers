@@ -20,7 +20,7 @@ async function errorPage(res: Response, error: string): Promise<void> {
 		campuses: (await DatabaseService.getAllCampuses()).filter(c => c.id !== 42),
 		error,
 	}
-	res.render('error.ejs', settings)
+	res.render('error.ejs', settings);
 }
 
 /**
@@ -45,12 +45,12 @@ async function getProjects(campusId: number, requestedStatus: string | undefined
 			new: (Date.now() - new Date(projUser.created_at).getTime()) < env.userNewStatusThresholdDays * 24 * 60 * 60 * 1000,
 		})).sort((a, b) => {
 			if (a.status !== b.status) {
-				const preferredOrder = env.projectStatuses
-				const indexA = preferredOrder.findIndex(x => x === a.status)
-				const indexB = preferredOrder.findIndex(x => x === b.status)
-				return indexA < indexB ? -1 : 1
+				const preferredOrder = env.projectStatuses;
+				const indexA = preferredOrder.findIndex(x => x === a.status);
+				const indexB = preferredOrder.findIndex(x => x === b.status);
+				return indexA < indexB ? -1 : 1;
 			}
-			return a.login < b.login ? -1 : 1
+			return a.login < b.login ? -1 : 1;
 		})
 	})));
 	const filteredProjects = projectsWithUsers.map(project => ({
@@ -67,10 +67,10 @@ async function getProjects(campusId: number, requestedStatus: string | undefined
  * @param port The port to listen on
  */
 export async function startWebserver(port: number) {
-	const app = express()
+	const app = express();
 
 	// Add cookie parser middleware
-	app.use(cookieParser())
+	app.use(cookieParser());
 
 	app.use(
 		session({
@@ -78,36 +78,36 @@ export async function startWebserver(port: number) {
 			resave: false,
 			saveUninitialized: true,
 		})
-	)
-	app.use(passport.initialize())
-	app.use(passport.session())
+	);
+	app.use(passport.initialize());
+	app.use(passport.session());
 
 	// Compression middleware
 	app.use((req, res, next) => {
 		try {
-			compression()(req, res, next)
-			return
+			compression()(req, res, next);
+			return;
 		} catch (e) {
-			console.error('Compression error', e)
+			console.error('Compression error', e);
 		}
-		next()
+		next();
 	})
 
 	// Robots.txt
 	app.get('/robots.txt', (_, res) => {
-		res.type('text/plain')
-		res.send('User-agent: *\nAllow: /')
-	})
+		res.type('text/plain');
+		res.send('User-agent: *\nAllow: /');
+	});
 
 	// Authentication routes
-	app.get(`${env.authPath}/`, passport.authenticate(env.provider, { scope: env.scope }))
+	app.get(`${env.authPath}/`, passport.authenticate(env.provider, { scope: env.scope }));
 	app.get(
 		`${env.authPath}/callback`,
 		passport.authenticate(env.provider, {
 			successRedirect: '/',
 			failureRedirect: `${env.authPath}`,
 		})
-	)
+	);
 
 	// Main route
 	app.get('/', authenticate, async (req, res) => {
@@ -123,7 +123,7 @@ export async function startWebserver(port: number) {
 			return errorPage(res, 'User campus not found in database');
 		}
 		res.redirect(`/${campus.name}`);
-	})
+	});
 
 	// Campus-specific route
 	app.get('/:campus', authenticate, async (req, res) => {
@@ -148,15 +148,15 @@ export async function startWebserver(port: number) {
 			}
 		}
 
-		const requestedStatus: string | undefined = req.query['status']?.toString()
+		const requestedStatus: string | undefined = req.query['status']?.toString();
 		if (requestedStatus && !env.projectStatuses.includes(requestedStatus as ProjectStatus)) {
-			return errorPage(res, `Unknown status ${req.query['status']}`)
+			return errorPage(res, `Unknown status ${req.query['status']}`);
 		}
 
 		const showEmptyProjects: boolean = req.query['showEmptyProjects'] === '1';
 
 		// Get all necessary data to be displayed to the user
-		const userTimeZone = req.cookies.timezone || 'Europe/Amsterdam'
+		const userTimeZone = req.cookies.timezone || 'Europe/Amsterdam';
 		const settings = {
 			projects: await getProjects(campus.id, requestedStatus, showEmptyProjects),
 			lastUpdate: await DatabaseService.getLastSyncTimestamp().then(date => date ? date.toLocaleString('en-NL', { timeZone: userTimeZone }).slice(0, -3) : 'N/A'),
@@ -169,14 +169,14 @@ export async function startWebserver(port: number) {
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0),
 			userNewStatusThresholdDays: env.userNewStatusThresholdDays,
 			showEmptyProjects,
-		}
-		res.render('index.ejs', settings)
-	})
+		};
+		res.render('index.ejs', settings);
+	});
 
-	app.set('views', path.join(__dirname, '../views'))
-	app.set('view engine', 'ejs')
-	app.use('/public', express.static('public/'))
+	app.set('views', path.join(__dirname, '../views'));
+	app.set('view engine', 'ejs');
+	app.use('/public', express.static('public/'));
 
-	await app.listen(port)
-	log(1, `${process.env['NODE_ENV'] ?? 'development'} app ready on http://localhost:${port}`)
+	await app.listen(port);
+	log(1, `${process.env['NODE_ENV'] ?? 'development'} app ready on http://localhost:${port}`);
 }

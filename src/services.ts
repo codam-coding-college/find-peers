@@ -359,4 +359,32 @@ export class DatabaseService {
 			throw new Error(`Failed to insert projects: ${getErrorMessage(error)}`);
 		}
 	}
+
+	/*************************************************************************\
+	* Miscellaneous Methods													  *
+	\*************************************************************************/
+
+	/**
+	 * Delete users who should be anonymized from the database.
+	 * @returns {Promise<void>} - Resolves when the operation is complete.
+	 */
+	static async anonymizeOldEntries(): Promise<void> {
+		// Delete project users and users whose anonymization date has passed or login starts with '3b3'
+		await prisma.projectUser.deleteMany({
+			where: {
+				OR: [
+					{ user: { anonymize_date: { lt: new Date() } } },
+					{ user: { login: { startsWith: '3b3' } } }
+				]
+			}
+		});
+		await prisma.user.deleteMany({
+			where: {
+				OR: [
+					{ anonymize_date: { lt: new Date() } },
+					{ login: { startsWith: '3b3' } }
+				]
+			}
+		});
+	}
 }

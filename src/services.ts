@@ -9,9 +9,9 @@ const prisma = new PrismaClient();
  * @returns A user-friendly error message.
  */
 function getErrorMessage(error: unknown): string {
-    if (error instanceof Error)
+	if (error instanceof Error)
 		return error.message;
-    return String(error);
+	return String(error);
 }
 
 export class DatabaseService {

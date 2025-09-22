@@ -25,7 +25,7 @@ export function transformApiUserToDb(apiUser: any): User {
 	const primaryCampus = apiUser.campus_users.find((cu: any) => cu.is_primary);
 	if (apiUser.staff) {
 		// Add prefix to staff logins to make filtering them easier, without storing "staff" boolean in the database
-		apiUser.login = "3c3" + apiUser.login;
+		apiUser.login = '3c3' + apiUser.login;
 	}
 	return {
 		id: apiUser.id,

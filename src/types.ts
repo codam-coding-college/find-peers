@@ -7,5 +7,5 @@ export interface DisplayProject {
 		status: string,
 		pool: string,
 		new: boolean,
-	}[]
+	}[];
 }

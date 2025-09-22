@@ -29,8 +29,8 @@ export interface Env {
 }
 
 // known statuses, in the order we want them displayed on the website
-const projectStatuses = ['creating_group', 'searching_a_group', 'in_progress', 'waiting_for_correction', 'finished', 'parent'] as const
-export type ProjectStatus = (typeof projectStatuses)[number]
+const projectStatuses = ['creating_group', 'searching_a_group', 'in_progress', 'waiting_for_correction', 'finished', 'parent'] as const;
+export type ProjectStatus = (typeof projectStatuses)[number];
 
 export const env: Readonly<Env> = {
 	logLevel: process.env['NODE_ENV'] === 'production' ? 3 : 1, // 0 being no logging

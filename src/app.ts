@@ -28,7 +28,7 @@ async function msUntilNextPull(): Promise<number> {
 		return (0);
 	}
 	console.info(`Next pull will be in ${(msUntilNextPull / 1000 / 60 / 60).toFixed(2)} hours.`);
-	return msUntilNextPull
+	return msUntilNextPull;
 }
 
 // Main Program Execution

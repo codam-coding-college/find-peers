@@ -16,15 +16,15 @@ import { transformApiUserToDb, transformApiCampusToDb } from './transform'
  */
 export function authenticate(req: Request, res: Response, next: NextFunction) {
 	if (!req.user) {
-		res.redirect(`${env.authPath}`)
+		res.redirect(`${env.authPath}`);
 	} else {
-		next()
+		next();
 	}
 }
 
 // Store (only) access token in session
 passport.serializeUser((user: any, done) => {
-	done(null, { accessToken: user.accessToken, login: user.login })
+	done(null, { accessToken: user.accessToken, login: user.login });
 })
 
 // On every request, validate access token
@@ -93,6 +93,6 @@ async function fetchandInsertUserData(accessToken: string) {
 	return userDB;
 }
 
-passport.use(env.provider, client)
+passport.use(env.provider, client);
 
 export { passport }

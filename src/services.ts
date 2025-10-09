@@ -190,8 +190,8 @@ export class DatabaseService {
 
 	/**
 	 * Inserts a user into the database.
-	 * @param {User} user - The user data to insert.
-	 * @returns {Promise<User>} - Resolves when the user is inserted.
+	 * @param user - The user data to insert.
+	 * @returns The inserted user.
 	 */
 	static async insertUser(user: User): Promise<User> {
 		try {
@@ -201,7 +201,27 @@ export class DatabaseService {
 				create: user
 			});
 		} catch (error) {
-			throw new Error(`Failed to insert user ${user.id}: ${getErrorMessage(error)}`);
+			throw new Error(`Failed to insert user ${user.login}: ${getErrorMessage(error)}`);
+		}
+	}
+
+	/**
+	 * Inserts multiple users into the database.
+	 * @param users - The list of user data to insert.
+	 * @returns {Promise<void>} - Resolves when all users are inserted.
+	 */
+	static async insertManyUsers(users: User[]): Promise<void> {
+		try {
+			const insert = users.map(user =>
+				prisma.user.upsert({
+					where: { id: user.id },
+					update: user,
+					create: user
+				})
+			);
+			await prisma.$transaction(insert);
+		} catch (error) {
+			throw new Error(`Failed to insert users: ${getErrorMessage(error)}`);
 		}
 	}
 
@@ -212,14 +232,33 @@ export class DatabaseService {
 	 */
 	static async insertCampus(campus: Campus): Promise<Campus> {
 		try {
-			log(2, `-------------Inserted campus`);
 			return prisma.campus.upsert({
 				where: { id: campus.id },
 				update: campus,
 				create: campus
 			});
 		} catch (error) {
-			throw new Error(`-------Failed to insert campus ${campus.id}: ${getErrorMessage(error)}`);
+			throw new Error(`Failed to insert campus ${campus.id}: ${getErrorMessage(error)}`);
+		}
+	}
+
+	/**
+	 * Inserts multiple campuses into the database.
+	 * @param campuses - The list of campus data to insert.
+	 * @return {Promise<void>} - Resolves when all campuses are inserted.
+	 */
+	static async insertManyCampuses(campuses: Campus[]): Promise<void> {
+		try {
+			const insert = campuses.map(campus =>
+				prisma.campus.upsert({
+					where: { id: campus.id },
+					update: campus,
+					create: campus
+				})
+			);
+			await prisma.$transaction(insert);
+		} catch (error) {
+			throw new Error(`Failed to insert campuses: ${getErrorMessage(error)}`);
 		}
 	}
 

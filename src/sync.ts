@@ -173,6 +173,12 @@ async function syncProjectUsers(fast42Api: Fast42, lastPullDate: Date | undefine
 	}
 }
 
+/**
+ * Synchronize users using the given projectUserData.
+ * @param fast42Api The Fast42 API instance to use for fetching user data
+ * @param lastPullDate The date of the last synchronization
+ * @param projectUsersData The project users data to synchronize
+ */
 async function syncUsers(fast42Api: Fast42, lastPullDate: Date | undefined, projectUsersData: any[]): Promise<void> {
 	for (const projectUser of projectUsersData) {
 		log(2, `Processing missing user ${projectUser.user.id}...`);

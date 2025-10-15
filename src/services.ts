@@ -147,6 +147,22 @@ export class DatabaseService {
 		});
 	}
 
+	/**
+	 * Count the number of unique project users in a specific campus.
+	 * @param campusId The ID of the campus to count users in.
+	 * @returns The number of unique project users in the specified campus.
+	 */
+	static async countUniqueProjectUsersInCampus(campusId: number): Promise<number> {
+		const uniqueUsers = await prisma.projectUser.groupBy({
+			by: ['user_id'],
+			where: {
+				user: { primary_campus_id: campusId },
+				status: { not: 'finished' }
+			}
+		});
+		return uniqueUsers.length;
+	}
+
 	/*************************************************************************\
 	* Insert Methods														  *
 	\*************************************************************************/

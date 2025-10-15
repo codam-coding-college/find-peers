@@ -177,7 +177,7 @@
 			right: 0;
 			padding: 0 var(--root-padding);
 			height: var(--search-height);
-			background: rgb(26, 32, 126);
+			background: #78a9bd;
 			box-shadow: 0 0 3px 0px black;
 			font-size: var(--font-size-3);
 			z-index: 2;
@@ -254,8 +254,9 @@
 		This page is updated every <%= updateEveryHours %> hours. <br/><br/>
 		Last update was on <%= lastUpdate %>
 		<% if (lastUpdate != 'N/A') { %>
-			: <%= hoursAgo %> hours ago<br/>
-		<% } %>
+			: <%= hoursAgo %> hours ago
+		<% } %><br/><br/>
+		Total students working on a project in <%= campusName %>: <%= totalUsers %><br/>
 	</div>
 </div>
 

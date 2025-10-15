@@ -179,6 +179,7 @@ export async function startWebserver(port: number) {
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0),
 			userNewStatusThresholdDays: env.userNewStatusThresholdDays,
 			showEmptyProjects,
+			totalUsers: await DatabaseService.countUniqueProjectUsersInCampus(campus.id),
 		};
 		res.render('index.ejs', settings);
 	});

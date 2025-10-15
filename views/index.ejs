@@ -203,6 +203,22 @@
 			height: 15px;
 			margin-top: -2px;
 		}
+
+		footer {
+            position: fixed;
+            bottom: 16px;
+            left: var(--root-padding);
+            font-size: var(--font-size-4);
+        }
+
+        footer a {
+            color: #4a98c5;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--accent);
+        }
 	</style>
 
 	<script async>
@@ -233,7 +249,6 @@
 		<img class="inline" src="/public/new.svg"></img> indicates that the user's project status was changed in the last <%= userNewStatusThresholdDays %> days<br/><br/>
 		Built by Joppe Koers/<a href="https://profile.intra.42.fr/users/jkoers">@jkoers</a><br/>
 		Maintained by Noah Mattos Oudejans/<a href="https://profile.intra.42.fr/users/nmattos-">@nmattos-</a><br/>
-		<a href="https://github.com/codam-coding-college/find-peers">Source</a><br/>
 	</div>
 	<div class="description-right">
 		This page is updated every <%= updateEveryHours %> hours. <br/><br/>
@@ -329,6 +344,10 @@
 		</div>
 	<% }) %>
 </div>
+
+<footer>
+    <a href="https://github.com/codam-coding-college/find-peers">Source</a>
+</footer>
 
 </body>
 </html>

@@ -109,8 +109,18 @@ export async function startWebserver(port: number) {
 		})
 	);
 
+	// Login route (expired token, no token)
+	app.get('/login', (_, res) => {
+		// go to login page
+		res.render('login.ejs');
+	});
+
 	// Main route
-	app.get('/', authenticate, async (req, res) => {
+	app.get('/', async (req, res) => {
+		if (!req.isAuthenticated() || !req.user) {
+			return res.redirect('/login');
+		}
+
 		const user = req.user as any;
 		const accessToken = user?.accessToken;
 

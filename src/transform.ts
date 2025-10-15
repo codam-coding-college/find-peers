@@ -11,7 +11,6 @@ export function transformApiProjectUserToDb(apiProjectUser: any): ProjectUser {
 		user_id: apiProjectUser.user.id,
 		created_at: apiProjectUser.created_at,
 		updated_at: apiProjectUser.updated_at,
-		validated_at: apiProjectUser.marked_at || null,
 		status: apiProjectUser.status
 	};
 }

@@ -44,7 +44,6 @@ model ProjectUser {
   user_id      Int
   created_at   String
   updated_at   String
-  validated_at String?
   status       String
 
   project Project @relation(fields: [project_id], references: [id])

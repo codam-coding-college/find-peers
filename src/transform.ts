@@ -1,11 +1,12 @@
 import { User, Project, Campus, ProjectUser } from '@prisma/client'
+import { ApiUser, ApiProject, ApiCampus, ApiProjectUser } from './types';
 
 /**
  * Transforms 42Api /v2/projects_users data to Database data.
  * @param apiProjectUser Fetched data from the 42Api
  * @returns ProjectUser object for the database
  */
-export function transformApiProjectUserToDb(apiProjectUser: any): ProjectUser {
+export function transformApiProjectUserToDb(apiProjectUser: ApiProjectUser): ProjectUser {
 	return {
 		project_id: apiProjectUser.project.id,
 		user_id: apiProjectUser.user.id,
@@ -20,7 +21,7 @@ export function transformApiProjectUserToDb(apiProjectUser: any): ProjectUser {
  * @param apiUser Fetched data from the 42Api
  * @returns User object for the database
  */
-export function transformApiUserToDb(apiUser: any): User {
+export function transformApiUserToDb(apiUser: ApiUser): User {
 	const primaryCampus = apiUser.campus_users.find((cu: any) => cu.is_primary);
 	if (apiUser.staff) {
 		// Add prefix to staff logins to make filtering them easier, without storing "staff" boolean in the database
@@ -41,7 +42,7 @@ export function transformApiUserToDb(apiUser: any): User {
  * @param apiCampus Fetched data from the 42Api
  * @returns Campus object for the database
  */
-export function transformApiCampusToDb(apiCampus: any): Campus {
+export function transformApiCampusToDb(apiCampus: ApiCampus): Campus {
 	return {
 		id: apiCampus.id,
 		name: apiCampus.name
@@ -53,11 +54,11 @@ export function transformApiCampusToDb(apiCampus: any): Campus {
  * @param apiProjectUser Fetched data from the 42Api
  * @returns Project object for the database
  */
-export function transformApiProjectToDb(apiProject: any): Project {
+export function transformApiProjectToDb(apiProject: ApiProject): Project {
 	return {
 		id: apiProject.id,
 		name: apiProject.name || '',
 		slug: apiProject.slug || '',
-		difficulty: apiProject.difficulty || undefined
+		difficulty: apiProject.difficulty || null
 	};
 }

@@ -1,3 +1,4 @@
+import availabilityRouter from './routes/availability';
 import path from 'path'
 import express, { Response } from 'express'
 import { passport, authenticate } from './authentication'
@@ -93,6 +94,7 @@ export async function startWebserver(port: number) {
 		next()
 	})
 
+	app.use('/api/availability', availabilityRouter);
 	app.get('/robots.txt', (_, res) => {
 		res.type('text/plain')
 		res.send('User-agent: *\nAllow: /')

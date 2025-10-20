@@ -43,5 +43,8 @@
 	},
 	"engines": {
 		"node": ">=18.0.0"
+	},
+	"devDependencies": {
+		"ts-node-dev": "^2.0.0"
 	}
 }

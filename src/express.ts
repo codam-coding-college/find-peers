@@ -78,15 +78,15 @@ export async function startWebserver(port: number) {
 	const sessionConfig: session.SessionOptions = {
 		store: new SQLiteStore({
 			db: 'sessions.db',
-			dir: './prisma' // Store in same directory as your main DB
-		}) as any, // Type assertion to work around incompatible types
+			dir: './prisma'
+		}) as any,
 		secret: env.tokens.userAuth.secret.slice(5),
 		resave: false,
 		saveUninitialized: false,
 		cookie: {
-			secure: process.env['NODE_ENV'] === 'production', // HTTPS only in production
+			secure: process.env['NODE_ENV'] === 'production',
 			httpOnly: true,
-			maxAge: 24 * 60 * 60 * 1000 // 24 hours
+			maxAge: 24 * 60 * 60 * 1000
 		}
 	};
 

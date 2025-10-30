@@ -34,6 +34,9 @@ export interface ApiProject {
 	name?: string;
 	slug?: string;
 	difficulty?: number;
+	campus?: {
+		id: number;
+	}[]; // List of campuses associated with the project
 }
 
 export interface ApiCampus {

@@ -20,11 +20,11 @@ model Campus {
 }
 
 model Project {
-  id    Int    @id
-  name  String
-  slug  String
-  difficulty  Int?
-  users ProjectUser[]
+  id         Int     @id
+  name       String
+  slug       String
+  difficulty Int?
+  users      ProjectUser[]
 }
 
 model User {

@@ -68,7 +68,7 @@ async function fetchandInsertUserData(accessToken: string) {
 		headers: { Authorization: `Bearer ${accessToken}` },
 	})
 	const json = await response.json();
-	const userDB = transformApiUserToDb(json);
+	const userDB = transformApiUserToDb(json, undefined);
 	if (await DatabaseService.findUserByLogin(userDB.login) === null
 		&& await DatabaseService.findUserByLogin('3c3' + userDB.login) === null) {
 		const missingCampusId = await DatabaseService.getMissingCampusId(json);

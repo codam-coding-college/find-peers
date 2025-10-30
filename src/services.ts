@@ -121,6 +121,53 @@ export class DatabaseService {
 	}
 
 	/**
+	 * Retrieve user IDs that are missing from the user table.
+	 * @param projectUsers The list of project users to check against the database.
+	 * @returns The list of missing user IDs.
+	 */
+	static async getMissingUserIds(projectUsers: any[]): Promise<number[]> {
+		const usersArray = Array.isArray(projectUsers) ? projectUsers : [projectUsers];
+
+		const userIds = [...new Set(usersArray.map(pu => pu.user.id).filter((id) => id !== null && id !== undefined))];
+		const existingUsers = await prisma.user.findMany({
+			where: { id: { in: userIds } },
+			select: { id: true }
+		});
+
+		const existingUserIds = new Set(existingUsers.map(u => u.id));
+		return userIds.filter(id => !existingUserIds.has(id));
+	}
+
+	/**
+	 * Given one or multiple user objects from the API, return the user IDs
+	 * for which the primary campus is missing in the database.
+	 * @param users One or multiple user objects from the API.
+	 * @returns The list of user IDs with missing primary campus in the database.
+	 */
+	static async getMissingCampusUserIds(users: any[] | any): Promise<number[]> {
+		const usersArray = Array.isArray(users) ? users : [users];
+
+		// filter unique campus IDs
+		const campusIdsToCheck = usersArray
+			.map(u => u?.campus_users?.find((cu: any) => cu.is_primary)?.campus_id ?? null)
+			.filter((id): id is number => id !== null && id !== undefined);
+
+		// Fetch existing campuses in one query
+		const existingCampuses = campusIdsToCheck.length
+			? await prisma.campus.findMany({
+				where: { id: { in: campusIdsToCheck } },
+				select: { id: true }
+			})
+			: [];
+		const existingCampusIds = new Set(existingCampuses.map(c => c.id));
+
+		// Return user IDs where campusId is null/undefined OR campusId not found in DB
+		return usersArray
+			.filter(u => u.userId !== null && (u.campusId === null || !existingCampusIds.has(u.campusId)))
+			.map(u => u.userId as number);
+	}
+
+	/**
 	 * Retrieve the campus associated with a user.
 	 * @param userLogin The login of the user.
 	 * @returns The campus information or null if not found.

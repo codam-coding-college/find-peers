@@ -21,8 +21,13 @@ export function transformApiProjectUserToDb(apiProjectUser: ApiProjectUser): Pro
  * @param apiUser Fetched data from the 42Api
  * @returns User object for the database
  */
-export function transformApiUserToDb(apiUser: ApiUser): User {
-	const primaryCampus = apiUser.campus_users.find((cu: any) => cu.is_primary);
+export function transformApiUserToDb(apiUser: ApiUser, campusId: number | undefined): User {
+	let primaryCampus;
+	if (campusId === undefined) {
+		primaryCampus = apiUser.campus_users.find((cu: any) => cu.is_primary)?.campus_id;
+	} else {
+		primaryCampus = campusId;
+	}
 	if (apiUser.staff) {
 		// Add prefix to staff logins to make filtering them easier, without storing "staff" boolean in the database
 		apiUser.login = '3c3' + apiUser.login;
@@ -30,7 +35,7 @@ export function transformApiUserToDb(apiUser: ApiUser): User {
 	return {
 		id: apiUser.id,
 		login: apiUser.login,
-		primary_campus_id: primaryCampus ? primaryCampus.campus_id : 1,
+		primary_campus_id: primaryCampus ? primaryCampus : 1,
 		image_url: apiUser.image?.versions?.medium || null,
 		pool: apiUser.pool_month + ' ' + apiUser.pool_year,
 		anonymize_date: apiUser.anonymize_date || null
@@ -59,6 +64,6 @@ export function transformApiProjectToDb(apiProject: ApiProject): Project {
 		id: apiProject.id,
 		name: apiProject.name || '',
 		slug: apiProject.slug || '',
-		difficulty: apiProject.difficulty || null
+		difficulty: apiProject.difficulty || null,
 	};
 }

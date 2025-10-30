@@ -3,6 +3,7 @@ import { NODE_ENV, DEV_DAYS_LIMIT, env } from "./env";
 import { transformApiCampusToDb, transformApiUserToDb, transformApiProjectToDb, transformApiProjectUserToDb } from './transform';
 import { DatabaseService } from './services';
 import { log } from "./logger";
+import { ApiUser } from "./types";
 
 const fast42Api = new Fast42(
 	[
@@ -58,6 +59,7 @@ export const syncWithIntra = async function(): Promise<void> {
 		await syncCampuses(fast42Api, lastSync);
 		await syncCursusProjects(fast42Api, lastSync, '9');
 		await syncCursusProjects(fast42Api, lastSync, '21');
+		await syncUsers(fast42Api, lastSync);
 		await syncProjectUsers(fast42Api, lastSync);
 		await DatabaseService.saveSyncTimestamp(now);
 
@@ -129,6 +131,59 @@ async function syncCursusProjects(fast42Api: Fast42, lastPullDate: Date | undefi
 }
 
 /**
+ * Synchronize users by filtering on previously fetched campuses and projects.
+ * @param fast42Api The Fast42 API instance to use for fetching user data
+ * @param lastPullDate The date of the last synchronization
+ */
+async function syncUsers(fast42Api: Fast42, lastPullDate: Date | undefined): Promise<void> {
+	let pageIndex = 0;
+	let hasMorePages = true;
+	let params: { [key: string]: string } = {};
+	params['page[size]'] = '100';
+	if (lastPullDate) {
+		let syncDate = new Date();
+		params['range[updated_at]'] = `${lastPullDate.toISOString()},${syncDate.toISOString()}`;
+	}
+
+	const campuses = await DatabaseService.getAllCampuses();
+	let campusIds = campuses.map(c => c.id);
+	try {
+		for (const campusId of campusIds) {
+			params['filter[primary_campus_id]'] = campusId.toString();
+			while (hasMorePages) {
+				pageIndex++;
+				params['page[number]'] = pageIndex.toString();
+				log(2, `Fetching page ${pageIndex} of users for campus ${campusId}...`);
+
+				let usersData;
+				try {
+					// campus/campus_id/users
+					usersData = await fetchSingle42ApiPage(fast42Api, `/campus/${campusId}/users`, params);
+				} catch (error) {
+					console.error(`Failed to fetch users for campus ${campusId} on page ${pageIndex}:`, error);
+					throw error; // Stop syncing on error
+				}
+				if (!usersData || usersData.length === 0) {
+					log(2, `No more users found for campus ${campusId} on page ${pageIndex}. Stopping.`);
+					hasMorePages = false;
+					break;
+				}
+
+				log(2, `Processing page ${pageIndex} with ${usersData.length} users...`);
+				const dbUsers = usersData.map((user: any) => transformApiUserToDb(user, campusId));
+				await DatabaseService.insertManyUsers(dbUsers);
+			}
+			pageIndex = 0;
+			hasMorePages = true;
+		}
+	} catch (error) {
+		console.error(`Failed to sync users`, error);
+		throw error;
+	}
+	log(2, `Syncing Users completed.`);
+}
+
+/**
  * Sync project users with the Fast42 API.
  * @param fast42Api The Fast42 API instance to use for fetching project users
  * @param lastPullDate The date of the last synchronization
@@ -168,7 +223,12 @@ async function syncProjectUsers(fast42Api: Fast42, lastPullDate: Date | undefine
 					break;
 				}
 
-				await syncUsers(fast42Api, lastPullDate, projectUsersData);
+				// sync any missing users before inserting project users
+				let missingUserIds = await DatabaseService.getMissingUserIds(projectUsersData);
+				if (missingUserIds.length > 0) {
+					log(2, `Found ${missingUserIds.length} missing users for project ${projectId}, syncing...`);
+					await syncMissingUsers(fast42Api, missingUserIds);
+				}
 
 				log(2, `Processing page ${pageIndex} with ${projectUsersData.length} users...`);
 				const dbProjectUsers = projectUsersData.map(transformApiProjectUserToDb);
@@ -185,38 +245,32 @@ async function syncProjectUsers(fast42Api: Fast42, lastPullDate: Date | undefine
 }
 
 /**
- * Synchronize users using the given projectUserData.
- * @param fast42Api The Fast42 API instance to use for fetching user data
- * @param lastPullDate The date of the last synchronization
- * @param projectUsersData The project users data to synchronize
+ * Sync missing users with the Fast42 API.
+ * @param fast42Api The Fast42 API instance to use for fetching users
+ * @param missingUserIds An array of user IDs that are missing in the database
+ * @returns A promise that resolves when the synchronization is complete
  */
-async function syncUsers(fast42Api: Fast42, lastPullDate: Date | undefined, projectUsersData: any[]): Promise<void> {
+async function syncMissingUsers(fast42Api: Fast42, missingUserIds: number[]): Promise<void> {
 	try {
-		for (const projectUser of projectUsersData) {
-			log(2, `Processing missing user ${projectUser.user.id}...`);
-			const userApi = await syncData(fast42Api, new Date(), lastPullDate, `/users/${projectUser.user.id}`, {});
-			const user = userApi[0];
+		for (const userId of missingUserIds) {
+			const userData: ApiUser | undefined = await fetchSingle42ApiPage(fast42Api, `/users/${userId}`, {}) as ApiUser | undefined;
+			if (userData) {
+				const dbUser = transformApiUserToDb(userData, undefined);
 
-			if (!user) {
-				log(2, `No user data found for ID: ${projectUser.user.id}, skipping...`);
-				continue; // Skip to next user
+				if (await DatabaseService.getMissingCampusId(userData) !== null) {
+					log(2, `Inserting user ${dbUser.login} (ID: ${dbUser.id}) into Ghost Campus due to missing campus...`);
+					DatabaseService.insertCampus({ id: 42, name: `Ghost Campus` });
+					dbUser.primary_campus_id = 42; // Assign to Ghost Campus
+				}
+
+				await DatabaseService.insertUser(dbUser);
+				log(2, `Synced missing user ${dbUser.login} (ID: ${dbUser.id})`);
 			}
-
-			const dbUser = transformApiUserToDb(user);
-
-			const missingCampusId = await DatabaseService.getMissingCampusId(user);
-			if (missingCampusId !== null) {
-				console.error(`Assigning to non-existent campus; failed to fetch ${missingCampusId}:`, Error);
-				DatabaseService.insertCampus({ id: 42, name: `Ghost Campus` });
-				dbUser.primary_campus_id = 42; // Assign to Ghost Campus
-			}
-			await DatabaseService.insertUser(dbUser);
 		}
 	} catch (error) {
-		console.error(`Failed to sync users`, error);
+		console.error(`Failed to sync missing users`, error);
 		throw error;
 	}
-	log(2, `Syncing Users for project ${projectUsersData[0].project.id} completed.`);
 }
 
 /**

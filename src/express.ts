@@ -78,13 +78,13 @@ export async function startWebserver(port: number) {
 	const sessionConfig: session.SessionOptions = {
 		store: new SQLiteStore({
 			db: 'sessions.db',
-			dir: './prisma'
+			dir: './database'
 		}) as any,
 		secret: env.tokens.userAuth.secret.slice(5),
 		resave: false,
 		saveUninitialized: false,
 		cookie: {
-			secure: process.env['NODE_ENV'] === 'production',
+			secure: false, // Set to false to allow HTTP in development/localhost
 			httpOnly: true,
 			maxAge: 24 * 60 * 60 * 1000
 		}
@@ -113,9 +113,7 @@ export async function startWebserver(port: number) {
 
 	// Authentication routes
 	app.get(`${env.authPath}/`, passport.authenticate(env.provider, { scope: env.scope }));
-	app.get(
-		`${env.authPath}/callback`,
-		passport.authenticate(env.provider, {
+	app.get(`${env.authPath}/callback`, passport.authenticate(env.provider, {
 			successRedirect: '/',
 			failureRedirect: `${env.authPath}`,
 		})

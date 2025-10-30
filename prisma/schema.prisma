@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = "file:./myfindpeers.db"
+  url      = "file:./database/myfindpeers.db"
 }
 
 model Campus {

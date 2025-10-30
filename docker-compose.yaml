@@ -18,15 +18,18 @@ services:
   find-peers:
     container_name: find-peers
     restart: unless-stopped
-    image: ghcr.io/codam-coding-college/find-peers/find-peers:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # image: ghcr.io/codam-coding-college/find-peers/find-peers:latest
     volumes:
       - $HOME/find-peers/database:/app/database
     env_file: ./env/.env
     environment:
       - PORT=8080
     ports:
-      - 80:8080
-      # - 8080:8080
+      - 8080:8080
+      # - 80:8080
 
   watchtower:
     container_name: watchtower

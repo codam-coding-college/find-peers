@@ -50,10 +50,12 @@
 	},
 	"devDependencies": {
 		"@types/connect-sqlite3": "^0.9.6",
+		"@types/oauth": "^0.9.6",
 		"@types/passport-oauth2": "^1.8.0",
 		"eslint": "^8.57.1",
 		"globals": "^16.4.0",
 		"jiti": "^2.5.1",
+		"prisma": "^6.18.0",
 		"ts-node-dev": "^2.0.0",
 		"typescript-eslint": "^8.44.0"
 	}

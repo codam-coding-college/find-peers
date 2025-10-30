@@ -3,6 +3,7 @@ import express, { Response } from 'express'
 import { passport, authenticate } from './authentication'
 import { env, ProjectStatus } from './env'
 import session from 'express-session'
+import connectSqlite3 from 'connect-sqlite3'
 import { log } from './logger'
 import compression from 'compression'
 import cookieParser from 'cookie-parser'
@@ -72,13 +73,24 @@ export async function startWebserver(port: number) {
 	// Add cookie parser middleware
 	app.use(cookieParser());
 
-	app.use(
-		session({
-			secret: env.tokens.userAuth.secret.slice(5),
-			resave: false,
-			saveUninitialized: true,
-		})
-	);
+	// Set up session store
+	const SQLiteStore = connectSqlite3(session);
+	const sessionConfig: session.SessionOptions = {
+		store: new SQLiteStore({
+			db: 'sessions.db',
+			dir: './prisma' // Store in same directory as your main DB
+		}) as any, // Type assertion to work around incompatible types
+		secret: env.tokens.userAuth.secret.slice(5),
+		resave: false,
+		saveUninitialized: false,
+		cookie: {
+			secure: process.env['NODE_ENV'] === 'production', // HTTPS only in production
+			httpOnly: true,
+			maxAge: 24 * 60 * 60 * 1000 // 24 hours
+		}
+	};
+
+	app.use(session(sessionConfig));
 	app.use(passport.initialize());
 	app.use(passport.session());
 

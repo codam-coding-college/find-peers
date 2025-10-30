@@ -13,12 +13,3 @@ export function assertEnvStr(env: string): string {
 	}
 	return value;
 }
-
-export function assertEnvInt(env: string): number {
-	const value = assertEnv(env);
-	const num = parseInt(value);
-	if (isNaN(num)) {
-		throw new Error(`Environment variable "${value}" is not a number`);
-	}
-	return num;
-}

@@ -28,6 +28,7 @@
 		"@typescript-eslint/parser": "^5.48.2",
 		"42-connector": "github:codam-coding-college/42-connector#3.1.0",
 		"compression": "^1.7.4",
+		"connect-sqlite3": "^0.9.16",
 		"cookie-parser": "^1.4.7",
 		"crypto": "^1.0.1",
 		"dotenv": "^16.0.3",
@@ -35,7 +36,7 @@
 		"eslint-config-prettier": "^8.6.0",
 		"eslint-plugin-prettier": "^4.2.1",
 		"express": "4.17.3",
-		"express-session": "1.17.2",
+		"express-session": "^1.17.2",
 		"hot-shots": "^10.0.0",
 		"node-fetch": "2.6.7",
 		"passport": "0.6.0",
@@ -48,6 +49,7 @@
 		"node": ">=18.0.0"
 	},
 	"devDependencies": {
+		"@types/connect-sqlite3": "^0.9.6",
 		"@types/passport-oauth2": "^1.8.0",
 		"eslint": "^8.57.1",
 		"globals": "^16.4.0",

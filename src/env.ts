@@ -1,4 +1,4 @@
-import { assertEnvInt, assertEnvStr } from './util'
+import { assertEnvStr } from './util'
 
 export const DEV_DAYS_LIMIT: number = process.env['DEV_DAYS_LIMIT'] ? parseInt(process.env['DEV_DAYS_LIMIT'] as string) : 365;
 export const NODE_ENV = process.env['NODE_ENV'] || 'development';
@@ -22,7 +22,6 @@ export interface Env {
 		sync: {
 			UID: string
 			secret: string
-			maxRequestPerSecond: number
 		}
 	}
 	userNewStatusThresholdDays: number
@@ -51,7 +50,6 @@ export const env: Readonly<Env> = {
 		sync: {
 			UID: assertEnvStr('SYNC_UID'),
 			secret: assertEnvStr('SYNC_SECRET'),
-			maxRequestPerSecond: assertEnvInt('SYNC_MAX_REQUESTS_PER_SECOND'),
 		},
 	},
 	userNewStatusThresholdDays: 7,

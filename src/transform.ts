@@ -29,7 +29,8 @@ export function transformApiUserToDb(apiUser: ApiUser, campusId: number | undefi
 		primaryCampus = campusId;
 	}
 	if (apiUser.staff) {
-		// Add prefix to staff logins to make filtering them easier, without storing "staff" boolean in the database
+		// Add prefix to staff logins to make filtering them easier, without storing "staff" boolean in the database.
+		// I've chosen a prefix over a boolean to save harddisk space.
 		apiUser.login = '3c3' + apiUser.login;
 	}
 	return {

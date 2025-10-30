@@ -27,7 +27,7 @@ docker logs --tail 10000 -f find-peers
 | `./env/.env-example`                         | Example file for api tokens, rename to `.env` to activate                             | no                |
 
 ## Running
-The database of this project is in a folder called 'prisma' at the root of the project.
+The database of this project is in a folder called 'database' at the root of the project.
 
 ### Docker and Docker-compose
 This is in production
@@ -44,9 +44,9 @@ docker logs --tail 10000 -f find-peers
 - Install Nodejs >= 18.x
 - Install dependencies\
 `npm install`
-- Generate the Prisma client\
+- Generate prisma client
 `npx prisma generate`
-- Run Prisma migration\
-`npx prisma migrate dev`
+- Push schema directly
+`npx prisma db`
 - Start development server\
 `npm run dev`

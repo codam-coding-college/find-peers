@@ -26,7 +26,6 @@
 		"@types/strip-json-comments": "3.0.0",
 		"@typescript-eslint/eslint-plugin": "^5.48.2",
 		"@typescript-eslint/parser": "^5.48.2",
-		"42-connector": "github:codam-coding-college/42-connector#3.1.0",
 		"compression": "^1.7.4",
 		"connect-sqlite3": "^0.9.16",
 		"cookie-parser": "^1.4.7",

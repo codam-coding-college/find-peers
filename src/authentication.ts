@@ -1,100 +1,99 @@
 import passport from 'passport'
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { OAuth2Strategy } = require('passport-oauth')
+import { Strategy as OAuth2Strategy } from 'passport-oauth2'
 import fetch from 'node-fetch'
-import fs from 'fs'
 import { env } from './env'
-import { UserProfile } from './types'
 import { Request, Response, NextFunction } from 'express'
+import { log } from './logger'
+import { DatabaseService } from './services'
+import { transformApiUserToDb, transformApiCampusToDb } from './transform'
 
+/**
+ * Middleware to ensure user is authenticated.
+ * @param req Request object containing user information
+ * @param res Response object to redirect if not authenticated
+ * @param next Function to call after authentication check
+ * @returns Redirects to OAuth login if user is not authenticated
+ */
 export function authenticate(req: Request, res: Response, next: NextFunction) {
 	if (!req.user) {
-		res.redirect(`/auth/${env.provider}`)
+		res.redirect(`${env.authPath}`);
 	} else {
-		next()
+		next();
 	}
 }
 
-const usersDB: UserProfile[] = []
-const emptyUsersDB: string = JSON.stringify(usersDB)
-if (!fs.existsSync(env.userDBpath) || fs.statSync(env.userDBpath).size < emptyUsersDB.length) {
-	fs.writeFileSync(env.userDBpath, emptyUsersDB)
-}
-
-const users: UserProfile[] = JSON.parse(fs.readFileSync(env.userDBpath).toString())
-
-passport.serializeUser((user, done) => {
-	//@ts-ignore
-	done(null, user.id)
+// Store (only) access token in session
+passport.serializeUser((user: any, done) => {
+	done(null, { accessToken: user.accessToken, login: user.login });
 })
 
-passport.deserializeUser((id, done) => {
-	const user = users.find(user => user.id === id)
-	done(null, user)
-})
-
-async function getProfile(accessToken: string, refreshToken: string): Promise<UserProfile | null> {
+// On every request, validate access token
+passport.deserializeUser(async (sessionUser: { accessToken: string, login: string }, done) => {
 	try {
-		const response = await fetch('https://api.intra.42.fr/v2/me', {
-			headers: {
-				Authorization: `Bearer ${accessToken}`,
-			},
-		})
-		const json = await response.json()
-		const profile: UserProfile = {
-			id: json.id,
-			login: json.login,
-			first_name: json.first_name,
-			displayname: json.displayname,
-			campusID: json.campus.length > 0 ? json.campus[0].id : 42, // set user's campus to first one listed in API call
-			campusName: json.campus.length > 0 ? json.campus[0].name : 'Paris',
-			timeZone: json.campus.length > 0 ? json.campus[0].time_zone : 'Europe/Paris',
-			accessToken,
-			refreshToken,
+		const user = await DatabaseService.findUserByLogin(sessionUser.login);
+
+		if (!user) {
+			log(2, 'Access token is no longer valid');
+			done(null, false);
 		}
-		for (const i in json.campus_users) {
-			// get user's primary campus
-			if (json.campus_users[i].is_primary) {
-				for (const j in json.campus) {
-					// get primary campus name and store it in UserProfile (overwriting the one assigned above, which might not be primary)
-					if (json.campus[j].id === json.campus_users[i].campus_id) {
-						profile.campusName = json.campus[j].name
-						profile.timeZone = json.campus[j].time_zone
-						profile.campusID = json.campus_users[i].campus_id
-						break
-					}
-				}
-				break
-			}
-		}
-		return profile
-	} catch (err) {
-		return null
+
+		done(null, { accessToken: sessionUser.accessToken, isAuthenticated: true });
+
+	} catch (error) {
+		log(2, 'Cannot verify token');
+		done(null, false);
 	}
-}
+})
+
+// OAuth2 strategy for initial authentication
 const opt = {
 	authorizationURL: env.authorizationURL,
 	tokenURL: env.tokenURL,
 	clientID: env.tokens.userAuth.UID,
 	clientSecret: env.tokens.userAuth.secret,
 	callbackURL: env.tokens.userAuth.callbackURL,
-	// passReqToCallback: true
 }
-const client = new OAuth2Strategy(opt, async (accessToken: string, refreshToken: string, _profile: string, done: (err: string | null, user: UserProfile | null) => void) => {
-	// fires when user clicked allow
-	const newUser = await getProfile(accessToken, refreshToken)
-	if (!newUser) {
-		return done('cannot get user info', null)
+
+const client = new OAuth2Strategy(opt, async (accessToken: string, refreshToken: string, _profile: string, done: (err: string | null, user: any) => void) => {
+	try {
+		const userDB = await fetchandInsertUserData(accessToken);
+		done(null, { accessToken, refreshToken, login: userDB.login });
+	} catch (error) {
+		done('Authentication failed', null);
 	}
-	const userIndex = users.findIndex(user => user.id === newUser.id)
-	if (userIndex < 0) {
-		users.push(newUser)
-	} else {
-		users[userIndex] = newUser
-	}
-	await fs.promises.writeFile(env.userDBpath, JSON.stringify(users))
-	done(null, newUser)
 })
-passport.use(env.provider, client)
+
+async function fetchandInsertUserData(accessToken: string) {
+	const response = await fetch('https://api.intra.42.fr/v2/me', {
+		headers: { Authorization: `Bearer ${accessToken}` },
+	})
+	const json = await response.json();
+	const userDB = transformApiUserToDb(json, undefined);
+	if (await DatabaseService.findUserByLogin(userDB.login) === null
+		&& await DatabaseService.findUserByLogin('3c3' + userDB.login) === null) {
+		const missingCampusId = await DatabaseService.getMissingCampusId(json);
+		if (missingCampusId !== null) {
+			log(2, `Found missing campus ID ${missingCampusId}, syncing...`);
+			try {
+				const campusResponse = await fetch(`https://api.intra.42.fr/v2/campus/${missingCampusId}`, {
+					headers: { Authorization: `Bearer ${accessToken}` },
+				});
+				const campusJson = await campusResponse.json();
+				await DatabaseService.insertCampus({ ...transformApiCampusToDb(campusJson) });
+				userDB.primary_campus_id = missingCampusId;
+				log(1, `Successfully synced and assigned campus ID ${missingCampusId} to user ${userDB.login}`);
+
+			} catch (error) {
+				console.error(`Assigning to non-existent campus; failed to fetch ${missingCampusId}:`, error);
+				DatabaseService.insertCampus({ id: 42, name: `Ghost Campus` });
+				userDB.primary_campus_id = 42; // Assign to Ghost Campus
+			}
+		}
+		await DatabaseService.insertUser(userDB);
+	}
+	return userDB;
+}
+
+passport.use(env.provider, client);
 
 export { passport }

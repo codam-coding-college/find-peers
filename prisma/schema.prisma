@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./database/myfindpeers.db"
+}
+
+model Campus {
+  id    Int    @id
+  name  String
+  users User[]
+}
+
+model Project {
+  id         Int     @id
+  name       String
+  slug       String
+  difficulty Int?
+  users      ProjectUser[]
+}
+
+model User {
+  id                Int     @id
+  login             String  @unique
+  primary_campus_id Int?
+  image_url         String?
+  pool              String
+  anonymize_date    String?
+
+  campus   Campus?       @relation(fields: [primary_campus_id], references: [id])
+  projects ProjectUser[]
+}
+
+model ProjectUser {
+  project_id   Int
+  user_id      Int
+  created_at   String
+  updated_at   String
+  status       String
+
+  project Project @relation(fields: [project_id], references: [id])
+  user    User    @relation(fields: [user_id], references: [id])
+
+  @@id([project_id, user_id])
+}
+
+model Sync {
+  id        Int     @id @default(autoincrement())
+  last_pull String?
+}

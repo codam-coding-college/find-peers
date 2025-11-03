@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            color-scheme: dark;
+            font-family: monospace;
+            padding: 0;
+
+            --accent: #ffffff;
+
+            --search-height: 50px;
+            --root-padding: 32px;
+
+            font-size: 22px;
+            letter-spacing: -0.2px;
+            --font-size-1: 4ch;
+            --font-size-2: 2.5ch;
+            --font-size-3: 1.1ch;
+            --font-size-4: 0.75ch;
+        }
+
+        body {
+            background: #1a1a1a;
+            background-image:
+                linear-gradient(to right, #00babc11 1px, transparent 1px),
+                linear-gradient(to bottom, #00babc11 1px, transparent 1px);
+            background-size: 20px 20px;
+            min-height: 100vh;
+            padding: var(--search-height) var(--root-padding) 0px;
+        }
+
+        #title {
+            font-size: var(--font-size-1);
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #title-small {
+            font-size: var(--font-size-2-5);
+            font-weight: normal;
+            color: #ffffff;
+            text-align: center;
+        }
+
+        .banner {
+            position: relative;
+            margin: calc(-1 * var(--search-height)) calc(-1 * var(--root-padding)) 0;
+            padding: calc(var(--search-height) + 64px) var(--root-padding) 64px;
+            background: #78a9bd;
+            margin-left: calc(-50vw + 50%);
+        }
+
+        .login-container {
+            margin: 40px 0;
+            padding: 32px;
+            background: #1c566d;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            border: 1px solid #222;
+            text-align: center;
+        }
+
+        .login-title {
+            font-size: var(--font-size-2);
+            font-weight: bold;
+            color: #4a98c5;
+            margin-bottom: 24px;
+        }
+
+        button {
+            font-size: var(--font-size-3);
+            font-family: monospace;
+            padding: 16px 32px;
+            background: #2c7385;
+            color: var(--accent);
+            border: 1px solid #444;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover,
+        button:focus {
+            background: #3a8aa0;
+            box-shadow: 0 0 7px white;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 16px;
+            left: var(--root-padding);
+            font-size: var(--font-size-4);
+        }
+
+        footer a {
+            color: #4a98c5;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--accent);
+        }
+    </style>
+
+</head>
+
+<body>
+
+<div class="banner">
+    <div id="title">
+        - Find Peers -
+    </div>
+    <div id="title-small">
+        Authentication Required
+    </div>
+</div>
+
+<div class="login-container">
+    <div class="login-title">
+        Please login to continue
+    </div>
+    <button onclick="window.location.href='/auth/42'">Login with 42</button>
+</div>
+
+<footer>
+    <a href="https://github.com/codam-coding-college/find-peers">Source</a>
+</footer>
+
+</body>
+</html>

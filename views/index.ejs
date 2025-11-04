@@ -109,6 +109,12 @@
 		.project-title {
 			color: var(--accent);
 			transition: color 0.2s;
+			text-decoration: none;
+			cursor: pointer;
+		}
+
+		.project-title:hover {
+			text-decoration: underline;
 		}
 
 		.users {
@@ -306,9 +312,9 @@
 	<% projects.forEach(project=>{ %>
 		<div class="project">
 			<div class="project-name">
-				<div id="<%= project.name.toLowerCase().replaceAll(' ', '-') %>" class="project-title" onclick="window.location.href = 'https://projects.intra.42.fr/projects/<%= project.slug %>'">
-					<%= project.name.toLowerCase().replaceAll(' ', '-') %>
-				</div>
+				<a id="<%= project.name.toLowerCase().replaceAll(' ', '-') %>" class="project-title" href="https://projects.intra.42.fr/projects/<%= project.slug %>" target="_blank">
+					<%= project.name %>
+				</a>
 				<div class="n-users">
 					<%= project.users.length %> users
 				</div>

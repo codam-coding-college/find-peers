@@ -232,7 +232,7 @@ async function syncProjectUsers(fast42Api: Fast42, lastPullDate: Date | undefine
 					await syncMissingUsers(fast42Api, missingUserIds);
 				}
 
-				log(2, `Processing page ${pageIndex} with ${projectUsersData.length} users...`);
+				log(2, `Processing page ${pageIndex} with ${projectUsersData.length} projectUsers...`);
 				const dbProjectUsers = projectUsersData.map(transformApiProjectUserToDb);
 				await DatabaseService.insertManyProjectUsers(dbProjectUsers);
 			}

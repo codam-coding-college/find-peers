@@ -59,7 +59,7 @@ export const syncWithIntra = async function(): Promise<void> {
 		await syncCampuses(fast42Api, lastSync);
 		await syncCursusProjects(fast42Api, lastSync, '9');
 		await syncCursusProjects(fast42Api, lastSync, '21');
-		await syncUsers(fast42Api, lastSync);
+		// await syncUsers(fast42Api, lastSync);
 		await syncProjectUsers(fast42Api, lastSync);
 		await DatabaseService.saveSyncTimestamp(now);
 

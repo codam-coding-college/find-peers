@@ -148,12 +148,13 @@ async function syncUsers(fast42Api: Fast42, lastPullDate: Date | undefined): Pro
 	const campuses = await DatabaseService.getAllCampuses();
 	let campusIds = campuses.map(c => c.id);
 	try {
-		for (const campusId of campusIds) {
+		const totalCampuses = campusIds.length;
+		for (let [index, campusId] of campusIds.entries()) {
 			params['filter[primary_campus_id]'] = campusId.toString();
 			while (hasMorePages) {
 				pageIndex++;
 				params['page[number]'] = pageIndex.toString();
-				log(2, `Fetching page ${pageIndex} of users for campus ${campusId}...`);
+				log(2, `Fetching page ${pageIndex} of users for campus ${campusId} (${index + 1}/${totalCampuses})...`);
 
 				let usersData;
 				try {
@@ -203,11 +204,12 @@ async function syncProjectUsers(fast42Api: Fast42, lastPullDate: Date | undefine
 	const projects = await DatabaseService.getAllProjects();
 	let projectIds = projects.map(p => p.id);
 	try {
-		for (const projectId of projectIds) {
+		const totalProjects = projectIds.length;
+		for (let [index, projectId] of projectIds.entries()) {
 			while (hasMorePages) {
 				pageIndex++;
 				params['page[number]'] = pageIndex.toString();
-				log(2, `Fetching page ${pageIndex} of projectUsers...`);
+				log(2, `Fetching page ${pageIndex} of projectUsers for project ${projectId} (${index + 1}/${totalProjects})...`);
 
 				let projectUsersData;
 				try {

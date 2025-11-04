@@ -3,7 +3,7 @@
 	"author": "Joppe Koers",
 	"main": "./build/src/app.js",
 	"scripts": {
-		"start": "node ./build/src/app.js",
+		"start": "npx prisma migrate deploy && node ./build/src/app.js",
 		"dev": "ts-node-dev --quiet --clear --rs --respawn src/app.ts",
 		"build": "tsc",
 		"lint:check": "eslint --cache --cache-location node_modules/.eslintcache src; prettier --check src",

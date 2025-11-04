@@ -173,6 +173,7 @@ async function syncUsers(fast42Api: Fast42, lastPullDate: Date | undefined): Pro
 				log(2, `Processing page ${pageIndex} with ${usersData.length} users...`);
 				const dbUsers = usersData.map((user: any) => transformApiUserToDb(user, campusId));
 				await DatabaseService.insertManyUsers(dbUsers);
+				// No try-catch block here, needs to fail if users fail to sync, otherwise projectsusers cannot be connected to user ids
 			}
 			pageIndex = 0;
 			hasMorePages = true;
@@ -233,8 +234,13 @@ async function syncProjectUsers(fast42Api: Fast42, lastPullDate: Date | undefine
 				}
 
 				log(2, `Processing page ${pageIndex} with ${projectUsersData.length} projectUsers...`);
-				const dbProjectUsers = projectUsersData.map(transformApiProjectUserToDb);
-				await DatabaseService.insertManyProjectUsers(dbProjectUsers);
+				try {
+					const dbProjectUsers = projectUsersData.map(transformApiProjectUserToDb);
+					await DatabaseService.insertManyProjectUsers(dbProjectUsers);
+				} catch (error) {
+					console.error(`Failed to insert project users for project ${projectId} on page ${pageIndex}:`, error);
+					// Continue syncing other project users even if insertion fails, can always repopulate the database
+				}
 			}
 			pageIndex = 0;
 			hasMorePages = true;

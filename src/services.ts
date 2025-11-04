@@ -249,15 +249,15 @@ export class DatabaseService {
 					// Only update scalar fields here; do not pass relation objects directly
 					update: {
 						status: projectUser.status,
-						updated_at: projectUser.updated_at,
+						updated_at: projectUser.updated_at || new Date().toISOString(), // use current timestamp if not provided
 					},
 					// For creation, explicitly connect required relations instead of passing relation objects
 					create: {
 						status: projectUser.status,
-						created_at: projectUser.created_at,
-						updated_at: projectUser.updated_at,
+						created_at: projectUser.created_at || new Date().toISOString(), // use current timestamp if not provided
+						updated_at: projectUser.updated_at || new Date().toISOString(), // use current timestamp if not provided
 						project: { connect: { id: projectUser.project_id } },
-						user: { connect: { id: projectUser.user_id } }
+						user: { connect: { id: projectUser.user_id } },
 					}
 				})
 			);

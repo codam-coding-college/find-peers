@@ -246,8 +246,19 @@ export class DatabaseService {
 							project_id: projectUser.project_id
 						}
 					},
-					update: projectUser,
-					create: projectUser
+					// Only update scalar fields here; do not pass relation objects directly
+					update: {
+						status: projectUser.status,
+						updated_at: projectUser.updated_at,
+					},
+					// For creation, explicitly connect required relations instead of passing relation objects
+					create: {
+						status: projectUser.status,
+						created_at: projectUser.created_at,
+						updated_at: projectUser.updated_at,
+						project: { connect: { id: projectUser.project_id } },
+						user: { connect: { id: projectUser.user_id } }
+					}
 				})
 			);
 			await prisma.$transaction(insert);

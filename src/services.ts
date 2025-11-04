@@ -173,14 +173,19 @@ export class DatabaseService {
 	 * @returns The campus information or null if not found.
 	 */
 	static async getCampusByUser(userLogin: string): Promise<{name: string, id: number} | null> {
-		const campus = await prisma.campus.findFirst({
-			where: { users: { some: { login: userLogin } } },
-			select: { name: true, id: true }
+		const user = await prisma.user.findFirst({
+			where: { login: userLogin },
+			select: { primary_campus_id: true, campus: true },
 		});
-		if (!campus) {
+		if (!user) {
+			log(2, `User not found in getCampusByUser: ${userLogin}`);
 			return null;
 		}
-		return {name: campus.name, id: campus.id};
+		if (!user.primary_campus_id || !user.campus) {
+			log(2, `Campus not assigned for user ${userLogin}`);
+			return null;
+		}
+		return {name: user.campus.name, id: user.campus.id};
 	}
 
 	/**

@@ -53,11 +53,11 @@ export const syncWithIntra = async function(): Promise<void> {
 		// - last successful sync timestamp (lastSync)
 		// - active campuses
 		// - 42 and piscine cursus (cursus/21,9)
-		await syncCampuses(fast42Api);
-		await syncCursusProjects(fast42Api, '9');
-		await syncCursusProjects(fast42Api, '21');
-		await syncUsers(fast42Api);
-		await syncProjectUsers(fast42Api);
+		await syncCampuses(fast42Api, now);
+		await syncCursusProjects(fast42Api, '9', now);
+		await syncCursusProjects(fast42Api, '21', now);
+		await syncUsers(fast42Api, now);
+		await syncProjectUsers(fast42Api, now);
 		await DatabaseService.saveSyncTimestamp("full", 1, now);
 
 		console.info(`Intra synchronization completed at ${new Date().toISOString()}.`);
@@ -74,12 +74,10 @@ export const syncWithIntra = async function(): Promise<void> {
  * @param lastPullDate The date of the last synchronization
  * @returns A promise that resolves when the synchronization is complete
  */
-async function syncCampuses(fast42Api: Fast42): Promise<void> {
+async function syncCampuses(fast42Api: Fast42, lastSync: Date | undefined): Promise<void> {
 	let campusesApi;
 	try {
 		log(2, `Syncing campuses...`);
-		let lastSyncRaw = await DatabaseService.getLastSyncTimestamp("full", 1);
-		let lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
 		campusesApi = await syncData(fast42Api, new Date(), lastSync, `/campus`, { 'active': 'true' });
 		const dbCampuses = campusesApi.map(transformApiCampusToDb);
 		await DatabaseService.insertManyCampuses(dbCampuses);
@@ -96,7 +94,7 @@ async function syncCampuses(fast42Api: Fast42): Promise<void> {
  * @param lastPullDate The date of the last synchronization
  * @returns A promise that resolves when the synchronization is complete
  */
-async function syncCursusProjects(fast42Api: Fast42, cursus: string): Promise<void> {
+async function syncCursusProjects(fast42Api: Fast42, cursus: string, syncDate: Date): Promise<void> {
 	let pageIndex = 0;
 	let hasMorePages = true;
 	let params: { [key: string]: string } = { 'page[size]': '100' };
@@ -109,11 +107,10 @@ async function syncCursusProjects(fast42Api: Fast42, cursus: string): Promise<vo
 			params['page[number]'] = pageIndex.toString();
 			let lastSyncRaw = await DatabaseService.getLastSyncTimestamp("cursus_projects", parseInt(cursus));
 			let lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
-			let syncDate = new Date();
 			if (lastSync) {
 				params['range[updated_at]'] = `${lastSync.toISOString()},${syncDate.toISOString()}`;
 			} else {
-				delete params['range[updated_at]'];
+				params['range[updated_at]'] = `${new Date(0).toISOString()},${syncDate.toISOString()}`;
 			}
 
 			log(2, `Fetching page ${pageIndex} of projects...`);
@@ -142,7 +139,7 @@ async function syncCursusProjects(fast42Api: Fast42, cursus: string): Promise<vo
  * @param fast42Api The Fast42 API instance to use for fetching user data
  * @param lastPullDate The date of the last synchronization
  */
-async function syncUsers(fast42Api: Fast42): Promise<void> {
+async function syncUsers(fast42Api: Fast42, syncDate: Date): Promise<void> {
 	let pageIndex = 0;
 	let hasMorePages = true;
 	let params: { [key: string]: string } = {};
@@ -161,11 +158,10 @@ async function syncUsers(fast42Api: Fast42): Promise<void> {
 				params['page[number]'] = pageIndex.toString();
 				let lastSyncRaw = await DatabaseService.getLastSyncTimestamp("campus_users", campusId);
 				let lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
-				let syncDate = new Date();
 				if (lastSync) {
 					params['range[updated_at]'] = `${lastSync.toISOString()},${syncDate.toISOString()}`;
 				} else {
-					delete params['range[updated_at]'];
+					params['range[updated_at]'] = `${new Date(0).toISOString()},${syncDate.toISOString()}`;
 				}
 
 				log(2, `Fetching page ${pageIndex} of users for campus ${campusId} (${index + 1}/${totalCampuses})...`);
@@ -206,7 +202,7 @@ async function syncUsers(fast42Api: Fast42): Promise<void> {
  * @param lastPullDate The date of the last synchronization
  * @returns A promise that resolves when the synchronization is complete
  */
-async function syncProjectUsers(fast42Api: Fast42): Promise<void> {
+async function syncProjectUsers(fast42Api: Fast42, syncDate: Date): Promise<void> {
 	let pageIndex = 0;
 	let hasMorePages = true;
 	let params: { [key: string]: string } = {};
@@ -225,11 +221,10 @@ async function syncProjectUsers(fast42Api: Fast42): Promise<void> {
 				params['page[number]'] = pageIndex.toString();
 				let lastSyncRaw = await DatabaseService.getLastSyncTimestamp("projects_projects_users", projectId);
 				let lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
-				let syncDate = new Date();
 				if (lastSync) {
 					params['range[updated_at]'] = `${lastSync.toISOString()},${syncDate.toISOString()}`;
 				} else {
-					delete params['range[updated_at]'];
+					params['range[updated_at]'] = `${new Date(0).toISOString()},${syncDate.toISOString()}`;
 				}
 
 				log(2, `Fetching page ${pageIndex} of projectUsers for project ${projectId} (${index + 1}/${totalProjects})...`);

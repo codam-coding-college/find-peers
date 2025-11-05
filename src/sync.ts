@@ -161,7 +161,6 @@ async function syncUsers(fast42Api: Fast42): Promise<void> {
 				params['page[number]'] = pageIndex.toString();
 				let lastSyncRaw = await DatabaseService.getLastSyncTimestamp("campus_users", campusId);
 				let lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
-				console.log('lastSyncRaw:', lastSyncRaw);
 				let syncDate = new Date();
 				if (lastSync) {
 					params['range[updated_at]'] = `${lastSync.toISOString()},${syncDate.toISOString()}`;

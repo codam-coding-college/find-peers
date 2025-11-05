@@ -179,8 +179,8 @@ export async function startWebserver(port: number) {
 		const userTimeZone = req.cookies.timezone || 'Europe/Amsterdam';
 		const settings = {
 			projects: await getProjects(campus.id, requestedStatus, showEmptyProjects),
-			lastUpdate: await DatabaseService.getLastSyncTimestamp().then(date => date ? date.toLocaleString('en-NL', { timeZone: userTimeZone }).slice(0, -3) : 'N/A'),
-			hoursAgo: (((Date.now()) - await DatabaseService.getLastSyncTimestamp().then(date => date ? date.getTime() : 0)) / (1000 * 60 * 60)).toFixed(2), // hours ago
+			lastUpdate: await DatabaseService.getLastSyncTimestamp("full", 1).then(date => date ? date.toLocaleString('en-NL', { timeZone: userTimeZone }).slice(0, -3) : 'N/A'),
+			hoursAgo: (((Date.now()) - await DatabaseService.getLastSyncTimestamp("full", 1).then(date => date ? date.getTime() : 0)) / (1000 * 60 * 60)).toFixed(2), // hours ago
 			requestedStatus,
 			projectStatuses: env.projectStatuses,
 			campusName: campus.name,

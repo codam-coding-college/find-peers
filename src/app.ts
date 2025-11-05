@@ -15,7 +15,7 @@ util.inspect.defaultOptions.depth = 10;
  * @returns How many milliseconds until the next pull request should be made.
  */
 async function msUntilNextPull(): Promise<number> {
-	const lastPullAgo = await DatabaseService.getLastSyncTimestamp().then(date => {
+	const lastPullAgo = await DatabaseService.getLastSyncTimestamp("full", 1).then(date => {
 		if (!date) {
 			console.warn('No last sync timestamp found, assuming first pull.');
 			return env.pullTimeout;

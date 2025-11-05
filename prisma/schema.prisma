@@ -54,5 +54,9 @@ model ProjectUser {
 
 model Sync {
   id        Int     @id @default(autoincrement())
+  type      String  // campus_users, cursus_projects, projects_projects_users, full
+  type_id   Int     // campus_id, cursus_id, project_id
   last_pull String?
+
+  @@unique ([type, type_id])
 }

@@ -24,13 +24,12 @@ export class DatabaseService {
 	/**
 	 * @returns The last synchronization timestamp.
 	 */
-	static getLastSyncTimestamp = async function(): Promise<Date | null> {
+	static getLastSyncTimestamp = async function(type: string, type_id: number): Promise<Date | null> {
 		const sync = await prisma.sync.findUnique({
-			where: { id: 1 },
+			where: { type_type_id: { type, type_id } },
 			select: { last_pull: true }
 		});
 		if (sync?.last_pull === null || sync?.last_pull === undefined) {
-			log(2, `No last sync timestamp found, returning null.`);
 			return null;
 		}
 		return new Date(sync.last_pull);
@@ -223,11 +222,15 @@ export class DatabaseService {
 	 * Save the synchronization timestamp.
 	 * @param timestamp The timestamp to save
 	 */
-	static saveSyncTimestamp = async function(timestamp: Date): Promise<void> {
+	static saveSyncTimestamp = async function(type: string, type_id: number, timestamp: Date): Promise<void> {
 		await prisma.sync.upsert({
-			where: { id: 1 },
+			where: { type_type_id: { type, type_id } },
 			update: { last_pull: timestamp.toISOString() },
-			create: { id: 1, last_pull: timestamp.toISOString() }
+			create: {
+				type,
+				type_id,
+				last_pull: timestamp.toISOString()
+			}
 		});
 	}
 

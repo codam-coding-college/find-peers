@@ -74,11 +74,13 @@ export const syncWithIntra = async function(): Promise<void> {
  * @param lastPullDate The date of the last synchronization
  * @returns A promise that resolves when the synchronization is complete
  */
-async function syncCampuses(fast42Api: Fast42, lastSync: Date | undefined): Promise<void> {
+async function syncCampuses(fast42Api: Fast42, now: Date): Promise<void> {
 	let campusesApi;
 	try {
+		let lastSyncRaw = await DatabaseService.getLastSyncTimestamp("full", 1);
+		let lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
 		log(2, `Syncing campuses...`);
-		campusesApi = await syncData(fast42Api, new Date(), lastSync, `/campus`, { 'active': 'true' });
+		campusesApi = await syncData(fast42Api, now, lastSync, `/campus`, { 'active': 'true' });
 		const dbCampuses = campusesApi.map(transformApiCampusToDb);
 		await DatabaseService.insertManyCampuses(dbCampuses);
 		log(2, `Finished syncing campuses`);

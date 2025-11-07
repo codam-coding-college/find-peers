@@ -102,18 +102,20 @@ async function syncCursusProjects(fast42Api: Fast42, cursus: string, syncDate: D
 	let params: { [key: string]: string } = { 'page[size]': '100' };
 
 	try {
+		// Set up filters to be used for all pages
+		const lastSyncRaw = await DatabaseService.getLastSyncTimestamp("cursus_projects", parseInt(cursus));
+		const lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
+		if (lastSync) {
+			params['range[updated_at]'] = `${lastSync.toISOString()},${syncDate.toISOString()}`;
+		} else {
+			params['range[updated_at]'] = `${new Date(0).toISOString()},${syncDate.toISOString()}`;
+		}
+
 		while (hasMorePages) {
 			pageIndex++;
 
-			// Set pagination and last sync range
+			// Set pagination
 			params['page[number]'] = pageIndex.toString();
-			let lastSyncRaw = await DatabaseService.getLastSyncTimestamp("cursus_projects", parseInt(cursus));
-			let lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
-			if (lastSync) {
-				params['range[updated_at]'] = `${lastSync.toISOString()},${syncDate.toISOString()}`;
-			} else {
-				params['range[updated_at]'] = `${new Date(0).toISOString()},${syncDate.toISOString()}`;
-			}
 
 			log(2, `Fetching page ${pageIndex} of projects...`);
 
@@ -122,7 +124,7 @@ async function syncCursusProjects(fast42Api: Fast42, cursus: string, syncDate: D
 				log(2, `No more projects found on page ${pageIndex}. Stopping.`);
 				hasMorePages = false;
 				await DatabaseService.saveSyncTimestamp("cursus_projects", parseInt(cursus), syncDate);
-				continue;
+				break;
 			}
 
 			log(2, `Processing page ${pageIndex} with ${projectsData.length} projects...`);
@@ -152,19 +154,21 @@ async function syncUsers(fast42Api: Fast42, syncDate: Date): Promise<void> {
 	try {
 		const totalCampuses = campusIds.length;
 		for (let [index, campusId] of campusIds.entries()) {
+			// Set up filters to be used for all pages
 			params['filter[primary_campus_id]'] = campusId.toString();
+			const lastSyncRaw = await DatabaseService.getLastSyncTimestamp("campus_users", campusId);
+			const lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
+			if (lastSync) {
+				params['range[updated_at]'] = `${lastSync.toISOString()},${syncDate.toISOString()}`;
+			} else {
+				params['range[updated_at]'] = `${new Date(0).toISOString()},${syncDate.toISOString()}`;
+			}
+
 			while (hasMorePages) {
 				pageIndex++;
 
-				// Set pagination and last sync range
+				// Set pagination
 				params['page[number]'] = pageIndex.toString();
-				let lastSyncRaw = await DatabaseService.getLastSyncTimestamp("campus_users", campusId);
-				let lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
-				if (lastSync) {
-					params['range[updated_at]'] = `${lastSync.toISOString()},${syncDate.toISOString()}`;
-				} else {
-					params['range[updated_at]'] = `${new Date(0).toISOString()},${syncDate.toISOString()}`;
-				}
 
 				log(2, `Fetching page ${pageIndex} of users for campus ${campusId} (${index + 1}/${totalCampuses})...`);
 
@@ -216,18 +220,20 @@ async function syncProjectUsers(fast42Api: Fast42, syncDate: Date): Promise<void
 	try {
 		const totalProjects = projectIds.length;
 		for (let [index, projectId] of projectIds.entries()) {
+			// Set up filters to be used for all pages
+			const lastSyncRaw = await DatabaseService.getLastSyncTimestamp("projects_projects_users", projectId);
+			const lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
+			if (lastSync) {
+				params['range[updated_at]'] = `${lastSync.toISOString()},${syncDate.toISOString()}`;
+			} else {
+				params['range[updated_at]'] = `${new Date(0).toISOString()},${syncDate.toISOString()}`;
+			}
+
 			while (hasMorePages) {
 				pageIndex++;
 
-				// Set pagination and last sync range
+				// Set pagination
 				params['page[number]'] = pageIndex.toString();
-				let lastSyncRaw = await DatabaseService.getLastSyncTimestamp("projects_projects_users", projectId);
-				let lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
-				if (lastSync) {
-					params['range[updated_at]'] = `${lastSync.toISOString()},${syncDate.toISOString()}`;
-				} else {
-					params['range[updated_at]'] = `${new Date(0).toISOString()},${syncDate.toISOString()}`;
-				}
 
 				log(2, `Fetching page ${pageIndex} of projectUsers for project ${projectId} (${index + 1}/${totalProjects})...`);
 

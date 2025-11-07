@@ -75,12 +75,11 @@ export const syncWithIntra = async function(): Promise<void> {
  * @returns A promise that resolves when the synchronization is complete
  */
 async function syncCampuses(fast42Api: Fast42, now: Date): Promise<void> {
-	let campusesApi;
 	try {
 		let lastSyncRaw = await DatabaseService.getLastSyncTimestamp("full", 1);
 		let lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
 		log(2, `Syncing campuses...`);
-		campusesApi = await syncData(fast42Api, now, lastSync, `/campus`, { 'active': 'true' });
+		const campusesApi = await syncData(fast42Api, now, lastSync, `/campus`, { 'active': 'true' });
 		const dbCampuses = campusesApi.map(transformApiCampusToDb);
 		await DatabaseService.insertManyCampuses(dbCampuses);
 		log(2, `Finished syncing campuses`);
@@ -97,11 +96,12 @@ async function syncCampuses(fast42Api: Fast42, now: Date): Promise<void> {
  * @returns A promise that resolves when the synchronization is complete
  */
 async function syncCursusProjects(fast42Api: Fast42, cursus: string, syncDate: Date): Promise<void> {
-	let pageIndex = 0;
-	let hasMorePages = true;
-	let params: { [key: string]: string } = { 'page[size]': '100' };
-
 	try {
+		let pageIndex = 0;
+		let hasMorePages = true;
+		let params: { [key: string]: string } = {};
+		params['page[size]'] = '100';
+
 		// Set up filters to be used for all pages
 		const lastSyncRaw = await DatabaseService.getLastSyncTimestamp("cursus_projects", parseInt(cursus));
 		const lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
@@ -123,7 +123,6 @@ async function syncCursusProjects(fast42Api: Fast42, cursus: string, syncDate: D
 			if (!projectsData || projectsData.length === 0) {
 				log(2, `No more projects found on page ${pageIndex}. Stopping.`);
 				hasMorePages = false;
-				await DatabaseService.saveSyncTimestamp("cursus_projects", parseInt(cursus), syncDate);
 				break;
 			}
 
@@ -131,6 +130,9 @@ async function syncCursusProjects(fast42Api: Fast42, cursus: string, syncDate: D
 			const dbProjects = projectsData.map(transformApiProjectToDb);
 			await DatabaseService.insertManyProjects(dbProjects);
 		}
+
+		// Update last sync timestamp
+		await DatabaseService.saveSyncTimestamp("cursus_projects", parseInt(cursus), syncDate);
 	} catch (error) {
 		console.error(`Failed to sync projects for cursus ${cursus}`, error);
 		throw error;
@@ -144,16 +146,15 @@ async function syncCursusProjects(fast42Api: Fast42, cursus: string, syncDate: D
  * @param lastPullDate The date of the last synchronization
  */
 async function syncUsers(fast42Api: Fast42, syncDate: Date): Promise<void> {
-	let pageIndex = 0;
-	let hasMorePages = true;
-	let params: { [key: string]: string } = {};
-	params['page[size]'] = '100';
-
-	const campuses = await DatabaseService.getAllCampuses();
-	let campusIds = campuses.map(c => c.id);
+	const campusIds = await DatabaseService.getAllCampuses().then(campuses => campuses.map(c => c.id));
 	try {
 		const totalCampuses = campusIds.length;
 		for (let [index, campusId] of campusIds.entries()) {
+			let pageIndex = 0;
+			let hasMorePages = true;
+			let params: { [key: string]: string } = {};
+			params['page[size]'] = '100';
+
 			// Set up filters to be used for all pages
 			params['filter[primary_campus_id]'] = campusId.toString();
 			const lastSyncRaw = await DatabaseService.getLastSyncTimestamp("campus_users", campusId);
@@ -183,7 +184,6 @@ async function syncUsers(fast42Api: Fast42, syncDate: Date): Promise<void> {
 				if (!usersData || usersData.length === 0) {
 					log(2, `No more users found for campus ${campusId} on page ${pageIndex}. Stopping.`);
 					hasMorePages = false;
-					await DatabaseService.saveSyncTimestamp("campus_users", campusId, syncDate);
 					break;
 				}
 
@@ -192,8 +192,9 @@ async function syncUsers(fast42Api: Fast42, syncDate: Date): Promise<void> {
 				await DatabaseService.insertManyUsers(dbUsers);
 				// No try-catch block here, needs to fail if users fail to sync, otherwise projectsusers cannot be connected to user ids
 			}
-			pageIndex = 0;
-			hasMorePages = true;
+
+			// Update last sync timestamp
+			await DatabaseService.saveSyncTimestamp("campus_users", campusId, syncDate);
 		}
 	} catch (error) {
 		console.error(`Failed to sync users`, error);
@@ -209,17 +210,17 @@ async function syncUsers(fast42Api: Fast42, syncDate: Date): Promise<void> {
  * @returns A promise that resolves when the synchronization is complete
  */
 async function syncProjectUsers(fast42Api: Fast42, syncDate: Date): Promise<void> {
-	let pageIndex = 0;
-	let hasMorePages = true;
-	let params: { [key: string]: string } = {};
-	params['page[size]'] = '100';
-	params['filter[campus]'] = await DatabaseService.getAllCampuses().then(campuses => campuses.map(c => c.id).join(','));
-
-	const projects = await DatabaseService.getAllProjects();
-	let projectIds = projects.map(p => p.id);
+	const campusIds = await DatabaseService.getAllCampuses().then(campuses => campuses.map(c => c.id));
+	const projectIds = await DatabaseService.getAllProjects().then(projects => projects.map(p => p.id));
 	try {
 		const totalProjects = projectIds.length;
 		for (let [index, projectId] of projectIds.entries()) {
+			let pageIndex = 0;
+			let hasMorePages = true;
+			let params: { [key: string]: string } = {};
+			params['page[size]'] = '100';
+			params['filter[campus]'] = campusIds.join(',');
+
 			// Set up filters to be used for all pages
 			const lastSyncRaw = await DatabaseService.getLastSyncTimestamp("projects_projects_users", projectId);
 			const lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
@@ -248,7 +249,6 @@ async function syncProjectUsers(fast42Api: Fast42, syncDate: Date): Promise<void
 				if (!projectUsersData || projectUsersData.length === 0) {
 					log(2, `No more users found for project ${projectId} on page ${pageIndex}. Stopping.`);
 					hasMorePages = false;
-					await DatabaseService.saveSyncTimestamp("projects_projects_users", projectId, syncDate);
 					break;
 				}
 
@@ -268,8 +268,9 @@ async function syncProjectUsers(fast42Api: Fast42, syncDate: Date): Promise<void
 					// Continue syncing other project users even if insertion fails, can always repopulate the database
 				}
 			}
-			pageIndex = 0;
-			hasMorePages = true;
+
+			// Update last sync timestamp
+			await DatabaseService.saveSyncTimestamp("projects_projects_users", projectId, syncDate);
 		}
 	} catch (error) {
 		console.error(`Failed to sync project users`, error);

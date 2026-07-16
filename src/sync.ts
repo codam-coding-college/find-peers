@@ -451,7 +451,7 @@ export const fetchMultiple42ApiPages = async function(api: Fast42, path: string,
 		catch (err: any) {
 			if (err.message && err.message.includes('timed out')) {
 				log.warn('Request timed out, retrying...');
-				return resolve(fetchSingle42ApiPage(api, path, params));
+				return resolve(fetchMultiple42ApiPages(api, path, params));
 			}
 			return reject(err);
 		}

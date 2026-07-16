@@ -34,7 +34,7 @@ passport.deserializeUser(async (sessionUser: { accessToken: string, login: strin
 
 		if (!user) {
 			log.debug('Access token is no longer valid');
-			done(null, false);
+			return done(null, false);
 		}
 
 		done(null, { accessToken: sessionUser.accessToken, isAuthenticated: true });

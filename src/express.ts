@@ -100,7 +100,7 @@ export async function startWebserver(port: number) {
 			compression()(req, res, next);
 			return;
 		} catch (e) {
-			console.error('Compression error', e);
+			log.error('Compression error', e);
 		}
 		next();
 	})
@@ -199,5 +199,5 @@ export async function startWebserver(port: number) {
 	app.use('/public', express.static('public/'));
 
 	await app.listen(port);
-	log(1, `${process.env['NODE_ENV'] ?? 'development'} app ready on http://localhost:${port}`);
+	log.info(`${process.env['NODE_ENV'] ?? 'development'} app ready on http://localhost:${port}`);
 }

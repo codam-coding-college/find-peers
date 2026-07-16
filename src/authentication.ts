@@ -33,14 +33,14 @@ passport.deserializeUser(async (sessionUser: { accessToken: string, login: strin
 		const user = await DatabaseService.findUserByLogin(sessionUser.login);
 
 		if (!user) {
-			log(2, 'Access token is no longer valid');
-			done(null, false);
+			log.debug('Access token is no longer valid');
+			return done(null, false);
 		}
 
 		done(null, { accessToken: sessionUser.accessToken, isAuthenticated: true });
 
 	} catch (error) {
-		log(2, 'Cannot verify token');
+		log.debug('Cannot verify token', error);
 		done(null, false);
 	}
 })
@@ -73,7 +73,7 @@ async function fetchandInsertUserData(accessToken: string) {
 		&& await DatabaseService.findUserByLogin('3c3' + userDB.login) === null) {
 		const missingCampusId = await DatabaseService.getMissingCampusId(json);
 		if (missingCampusId !== null) {
-			log(2, `Found missing campus ID ${missingCampusId}, syncing...`);
+			log.debug(`Found missing campus ID ${missingCampusId}, syncing...`);
 			try {
 				const campusResponse = await fetch(`https://api.intra.42.fr/v2/campus/${missingCampusId}`, {
 					headers: { Authorization: `Bearer ${accessToken}` },
@@ -81,11 +81,11 @@ async function fetchandInsertUserData(accessToken: string) {
 				const campusJson = await campusResponse.json();
 				await DatabaseService.insertCampus({ ...transformApiCampusToDb(campusJson) });
 				userDB.primary_campus_id = missingCampusId;
-				log(1, `Successfully synced and assigned campus ID ${missingCampusId} to user ${userDB.login}`);
+				log.info(`Successfully synced and assigned campus ID ${missingCampusId} to user ${userDB.login}`);
 
 			} catch (error) {
-				console.error(`Assigning to non-existent campus; failed to fetch ${missingCampusId}:`, error);
-				DatabaseService.insertCampus({ id: 42, name: `Ghost Campus` });
+				log.error(`Assigning to non-existent campus; failed to fetch ${missingCampusId}`, error);
+				await DatabaseService.insertCampus({ id: 42, name: `Ghost Campus` });
 				userDB.primary_campus_id = 42; // Assign to Ghost Campus
 			}
 		}

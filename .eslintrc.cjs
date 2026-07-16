@@ -4,7 +4,14 @@ module.exports = {
 		es2021: true,
 	},
 	extends: ['eslint:recommended', 'plugin:@typescript-eslint/recommended', 'prettier'],
-	overrides: [],
+	overrides: [
+		{
+			files: ['src/logger.ts'],
+			rules: {
+				'no-console': 'off',
+			},
+		},
+	],
 	parser: '@typescript-eslint/parser',
 	parserOptions: {
 		ecmaVersion: 'latest',
@@ -14,6 +21,7 @@ module.exports = {
 	rules: {
 		'prettier/prettier': ['error'],
 
+		'no-console': 'error',
 		'array-callback-return': 'error',
 		curly: ['error', 'all'],
 		'no-array-constructor': 'error',

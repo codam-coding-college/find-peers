@@ -4,7 +4,7 @@ export const DEV_DAYS_LIMIT: number = process.env['DEV_DAYS_LIMIT'] ? parseInt(p
 export const NODE_ENV = process.env['NODE_ENV'] || 'development';
 
 export interface Env {
-	logLevel: 0 | 1 | 2 | 3
+	logLevel: 0 | 1 | 2 | 3 // see LogLevel in logger.ts: 0=ERROR 1=WARN 2=INFO 3=DEBUG
 	pullTimeout: number
 	projectStatuses: typeof projectStatuses
 	scope: string[]
@@ -32,7 +32,7 @@ const projectStatuses = ['creating_group', 'searching_a_group', 'in_progress', '
 export type ProjectStatus = (typeof projectStatuses)[number];
 
 export const env: Readonly<Env> = {
-	logLevel: process.env['NODE_ENV'] === 'production' ? 3 : 1, // 0 being no logging
+	logLevel: process.env['NODE_ENV'] === 'production' ? 3 : 2, // DEBUG in production for full Datadog visibility, INFO in development to skip per-page sync noise
 	pullTimeout: 24 * 60 * 60 * 1000, // how often to sync with the 42 API (in ms)
 	projectStatuses,
 	authorizationURL: 'https://api.intra.42.fr/oauth/authorize',

@@ -5,6 +5,7 @@ import { startWebserver } from './express'
 import { env } from './env'
 import { DatabaseService } from './services';
 import { syncWithIntra } from './sync'
+import { log } from './logger'
 import util from 'util'
 
 // set depth of object expansion in terminal as printed by console.*()
@@ -17,17 +18,17 @@ util.inspect.defaultOptions.depth = 10;
 async function msUntilNextPull(): Promise<number> {
 	const lastPullAgo = await DatabaseService.getLastSyncTimestamp("full", 1).then(date => {
 		if (!date) {
-			console.warn('No last sync timestamp found, assuming first pull.');
+			log.warn('No last sync timestamp found, assuming first pull.');
 			return env.pullTimeout;
 		}
 		return Date.now() - date.getTime();
 	});
 	const msUntilNextPull = Math.max(0, env.pullTimeout - lastPullAgo);
 	if (msUntilNextPull === 0) {
-		console.warn(`Last pull was more than ${env.pullTimeout / 1000 / 60 / 60} hours ago, pulling immediately.`);
+		log.warn(`Last pull was more than ${env.pullTimeout / 1000 / 60 / 60} hours ago, pulling immediately.`);
 		return (0);
 	}
-	console.info(`Next pull will be in ${(msUntilNextPull / 1000 / 60 / 60).toFixed(2)} hours.`);
+	log.info(`Next pull will be in ${(msUntilNextPull / 1000 / 60 / 60).toFixed(2)} hours.`);
 	return msUntilNextPull;
 }
 

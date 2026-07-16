@@ -85,7 +85,7 @@ async function fetchandInsertUserData(accessToken: string) {
 
 			} catch (error) {
 				log.error(`Assigning to non-existent campus; failed to fetch ${missingCampusId}`, error);
-				DatabaseService.insertCampus({ id: 42, name: `Ghost Campus` });
+				await DatabaseService.insertCampus({ id: 42, name: `Ghost Campus` });
 				userDB.primary_campus_id = 42; // Assign to Ghost Campus
 			}
 		}

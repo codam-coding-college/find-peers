@@ -329,7 +329,7 @@ async function syncMissingUsers(fast42Api: Fast42, missingUserIds: number[]): Pr
 
 				if (await DatabaseService.getMissingCampusId(userData) !== null) {
 					log.debug(`Inserting user ${dbUser.login} (ID: ${dbUser.id}) into Ghost Campus due to missing campus...`);
-					DatabaseService.insertCampus({ id: 42, name: `Ghost Campus` });
+					await DatabaseService.insertCampus({ id: 42, name: `Ghost Campus` });
 					dbUser.primary_campus_id = 42; // Assign to Ghost Campus
 				}
 

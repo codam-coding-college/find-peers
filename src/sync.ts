@@ -2,7 +2,7 @@ import Fast42 from "@codam/fast42";
 import { NODE_ENV, DEV_DAYS_LIMIT, env } from "./env";
 import { transformApiCampusToDb, transformApiUserToDb, transformApiProjectToDb, transformApiProjectUserToDb } from './transform';
 import { DatabaseService } from './services';
-import { log } from "./logger";
+import { log, withRunId } from "./logger";
 import { ApiUser } from "./types";
 
 const fast42Api = new Fast42(
@@ -27,9 +27,9 @@ async function initializeFast42() {
 	try {
 		await fast42Api.init();
 		fast42Initialized = true;
-		console.log('Fast42 initialized successfully');
+		log.info('Fast42 initialized successfully');
 	} catch (error) {
-		console.error('Failed to initialize Fast42:', error);
+		log.error('Failed to initialize Fast42', error);
 	}
 }
 
@@ -41,31 +41,37 @@ async function initializeFast42() {
  * @throws Will throw an error if the synchronization fails
  */
 export const syncWithIntra = async function(): Promise<void> {
-	await initializeFast42();
-	if (!fast42Initialized) {
-		console.log('Failed to initialize fast42...');
-		return;
-	}
-	const now = new Date();
+	// Tag every log line produced by this run with a shared ID, so a single sync
+	// pass can be grepped/correlated even though its stages log hundreds of lines.
+	const runId = Date.now().toString(36);
 
-	try {
-		// Syncs all data based on:
-		// - last successful sync timestamp (lastSync)
-		// - active campuses
-		// - 42 and piscine cursus (cursus/21,9)
-		await syncCampuses(fast42Api, now);
-		await syncCursusProjects(fast42Api, '9', now);
-		await syncCursusProjects(fast42Api, '21', now);
-		await syncUsers(fast42Api, now);
-		await syncProjectUsers(fast42Api, now);
-		await DatabaseService.saveSyncTimestamp("full", 1, now);
+	await withRunId(runId, async () => {
+		await initializeFast42();
+		if (!fast42Initialized) {
+			log.warn('Fast42 failed to initialize, skipping this sync attempt.');
+			return;
+		}
+		const now = new Date();
 
-		console.info(`Intra synchronization completed at ${new Date().toISOString()}.`);
-	}
-	catch (err) {
-		console.error('Failed to synchronize with Intra:', err);
-		console.log('Future synchronization attempts will start from the last successful sync timestamp, so no data should be missing.');
-	}
+		try {
+			// Syncs all data based on:
+			// - last successful sync timestamp (lastSync)
+			// - active campuses
+			// - 42 and piscine cursus (cursus/21,9)
+			await syncCampuses(fast42Api, now);
+			await syncCursusProjects(fast42Api, '9', now);
+			await syncCursusProjects(fast42Api, '21', now);
+			await syncUsers(fast42Api, now);
+			await syncProjectUsers(fast42Api, now);
+			await DatabaseService.saveSyncTimestamp("full", 1, now);
+
+			log.info('Intra synchronization completed.');
+		}
+		catch (err) {
+			log.error('Failed to synchronize with Intra', err);
+			log.info('Future synchronization attempts will start from the last successful sync timestamp, so no data should be missing.');
+		}
+	});
 }
 
 /**
@@ -78,13 +84,13 @@ async function syncCampuses(fast42Api: Fast42, now: Date): Promise<void> {
 	try {
 		let lastSyncRaw = await DatabaseService.getLastSyncTimestamp("full", 1);
 		let lastSync: Date | undefined = lastSyncRaw === null ? undefined : lastSyncRaw;
-		log(2, `Syncing campuses...`);
+		log.debug(`Syncing campuses...`);
 		const campusesApi = await syncData(fast42Api, now, lastSync, `/campus`, { 'active': 'true' });
 		const dbCampuses = campusesApi.map(transformApiCampusToDb);
 		await DatabaseService.insertManyCampuses(dbCampuses);
-		log(2, `Finished syncing campuses`);
+		log.info(`Finished syncing campuses: ${dbCampuses.length} synced`);
 	} catch (error) {
-		console.error(`Failed to sync campuses`, error);
+		log.error(`Failed to sync campuses`, error);
 		throw error;
 	}
 }
@@ -111,33 +117,35 @@ async function syncCursusProjects(fast42Api: Fast42, cursus: string, syncDate: D
 			params['range[updated_at]'] = `${new Date(0).toISOString()},${syncDate.toISOString()}`;
 		}
 
+		let totalSynced = 0;
 		while (hasMorePages) {
 			pageIndex++;
 
 			// Set pagination
 			params['page[number]'] = pageIndex.toString();
 
-			log(2, `Fetching page ${pageIndex} of projects...`);
+			log.debug(`Fetching page ${pageIndex} of projects...`);
 
 			const projectsData = await fetchSingle42ApiPage(fast42Api, `/cursus/${cursus}/projects`, params);
 			if (!projectsData || projectsData.length === 0) {
-				log(2, `No more projects found on page ${pageIndex}. Stopping.`);
+				log.debug(`No more projects found on page ${pageIndex}. Stopping.`);
 				hasMorePages = false;
 				break;
 			}
 
-			log(2, `Processing page ${pageIndex} with ${projectsData.length} projects...`);
+			log.debug(`Processing page ${pageIndex} with ${projectsData.length} projects...`);
 			const dbProjects = projectsData.map(transformApiProjectToDb);
 			await DatabaseService.insertManyProjects(dbProjects);
+			totalSynced += dbProjects.length;
 		}
 
 		// Update last sync timestamp
 		await DatabaseService.saveSyncTimestamp("cursus_projects", parseInt(cursus), syncDate);
+		log.info(`Finished syncing projects for cursus ${cursus}: ${totalSynced} synced`);
 	} catch (error) {
-		console.error(`Failed to sync projects for cursus ${cursus}`, error);
+		log.error(`Failed to sync projects for cursus ${cursus}`, error);
 		throw error;
 	}
-	log(2, `Finished syncing projects for cursus ${cursus}`);
 }
 
 /**
@@ -149,6 +157,7 @@ async function syncUsers(fast42Api: Fast42, syncDate: Date): Promise<void> {
 	const campusIds = await DatabaseService.getAllCampuses().then(campuses => campuses.map(c => c.id));
 	try {
 		const totalCampuses = campusIds.length;
+		let totalSynced = 0;
 		for (let [index, campusId] of campusIds.entries()) {
 			let pageIndex = 0;
 			let hasMorePages = true;
@@ -171,36 +180,37 @@ async function syncUsers(fast42Api: Fast42, syncDate: Date): Promise<void> {
 				// Set pagination
 				params['page[number]'] = pageIndex.toString();
 
-				log(2, `Fetching page ${pageIndex} of users for campus ${campusId} (${index + 1}/${totalCampuses})...`);
+				log.debug(`Fetching page ${pageIndex} of users for campus ${campusId} (${index + 1}/${totalCampuses})...`);
 
 				let usersData;
 				try {
 					// campus/campus_id/users
 					usersData = await fetchSingle42ApiPage(fast42Api, `/campus/${campusId}/users`, params);
 				} catch (error) {
-					console.error(`Failed to fetch users for campus ${campusId} on page ${pageIndex}:`, error);
+					log.error(`Failed to fetch users for campus ${campusId} on page ${pageIndex}`, error);
 					throw error; // Stop syncing on error
 				}
 				if (!usersData || usersData.length === 0) {
-					log(2, `No more users found for campus ${campusId} on page ${pageIndex}. Stopping.`);
+					log.debug(`No more users found for campus ${campusId} on page ${pageIndex}. Stopping.`);
 					hasMorePages = false;
 					break;
 				}
 
-				log(2, `Processing page ${pageIndex} with ${usersData.length} users...`);
+				log.debug(`Processing page ${pageIndex} with ${usersData.length} users...`);
 				const dbUsers = usersData.map((user: any) => transformApiUserToDb(user, campusId));
 				await DatabaseService.insertManyUsers(dbUsers);
 				// No try-catch block here, needs to fail if users fail to sync, otherwise projectsusers cannot be connected to user ids
+				totalSynced += dbUsers.length;
 			}
 
 			// Update last sync timestamp
 			await DatabaseService.saveSyncTimestamp("campus_users", campusId, syncDate);
 		}
+		log.info(`Syncing Users completed: ${totalSynced} users synced across ${totalCampuses} campuses`);
 	} catch (error) {
-		console.error(`Failed to sync users`, error);
+		log.error(`Failed to sync users`, error);
 		throw error;
 	}
-	log(2, `Syncing Users completed.`);
 }
 
 /**
@@ -214,6 +224,9 @@ async function syncProjectUsers(fast42Api: Fast42, syncDate: Date): Promise<void
 	const projectIds = await DatabaseService.getAllProjects().then(projects => projects.map(p => p.id));
 	try {
 		const totalProjects = projectIds.length;
+		let grandFetched = 0;
+		let grandPersisted = 0;
+		let projectsHeldBack = 0;
 		for (let [index, projectId] of projectIds.entries()) {
 			let pageIndex = 0;
 			let hasMorePages = true;
@@ -230,53 +243,75 @@ async function syncProjectUsers(fast42Api: Fast42, syncDate: Date): Promise<void
 				params['range[updated_at]'] = `${new Date(0).toISOString()},${syncDate.toISOString()}`;
 			}
 
+			let fetchedCount = 0;
+			let persistedCount = 0;
+			let hadInsertFailure = false;
+
 			while (hasMorePages) {
 				pageIndex++;
 
 				// Set pagination
 				params['page[number]'] = pageIndex.toString();
 
-				log(2, `Fetching page ${pageIndex} of projectUsers for project ${projectId} (${index + 1}/${totalProjects})...`);
+				log.debug(`Fetching page ${pageIndex} of projectUsers for project ${projectId} (${index + 1}/${totalProjects})...`);
 
 				let projectUsersData;
 				try {
 					// projects/project_id/projects_users?filter[primary_campus_id]
 					projectUsersData = await fetchSingle42ApiPage(fast42Api, `/projects/${projectId}/projects_users`, params);
 				} catch (error) {
-					console.error(`Failed to fetch project users for project ${projectId} on page ${pageIndex}:`, error);
+					log.error(`Failed to fetch project users for project ${projectId} on page ${pageIndex}`, error);
 					throw error; // Stop syncing on error
 				}
 				if (!projectUsersData || projectUsersData.length === 0) {
-					log(2, `No more users found for project ${projectId} on page ${pageIndex}. Stopping.`);
+					log.debug(`No more users found for project ${projectId} on page ${pageIndex}. Stopping.`);
 					hasMorePages = false;
 					break;
 				}
 
+				fetchedCount += projectUsersData.length;
+
 				// sync any missing users before inserting project users
 				let missingUserIds = await DatabaseService.getMissingUserIds(projectUsersData);
 				if (missingUserIds.length > 0) {
-					log(2, `Found ${missingUserIds.length} missing users for project ${projectId}, syncing...`);
+					log.debug(`Found ${missingUserIds.length} missing users for project ${projectId}, syncing...`);
 					await syncMissingUsers(fast42Api, missingUserIds);
 				}
 
-				log(2, `Processing page ${pageIndex} with ${projectUsersData.length} projectUsers...`);
+				log.debug(`Processing page ${pageIndex} with ${projectUsersData.length} projectUsers...`);
 				try {
 					const dbProjectUsers = projectUsersData.map(transformApiProjectUserToDb);
 					await DatabaseService.insertManyProjectUsers(dbProjectUsers);
+					persistedCount += dbProjectUsers.length;
 				} catch (error) {
-					console.error(`Failed to insert project users for project ${projectId} on page ${pageIndex}:`, error);
-					// Continue syncing other project users even if insertion fails, can always repopulate the database
+					hadInsertFailure = true;
+					log.error(
+						`Failed to insert ${projectUsersData.length} project-users for project ${projectId} on page ${pageIndex}; this project's sync timestamp will be held back so these are retried next run`,
+						{ userIds: projectUsersData.map((pu: any) => pu?.user?.id), error }
+					);
+					// Continue to the next page rather than aborting the whole project sync;
+					// the timestamp is held back below so nothing from this project is silently dropped.
 				}
 			}
 
-			// Update last sync timestamp
-			await DatabaseService.saveSyncTimestamp("projects_projects_users", projectId, syncDate);
+			grandFetched += fetchedCount;
+			grandPersisted += persistedCount;
+
+			if (hadInsertFailure) {
+				projectsHeldBack++;
+				log.warn(`Project ${projectId}: ${persistedCount}/${fetchedCount} project-users persisted this run; sync timestamp held back at ${lastSync ? lastSync.toISOString() : 'the beginning of time'} (was going to advance to ${syncDate.toISOString()}) due to insert failures above`);
+				// Do NOT update the sync timestamp: advancing it here would mean the
+				// project-users that failed to insert fall outside next run's
+				// range[updated_at] filter and would never be fetched again.
+			} else {
+				await DatabaseService.saveSyncTimestamp("projects_projects_users", projectId, syncDate);
+			}
 		}
+		log.info(`Finished syncing project users: ${grandPersisted}/${grandFetched} persisted across ${totalProjects} projects${projectsHeldBack > 0 ? ` (${projectsHeldBack} project(s) held back for retry, see warnings above)` : ''}`);
 	} catch (error) {
-		console.error(`Failed to sync project users`, error);
+		log.error(`Failed to sync project users`, error);
 		throw error;
 	}
-	log(2, `Finished syncing project users`);
 }
 
 /**
@@ -293,17 +328,17 @@ async function syncMissingUsers(fast42Api: Fast42, missingUserIds: number[]): Pr
 				const dbUser = transformApiUserToDb(userData, undefined);
 
 				if (await DatabaseService.getMissingCampusId(userData) !== null) {
-					log(2, `Inserting user ${dbUser.login} (ID: ${dbUser.id}) into Ghost Campus due to missing campus...`);
+					log.debug(`Inserting user ${dbUser.login} (ID: ${dbUser.id}) into Ghost Campus due to missing campus...`);
 					DatabaseService.insertCampus({ id: 42, name: `Ghost Campus` });
 					dbUser.primary_campus_id = 42; // Assign to Ghost Campus
 				}
 
 				await DatabaseService.insertUser(dbUser);
-				log(2, `Synced missing user ${dbUser.login} (ID: ${dbUser.id})`);
+				log.debug(`Synced missing user ${dbUser.login} (ID: ${dbUser.id})`);
 			}
 		}
 	} catch (error) {
-		console.error(`Failed to sync missing users`, error);
+		log.error(`Failed to sync missing users`, error);
 		throw error;
 	}
 }
@@ -322,9 +357,8 @@ export const fetchSingle42ApiPage = async function(api: Fast42, path: string, pa
 				const page = await api.get(path, params);
 
 				if (page.status == 429) {
-					console.error('Intra API rate limit exceeded, let\'s wait a bit...');
 					const waitFor = parseInt(page.headers.get('Retry-After') ?? '1');
-					console.log(`Waiting ${waitFor} seconds...`);
+					log.warn(`Intra API rate limit exceeded, waiting ${waitFor} seconds before retrying...`);
 					await new Promise((resolve) => setTimeout(resolve, waitFor * 1000 + Math.random() * 1000));
 					continue;
 				}
@@ -340,7 +374,7 @@ export const fetchSingle42ApiPage = async function(api: Fast42, path: string, pa
 		}
 		catch (err: any) {
 			if (err.message && err.message.includes('timed out')) {
-				console.log('Request timed out, retrying...');
+				log.warn('Request timed out, retrying...');
 				return resolve(fetchSingle42ApiPage(api, path, params));
 			}
 			return reject(err);
@@ -368,10 +402,10 @@ export const syncData = async function(api: Fast42, syncDate: Date, lastSyncDate
 
 	if (lastSyncDate !== undefined) {
 		params['range[updated_at]'] = `${lastSyncDate.toISOString()},${syncDate.toISOString()}`;
-		console.log(`Fetching data from Intra API updated on path ${path} since ${lastSyncDate.toISOString()}...`);
+		log.debug(`Fetching data from Intra API updated on path ${path} since ${lastSyncDate.toISOString()}...`);
 	}
 	else {
-		console.log(`Fetching all data from Intra API on path ${path}...`);
+		log.debug(`Fetching all data from Intra API on path ${path}...`);
 	}
 
 	return fetchMultiple42ApiPages(api, path, params);
@@ -396,9 +430,8 @@ export const fetchMultiple42ApiPages = async function(api: Fast42, path: string,
 				while (!p) {
 					p = await page;
 					if (p.status == 429) {
-						console.error('Intra API rate limit exceeded, let\'s wait a bit...');
 						const waitFor = parseInt(p.headers.get('Retry-After') ?? '1');
-						console.log(`Waiting ${waitFor} seconds...`);
+						log.warn(`Intra API rate limit exceeded, waiting ${waitFor} seconds before retrying...`);
 						await new Promise((resolve) => setTimeout(resolve, waitFor * 1000 + Math.random() * 1000));
 						p = null;
 						continue;
@@ -409,7 +442,7 @@ export const fetchMultiple42ApiPages = async function(api: Fast42, path: string,
 				}
 				if (p.ok) {
 					const data = await p.json();
-					console.debug(`Fetched page ${++i} of ${pages.length} on ${path}...`);
+					log.debug(`Fetched page ${++i} of ${pages.length} on ${path}...`);
 					return data;
 				}
 			}));
@@ -417,7 +450,7 @@ export const fetchMultiple42ApiPages = async function(api: Fast42, path: string,
 		}
 		catch (err: any) {
 			if (err.message && err.message.includes('timed out')) {
-				console.log('Request timed out, retrying...');
+				log.warn('Request timed out, retrying...');
 				return resolve(fetchSingle42ApiPage(api, path, params));
 			}
 			return reject(err);

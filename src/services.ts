@@ -1,5 +1,5 @@
 import { PrismaClient, User, Project, Campus, ProjectUser } from '@prisma/client'
-import { log } from 'console';
+import { log } from './logger';
 
 const prisma = new PrismaClient();
 
@@ -177,11 +177,11 @@ export class DatabaseService {
 			select: { primary_campus_id: true, campus: true },
 		});
 		if (!user) {
-			log(2, `User not found in getCampusByUser: ${userLogin}`);
+			log.debug(`User not found in getCampusByUser: ${userLogin}`);
 			return null;
 		}
 		if (!user.primary_campus_id || !user.campus) {
-			log(2, `Campus not assigned for user ${userLogin}`);
+			log.debug(`Campus not assigned for user ${userLogin}`);
 			return null;
 		}
 		return {name: user.campus.name, id: user.campus.id};

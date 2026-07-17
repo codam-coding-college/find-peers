@@ -373,22 +373,29 @@ export class DatabaseService {
 	 * @returns {Promise<void>} - Resolves when the operation is complete.
 	 */
 	static async anonymizeOldEntries(): Promise<void> {
-		// Delete project users and users whose anonymization date has passed or login starts with '3b3'
-		await prisma.projectUser.deleteMany({
-			where: {
-				OR: [
-					{ user: { anonymize_date: { lt: new Date().toISOString() } } },
-					{ user: { login: { startsWith: '3b3' } } }
-				]
-			}
-		});
-		await prisma.user.deleteMany({
-			where: {
-				OR: [
-					{ anonymize_date: { lt: new Date().toISOString() } },
-					{ login: { startsWith: '3b3' } }
-				]
-			}
-		});
+		try {
+			// Delete project users and users whose anonymization date has passed or login starts with '3b3'
+			await prisma.projectUser.deleteMany({
+				where: {
+					OR: [
+						{ user: { anonymize_date: { lt: new Date().toISOString() } } },
+						{ user: { login: { startsWith: '3b3' } } }
+					]
+				}
+			});
+			await prisma.user.deleteMany({
+				where: {
+					OR: [
+						{ anonymize_date: { lt: new Date().toISOString() } },
+						{ login: { startsWith: '3b3' } }
+					]
+				}
+			});
+		} catch (error) {
+			// Surface a clear, wrapped error (matching the insert methods) instead of
+			// letting a raw Prisma error escape. Anonymization is idempotent and retried
+			// every loop, so the main loop can log this and carry on to the next run.
+			throw new Error(`Failed to anonymize old entries: ${getErrorMessage(error)}`);
+		}
 	}
 }

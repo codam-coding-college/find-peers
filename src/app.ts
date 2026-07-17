@@ -38,8 +38,17 @@ async function msUntilNextPull(): Promise<number> {
 	await startWebserver(port);
 
 	while (true) {
-		await syncWithIntra();
-		await DatabaseService.anonymizeOldEntries();
-		await new Promise(async resolve => setTimeout(resolve, await msUntilNextPull() + 1000));
+		// Guard the whole loop body: a throw from any stage (a DB socket timeout in
+		// anonymizeOldEntries, an error computing the next pull time, etc.) must not
+		// become an unhandled rejection that kills the daemon. Log it and keep looping.
+		let delay = env.pullTimeout;
+		try {
+			await syncWithIntra();
+			await DatabaseService.anonymizeOldEntries();
+			delay = await msUntilNextPull();
+		} catch (error) {
+			log.error(`Sync loop iteration failed; retrying in ${(delay / 1000 / 60 / 60).toFixed(2)} hours`, error);
+		}
+		await new Promise(resolve => setTimeout(resolve, delay + 1000));
 	}
 })()

@@ -65,7 +65,9 @@ export function transformApiProjectToDb(apiProject: ApiProject): Project {
 		id: apiProject.id,
 		name: apiProject.name || '',
 		slug: apiProject.slug || '',
-		difficulty: apiProject.difficulty || null,
+		// Use ?? so a difficulty of 0 (exams, some sessions) is stored as 0 rather
+		// than NULL. SQLite sorts NULL first, so || null sent them to the top.
+		difficulty: apiProject.difficulty ?? null,
 		// A missing flag means 'not an exam', so it stays visible on the website.
 		exam: apiProject.exam ?? false,
 	};

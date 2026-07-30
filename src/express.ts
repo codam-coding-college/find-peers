@@ -30,8 +30,11 @@ async function errorPage(res: Response, error: string): Promise<void> {
  * @param requestedStatus The status of the projects to retrieve
  * @returns A list of projects for the specified campus and status, sorted on status.
  */
-async function getProjects(campusId: number, requestedStatus: string | undefined, showEmptyProjects: boolean): Promise<DisplayProject[]> {
-	const projectList = await DatabaseService.getAllProjects();
+async function getProjects(campusId: number, requestedStatus: string | undefined, showEmptyProjects: boolean, showExamProjects: boolean): Promise<DisplayProject[]> {
+	// Filter before fetching users, so hidden projects cost no database query.
+	// `exam === null` means the project predates the column and has not been
+	// synced since, so it stays visible rather than being hidden on a guess.
+	const projectList = (await DatabaseService.getAllProjects()).filter(project => showExamProjects || project.exam !== true);
 	if (!projectList.length) {
 		return [];
 	}
@@ -174,11 +177,12 @@ export async function startWebserver(port: number) {
 		}
 
 		const showEmptyProjects: boolean = req.query['showEmptyProjects'] === '1';
+		const showExamProjects: boolean = req.query['showExamProjects'] === '1';
 
 		// Get all necessary data to be displayed to the user
 		const userTimeZone = req.cookies.timezone || 'Europe/Amsterdam';
 		const settings = {
-			projects: await getProjects(campus.id, requestedStatus, showEmptyProjects),
+			projects: await getProjects(campus.id, requestedStatus, showEmptyProjects, showExamProjects),
 			lastUpdate: await DatabaseService.getLastSyncTimestamp("full", 1).then(date => date ? date.toLocaleString('en-NL', { timeZone: userTimeZone }).slice(0, -3) : 'N/A'),
 			hoursAgo: (((Date.now()) - await DatabaseService.getLastSyncTimestamp("full", 1).then(date => date ? date.getTime() : 0)) / (1000 * 60 * 60)).toFixed(2), // hours ago
 			requestedStatus,
@@ -189,6 +193,7 @@ export async function startWebserver(port: number) {
 			updateEveryHours: (env.pullTimeout / 1000 / 60 / 60).toFixed(0),
 			userNewStatusThresholdDays: env.userNewStatusThresholdDays,
 			showEmptyProjects,
+			showExamProjects,
 			totalUsers: await DatabaseService.countUniqueProjectUsersInCampus(campus.id),
 		};
 		res.render('index.ejs', settings);

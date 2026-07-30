@@ -34,6 +34,7 @@ export interface ApiProject {
 	name?: string;
 	slug?: string;
 	difficulty?: number;
+	exam?: boolean; // Whether the project is an exam (Exam Rank 02, etc.)
 	campus?: {
 		id: number;
 	}[]; // List of campuses associated with the project

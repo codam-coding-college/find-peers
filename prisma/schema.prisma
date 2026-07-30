@@ -24,6 +24,7 @@ model Project {
   name       String
   slug       String
   difficulty Int?
+  exam       Boolean?
   users      ProjectUser[]
 }
 

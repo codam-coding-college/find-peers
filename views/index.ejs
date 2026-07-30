@@ -304,6 +304,22 @@
 			window.location.search = params.toString();
 		}
 	</script>
+
+	<label for="show-exam-projects"> show exam projects
+		<input type="checkbox" id="show-exam-projects" onchange="toggleExamProjects()" <% if (showExamProjects) { %>checked<% } %> />
+	</label>
+	<script>
+		function toggleExamProjects() {
+			const checked = document.getElementById('show-exam-projects').checked;
+			const params = new URLSearchParams(window.location.search);
+			if (checked) {
+				params.set('showExamProjects', '1');
+			} else {
+				params.delete('showExamProjects');
+			}
+			window.location.search = params.toString();
+		}
+	</script>
 </div>
 
 

@@ -56,8 +56,8 @@ export function transformApiCampusToDb(apiCampus: ApiCampus): Campus {
 }
 
 /**
- * Transforms 42Api /v2/projects_users data to Database data.
- * @param apiProjectUser Fetched data from the 42Api
+ * Transforms 42Api /v2/projects data to Database data.
+ * @param apiProject Fetched data from the 42Api
  * @returns Project object for the database
  */
 export function transformApiProjectToDb(apiProject: ApiProject): Project {
@@ -66,5 +66,7 @@ export function transformApiProjectToDb(apiProject: ApiProject): Project {
 		name: apiProject.name || '',
 		slug: apiProject.slug || '',
 		difficulty: apiProject.difficulty || null,
+		// A missing flag means 'not an exam', so it stays visible on the website.
+		exam: apiProject.exam ?? false,
 	};
 }
